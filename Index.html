@@ -1,1 +1,1854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#0f0f12"/>
+<title>ClassPulse — School Media Platform</title>
+<style>
+/* ============================================================
+   CLASSPULSE V2 — YouTube-style school platform
+   ============================================================ */
+:root{
+  --brand:#6c5ce7; --brand2:#00d2ff;
+  --bg:#0f0f12; --bg2:#17171c; --card:#1c1c22; --hover:#26262e;
+  --txt:#f1f1f4; --muted:#9b9bab; --line:#2c2c36;
+  --good:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+  --top:56px; --side:236px; --r:14px;
+}
+body.light{
+  --bg:#ffffff; --bg2:#f6f7fb; --card:#f1f2f7; --hover:#e6e8f1;
+  --txt:#12131a; --muted:#5f6478; --line:#e2e4ee;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:var(--bg);color:var(--txt);
+  font-family:"Roboto","Segoe UI",system-ui,-apple-system,Inter,Arial,sans-serif;
+  overflow-x:hidden;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+a{color:inherit;text-decoration:none}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:20px}
+::-webkit-scrollbar-track{background:transparent}
+.hide{display:none !important}
+.mut{color:var(--muted)}
+
+/* ---------- AUTH ---------- */
+#auth{position:fixed;inset:0;z-index:200;display:grid;place-items:center;padding:16px;overflow:auto;background:var(--bg)}
+.authcard{width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--line);border-radius:22px;padding:24px}
+.brandrow{display:flex;align-items:center;gap:11px;margin-bottom:8px}
+.blogo{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;font-size:21px;
+  background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}
+.brandrow h1{margin:0;font-size:22px;letter-spacing:-.5px}
+.field{margin-top:12px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;margin-bottom:5px}
+.inp{width:100%;padding:11px 13px;border-radius:11px;background:var(--card);border:1px solid var(--line);outline:none;transition:.15s}
+.inp:focus{border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 25%,transparent)}
+textarea.inp{resize:vertical;min-height:80px;line-height:1.5}
+select.inp{appearance:none}
+.err{background:var(--bad);color:#fff;padding:9px 12px;border-radius:10px;font-size:13px;margin-top:10px}
+.note{font-size:12.5px;color:var(--muted);line-height:1.55}
+
+/* ---------- BUTTONS ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 15px;border-radius:99px;
+  background:var(--card);border:1px solid var(--line);font-weight:600;font-size:14px;transition:.13s}
+.btn:hover{background:var(--hover)}
+.btn:active{transform:scale(.97)}
+.btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));border:0;color:#fff}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.dark{background:var(--txt);color:var(--bg);border:0}
+.btn.sm{padding:6px 12px;font-size:13px}
+.btn.block{width:100%}
+.btn.bad{background:var(--bad);color:#fff;border:0}
+.btn.ok{background:var(--good);color:#fff;border:0}
+.btn.ghost{background:transparent;border:1px solid var(--line)}
+.btn[disabled]{opacity:.45;pointer-events:none}
+.ico{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:18px;position:relative;transition:.13s}
+.ico:hover{background:var(--hover)}
+.dot{position:absolute;top:7px;right:7px;min-width:15px;height:15px;padding:0 3px;border-radius:9px;background:var(--bad);
+  color:#fff;font-size:9.5px;font-weight:800;display:grid;place-items:center;border:2px solid var(--bg)}
+
+/* ---------- TOP BAR ---------- */
+#top{position:fixed;top:0;left:0;right:0;height:var(--top);z-index:60;display:flex;align-items:center;gap:8px;
+  padding:0 12px;background:var(--bg);border-bottom:1px solid var(--line)}
+#top .logo{display:flex;align-items:center;gap:8px;font-weight:800;font-size:18px;letter-spacing:-.6px}
+#top .logo .m{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;font-size:15px;
+  background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff}
+#searchWrap{flex:1;display:flex;justify-content:center;padding:0 12px}
+#searchForm{display:flex;width:100%;max-width:560px}
+#searchForm input{flex:1;padding:9px 16px;border-radius:99px 0 0 99px;background:var(--bg2);border:1px solid var(--line);
+  border-right:0;outline:none;font-size:14.5px}
+#searchForm input:focus{border-color:var(--brand)}
+#searchForm button{width:62px;border-radius:0 99px 99px 0;background:var(--card);border:1px solid var(--line);font-size:16px}
+#searchForm button:hover{background:var(--hover)}
+.topright{display:flex;align-items:center;gap:4px}
+#mSearchBtn{display:none}
+
+/* ---------- SIDEBAR ---------- */
+#side{position:fixed;top:var(--top);bottom:0;left:0;width:var(--side);z-index:55;overflow-y:auto;
+  background:var(--bg);padding:10px 8px 24px;transition:transform .2s}
+.snav{display:flex;align-items:center;gap:16px;padding:9px 12px;border-radius:11px;font-size:14px;font-weight:500;width:100%;text-align:left}
+.snav i{font-style:normal;font-size:19px;width:22px;text-align:center}
+.snav:hover{background:var(--hover)}
+.snav.on{background:var(--hover);font-weight:700}
+.sdiv{height:1px;background:var(--line);margin:11px 8px}
+.slabel{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding:6px 12px}
+#scrim{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:54;opacity:0;pointer-events:none;transition:.2s}
+body.drawer #scrim{opacity:1;pointer-events:auto}
+body.sidehidden #side{transform:translateX(-100%)}
+body.sidehidden #main{margin-left:0}
+
+/* ---------- MAIN ---------- */
+#main{margin-left:var(--side);padding:calc(var(--top) + 16px) 22px 90px;min-height:100vh;transition:margin .2s}
+.wrap{max-width:1400px;margin:0 auto}
+
+/* ---------- BOTTOM NAV ---------- */
+#bottom{display:none;position:fixed;bottom:0;left:0;right:0;height:58px;z-index:60;background:var(--bg);
+  border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+#bottom .bwrap{display:flex;height:58px;align-items:center;justify-content:space-around}
+#bottom button{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-weight:600;color:var(--muted);flex:1;position:relative}
+#bottom button i{font-style:normal;font-size:21px;line-height:1}
+#bottom button.on{color:var(--txt)}
+#bottom .plus i{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-size:24px;
+  background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;margin-bottom:-2px}
+#bottom .bdot{position:absolute;top:2px;right:24%;min-width:14px;height:14px;padding:0 3px;border-radius:8px;background:var(--bad);
+  color:#fff;font-size:9px;font-weight:800;display:grid;place-items:center}
+
+/* ---------- CHIPS ---------- */
+.chiprow{display:flex;gap:9px;overflow-x:auto;padding:2px 0 14px;scrollbar-width:none}
+.chiprow::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:7px 14px;border-radius:99px;background:var(--card);border:1px solid var(--line);
+  font-size:13.5px;font-weight:600;white-space:nowrap}
+.chip:hover{background:var(--hover)}
+.chip.on{background:var(--txt);color:var(--bg);border-color:var(--txt)}
+
+/* ---------- VIDEO GRID / CARDS ---------- */
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:22px 16px}
+.vcard{cursor:pointer}
+.thumb{position:relative;width:100%;aspect-ratio:16/9;border-radius:13px;overflow:hidden;background:#000;display:grid;place-items:center}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb .em{font-size:52px;filter:drop-shadow(0 8px 20px rgba(0,0,0,.45))}
+.thumb .dur{position:absolute;right:7px;bottom:7px;background:rgba(0,0,0,.82);color:#fff;font-size:11.5px;font-weight:700;
+  padding:2px 5px;border-radius:5px;letter-spacing:.3px}
+.thumb .pend{position:absolute;left:7px;top:7px;background:var(--warn);color:#241a00;font-size:10px;font-weight:800;
+  padding:3px 7px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px}
+.thumb .priv{position:absolute;left:7px;top:7px;background:rgba(0,0,0,.75);color:#fff;font-size:10px;font-weight:800;
+  padding:3px 7px;border-radius:6px;text-transform:uppercase}
+.vcard:hover .thumb{filter:brightness(1.06)}
+.vmeta{display:flex;gap:11px;margin-top:10px}
+.vtitle{font-size:14.5px;font-weight:700;line-height:1.35;margin:0 0 4px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.vsub{font-size:12.5px;color:var(--muted);line-height:1.5}
+.vsub .cn{display:flex;align-items:center;gap:4px}
+.av{border-radius:50%;flex:none;display:grid;place-items:center;font-weight:800;color:#fff;width:36px;height:36px;font-size:14px;overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover}
+.av.xs{width:24px;height:24px;font-size:10px}
+.av.sm{width:32px;height:32px;font-size:12px}
+.av.lg{width:80px;height:80px;font-size:30px}
+.av.xl{width:104px;height:104px;font-size:38px}
+.verif{font-size:11px;color:var(--muted)}
+.sect{font-size:17px;font-weight:800;letter-spacing:-.3px;margin:18px 2px 12px;display:flex;align-items:center;gap:8px}
+.empty{text-align:center;padding:52px 18px;color:var(--muted);font-size:14px}
+.empty .e{display:block;font-size:46px;margin-bottom:10px}
+
+/* ---------- SHORTS SHELF ---------- */
+.shelf{display:flex;gap:13px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.shelf::-webkit-scrollbar{display:none}
+.scard{flex:none;width:158px;cursor:pointer}
+.sthumb{width:158px;height:280px;border-radius:13px;overflow:hidden;position:relative;display:grid;place-items:center;background:#000}
+.sthumb img,.sthumb video{width:100%;height:100%;object-fit:cover}
+.sthumb .em{font-size:52px}
+.sthumb .cap{position:absolute;left:8px;right:8px;bottom:8px;color:#fff;font-size:12.5px;font-weight:700;line-height:1.35;
+  text-shadow:0 2px 10px rgba(0,0,0,.8);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* ---------- WATCH ---------- */
+.watch{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start}
+.player{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:14px;overflow:hidden;display:grid;place-items:center}
+.player video{width:100%;height:100%;object-fit:contain;background:#000}
+.player .art{position:absolute;inset:0;display:grid;place-items:center}
+.player .art .em{font-size:96px;animation:bob 3.4s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(-10px)}50%{transform:translateY(10px)}}
+.pbar{position:absolute;left:0;right:0;bottom:0;padding:8px 12px 10px;color:#fff;
+  background:linear-gradient(to top,rgba(0,0,0,.85),transparent)}
+.pbar .track{height:4px;border-radius:3px;background:rgba(255,255,255,.28);cursor:pointer;position:relative;margin-bottom:7px}
+.pbar .track i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--brand2);display:block}
+.pbar .track b{position:absolute;top:-4px;width:12px;height:12px;border-radius:50%;background:#fff;transform:translateX(-6px)}
+.pctrl{display:flex;align-items:center;gap:12px;font-size:16px}
+.pctrl .t{font-size:12px;font-variant-numeric:tabular-nums;opacity:.9}
+.pctrl button{color:#fff;font-size:17px}
+.pbig{position:absolute;inset:0;display:grid;place-items:center;font-size:62px;color:#fff;opacity:0;transition:.25s;pointer-events:none}
+.pbig.show{opacity:.9}
+.wtitle{font-size:20px;font-weight:800;line-height:1.35;margin:15px 0 10px;letter-spacing:-.3px}
+.wbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.wbar .grow{flex:1;min-width:180px}
+.actgrp{display:flex;background:var(--card);border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.actgrp button{padding:8px 15px;font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:6px}
+.actgrp button:hover{background:var(--hover)}
+.actgrp button.on{color:var(--brand2)}
+.actgrp .sep{width:1px;background:var(--line)}
+.desc{background:var(--card);border-radius:13px;padding:13px 15px;margin-top:15px;font-size:14px;line-height:1.6}
+.desc .st{font-weight:800;margin-bottom:6px;font-size:13.5px}
+.desc .body{white-space:pre-wrap;word-break:break-word}
+.desc .body.clip{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.cmt{display:flex;gap:11px;margin-bottom:16px}
+.cmt .cbody{flex:1;min-width:0}
+.cmt .chead{font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+.cmt .ctext{font-size:14px;line-height:1.5;margin:3px 0 5px;white-space:pre-wrap;word-break:break-word}
+.cmt .cacts{display:flex;gap:14px;font-size:12px;color:var(--muted);font-weight:600}
+.cmt .cacts button{color:var(--muted);font-size:12px}
+.cmt .cacts button:hover{color:var(--txt)}
+.cbox{display:flex;gap:11px;margin:14px 0 22px}
+.cbox input{flex:1;background:transparent;border:0;border-bottom:1px solid var(--line);padding:7px 2px;outline:none;font-size:14px}
+.cbox input:focus{border-color:var(--brand)}
+.rel{display:flex;gap:10px;margin-bottom:13px;cursor:pointer}
+.rel .rt{width:168px;flex:none;aspect-ratio:16/9;border-radius:10px;overflow:hidden;position:relative;display:grid;place-items:center;background:#000}
+.rel .rt img{width:100%;height:100%;object-fit:cover}
+.rel .rt .em{font-size:30px}
+.rel .rt .dur{position:absolute;right:5px;bottom:5px;background:rgba(0,0,0,.82);color:#fff;font-size:10.5px;padding:1px 4px;border-radius:4px;font-weight:700}
+.rel h4{margin:0 0 4px;font-size:13.5px;font-weight:700;line-height:1.35;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.rel p{margin:0;font-size:12px;color:var(--muted);line-height:1.45}
+
+/* ---------- SHORTS PLAYER ---------- */
+body.shortsmode{overflow:hidden}
+body.shortsmode #main{padding:var(--top) 0 0;margin-left:var(--side)}
+#sfeed{position:relative;height:calc(100vh - var(--top));height:calc(100dvh - var(--top));overflow-y:scroll;scroll-snap-type:y mandatory;background:#000;
+  display:flex;flex-direction:column;align-items:center}
+/* Each short fills the feed; never shrink all reels into one screen. */
+.sreel{flex:none;position:relative;width:100%;max-width:440px;height:100%;scroll-snap-align:start;scroll-snap-stop:always;
+  display:grid;place-items:center;overflow:hidden}
+.sreel video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.sreel .art{position:absolute;inset:0;display:grid;place-items:center}
+.sreel .art .em{font-size:100px;animation:bob 3.2s ease-in-out infinite}
+.sov{position:absolute;inset:0;pointer-events:none;background:linear-gradient(to top,rgba(0,0,0,.8),transparent 42%,rgba(0,0,0,.35))}
+.sinfo{position:absolute;left:14px;right:80px;bottom:20px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.7)}
+.sinfo .cap{font-size:14px;line-height:1.45;margin-top:8px}
+.sinfo .vw{font-size:12px;opacity:.85;margin-top:7px}
+.srail{position:absolute;right:10px;bottom:22px;display:flex;flex-direction:column;gap:18px;align-items:center;color:#fff}
+.srail button{color:#fff;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;
+  text-shadow:0 2px 8px rgba(0,0,0,.7)}
+.srail i{font-style:normal;font-size:27px}
+.srail .on{color:#ff5d8f}
+.shint{position:absolute;top:10px;left:0;right:0;text-align:center;color:#fff;font-size:12px;opacity:.7;pointer-events:none}
+.stap{position:absolute;inset:0;display:grid;place-items:center;font-size:58px;color:#fff;opacity:0;transition:.25s;pointer-events:none}
+.stap.show{opacity:.85}
+
+/* ---------- CHANNEL ---------- */
+.banner{width:100%;aspect-ratio:6.2/1;min-height:110px;border-radius:15px;overflow:hidden;position:relative}
+.banner img{width:100%;height:100%;object-fit:cover}
+.chead{display:flex;gap:20px;align-items:center;padding:18px 4px;flex-wrap:wrap}
+.chead h1{margin:0 0 5px;font-size:25px;letter-spacing:-.6px}
+.chead .h{font-size:13.5px;color:var(--muted)}
+.ctabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto;scrollbar-width:none}
+.ctabs::-webkit-scrollbar{display:none}
+.ctab{padding:11px 16px;font-size:14px;font-weight:700;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.ctab.on{color:var(--txt);border-color:var(--txt)}
+
+/* ---------- CARDS / LISTS ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin-bottom:12px}
+.row{display:flex;align-items:center;gap:11px}
+.between{display:flex;align-items:center;justify-content:space-between;gap:11px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px;text-align:center}
+.stat b{display:block;font-size:23px;letter-spacing:-.6px}
+.stat span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.tag{font-size:10px;font-weight:800;padding:3px 7px;border-radius:6px;text-transform:uppercase;letter-spacing:.5px;
+  background:var(--hover);border:1px solid var(--line);color:var(--muted)}
+.tag.g{background:var(--good);color:#04240f;border:0}
+.tag.w{background:var(--warn);color:#2a1d00;border:0}
+.tag.r{background:var(--bad);color:#fff;border:0}
+.hr{height:1px;background:var(--line);margin:13px 0}
+
+/* ---------- MODAL / SHEET ---------- */
+#modal{position:fixed;inset:0;z-index:120;display:grid;place-items:center;background:rgba(0,0,0,.66);backdrop-filter:blur(3px);padding:16px}
+.sheet{width:100%;max-width:560px;max-height:88vh;overflow:auto;background:var(--bg2);border:1px solid var(--line);
+  border-radius:20px;padding:18px;animation:pop .22s ease}
+@keyframes pop{from{transform:translateY(18px) scale(.98);opacity:0}}
+.sheet h3{margin:0 0 4px;font-size:19px;letter-spacing:-.3px}
+.steps{display:flex;gap:6px;margin:14px 0}
+.steps i{flex:1;height:4px;border-radius:3px;background:var(--line)}
+.steps i.on{background:var(--brand)}
+.drop{border:2px dashed var(--line);border-radius:16px;padding:30px 18px;text-align:center;cursor:pointer;transition:.15s}
+.drop:hover{border-color:var(--brand);background:var(--card)}
+.drop .e{font-size:42px;display:block;margin-bottom:8px}
+.thumbpick{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-top:9px}
+.tp{aspect-ratio:16/9;border-radius:10px;display:grid;place-items:center;font-size:26px;border:2px solid transparent;overflow:hidden}
+.tp img{width:100%;height:100%;object-fit:cover}
+.tp.on{border-color:var(--brand)}
+.radio{display:flex;gap:9px;flex-wrap:wrap;margin-top:7px}
+.radio button{padding:9px 14px;border-radius:11px;background:var(--card);border:1px solid var(--line);font-size:13px;font-weight:600;text-align:left}
+.radio button.on{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 18%,transparent)}
+.prog{height:6px;border-radius:4px;background:var(--card);overflow:hidden;margin:12px 0}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--brand2));transition:width .25s}
+.switch{width:44px;height:26px;border-radius:99px;background:var(--card);border:1px solid var(--line);position:relative;flex:none;transition:.18s}
+.switch i{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--muted);transition:.18s}
+.switch.on{background:var(--brand);border-color:var(--brand)}
+.switch.on i{left:20px;background:#fff}
+.srow{display:flex;align-items:center;gap:12px;padding:11px 0}
+.srow div{flex:1}.srow p{margin:2px 0 0;font-size:11.5px;color:var(--muted)}
+
+/* ---------- TOASTS ---------- */
+#toasts{position:fixed;top:10px;left:0;right:0;z-index:300;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;padding:0 10px}
+.toast{pointer-events:auto;width:100%;max-width:400px;display:flex;gap:10px;align-items:center;padding:11px 14px;border-radius:14px;
+  background:var(--bg2);border:1px solid var(--line);box-shadow:0 14px 40px rgba(0,0,0,.45);animation:drop .3s cubic-bezier(.2,1.4,.4,1)}
+@keyframes drop{from{transform:translateY(-110%);opacity:0}}
+.toast b{font-size:13.5px}.toast p{margin:1px 0 0;font-size:12px;color:var(--muted)}
+
+/* ---------- RESPONSIVE ---------- */
+@media(max-width:1150px){
+  .watch{grid-template-columns:1fr}
+  #side{transform:translateX(-100%);box-shadow:0 0 40px rgba(0,0,0,.5);border-right:1px solid var(--line)}
+  #main{margin-left:0 !important}
+  body.drawer #side{transform:none}
+  body.shortsmode #main{margin-left:0}
+}
+@media(max-width:760px){
+  :root{--top:52px}
+  #main{padding:calc(var(--top) + 12px) 12px 84px}
+  #bottom{display:block}
+  #searchWrap{display:none}
+  body.searching #searchWrap{display:flex;position:fixed;top:0;left:0;right:0;height:var(--top);background:var(--bg);
+    z-index:70;align-items:center;padding:0 10px}
+  body.searching #searchForm{max-width:none}
+  #mSearchBtn{display:grid}
+  #topCreate{display:none}
+  .vgrid{grid-template-columns:1fr;gap:20px}
+  .vcard .thumb{border-radius:12px}
+  .rel .rt{width:142px}
+  .wtitle{font-size:17px}
+  .chead{gap:14px}
+  .chead h1{font-size:20px}
+  .av.xl{width:78px;height:78px;font-size:28px}
+  body.shortsmode #main{padding-top:var(--top)}
+  body.shortsmode #bottom{height:calc(58px + env(safe-area-inset-bottom))}
+  #sfeed{height:calc(100vh - var(--top) - 58px - env(safe-area-inset-bottom));height:calc(100dvh - var(--top) - 58px - env(safe-area-inset-bottom))}
+  .sreel{max-width:none}
+  .sheet{max-height:92vh;border-radius:18px}
+}
+@media(min-width:761px){ body.drawer #scrim{opacity:0;pointer-events:none} }
+</style>
+</head>
+<body>
+
+<!-- ================= AUTH ================= -->
+<div id="auth">
+  <div class="authcard">
+    <div class="brandrow">
+      <div class="blogo">▶</div>
+      <div>
+        <h1>ClassPulse</h1>
+        <div class="note">School media platform · <span id="domLabel">school.edu</span></div>
+      </div>
+    </div>
+    <p class="note" style="margin:10px 0 0">Closed network for verified students &amp; staff. Uploads can be reviewed by teachers before going live.</p>
+    <div class="field"><label>School email</label><input class="inp" id="aEmail" type="email" placeholder="you@school.edu" autocomplete="username"/></div>
+    <div class="field"><label>Display name</label><input class="inp" id="aName" placeholder="e.g. Aisha K." autocomplete="name"/></div>
+    <div class="field"><label>Class / Year</label><input class="inp" id="aClass" placeholder="e.g. 10-B"/></div>
+    <div class="field"><label>Passcode (min 4)</label><input class="inp" id="aPass" type="password" placeholder="••••" autocomplete="current-password"/></div>
+    <div class="field"><label>Staff code (optional)</label><input class="inp" id="aCode" placeholder="Teachers only"/></div>
+    <div id="aErr"></div>
+    <button class="btn primary block" id="aGo" style="margin-top:16px">Enter ClassPulse</button>
+    <div class="hr"></div>
+    <div class="slabel" style="padding:0 0 8px">Demo accounts — tap to fill</div>
+    <div class="chiprow" style="flex-wrap:wrap;overflow:visible;padding-bottom:0" id="demoChips"></div>
+    <p class="note" style="margin-top:14px">Demo build: everything is stored in this browser (localStorage). Uploaded video files last for the session only — a real deployment needs a server, database and video storage (see V3).</p>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app" class="hide">
+  <header id="top">
+    <button class="ico" id="btnMenu" title="Menu">☰</button>
+    <a class="logo" href="#/home"><span class="m">▶</span><span id="brandTxt">ClassPulse</span></a>
+    <div id="searchWrap">
+      <form id="searchForm" autocomplete="off">
+        <input id="q" placeholder="Search videos, shorts, channels" />
+        <button type="submit" title="Search">🔍</button>
+      </form>
+    </div>
+    <div class="topright">
+      <button class="ico" id="mSearchBtn" title="Search">🔍</button>
+      <button class="btn" id="topCreate" style="margin-right:4px">＋ Create</button>
+      <button class="ico" id="btnTheme" title="Theme">🌙</button>
+      <button class="ico" id="btnBell" title="Notifications">🔔</button>
+      <button class="ico" id="btnMe" title="You"></button>
+    </div>
+  </header>
+
+  <aside id="side"></aside>
+  <div id="scrim"></div>
+  <main id="main"><div class="wrap" id="view"></div></main>
+
+  <nav id="bottom"><div class="bwrap">
+    <button data-bnav="home"><i>🏠</i>Home</button>
+    <button data-bnav="shorts"><i>⚡</i>Shorts</button>
+    <button data-bnav="create" class="plus"><i>＋</i>Create</button>
+    <button data-bnav="alerts"><i>🔔</i>Alerts<span class="bdot hide" id="bDot">0</span></button>
+    <button data-bnav="you"><i>👤</i>You</button>
+  </div></nav>
+</div>
+
+<div id="modal" class="hide"></div>
+<div id="toasts"></div>
+
+<script>
+"use strict";
+/* ===========================================================================
+   CLASSPULSE V2 — single-file YouTube-style school platform
+   Layers: Store → Bus(sync) → Router → Views → Components
+   =========================================================================== */
+
+/* ---------------- helpers ---------------- */
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const uid = ()=>Math.random().toString(36).slice(2,10);
+const esc = s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const nf = n => n>=1e6?(n/1e6).toFixed(1).replace(/\.0$/,"")+"M" : n>=1e3?(n/1e3).toFixed(1).replace(/\.0$/,"")+"K" : String(n||0);
+const dur = s => { s=Math.max(0,Math.round(s||0)); const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;
+  return (h?h+":"+String(m).padStart(2,"0"):m)+":"+String(x).padStart(2,"0"); };
+function ago(ts){ const s=Math.max(1,(Date.now()-ts)/1000);
+  if(s<60)return "just now"; if(s<3600)return Math.floor(s/60)+" min ago";
+  if(s<86400)return Math.floor(s/3600)+" hours ago"; if(s<604800)return Math.floor(s/86400)+" days ago";
+  if(s<2592000)return Math.floor(s/604800)+" weeks ago"; return new Date(ts).toLocaleDateString(); }
+const COLORS=["#6c5ce7","#00b894","#e17055","#0984e3","#d63031","#e84393","#f39c12","#00cec9","#8e44ad","#2d98da"];
+const colorOf = s => COLORS[Array.from(String(s)).reduce((a,c)=>a+c.charCodeAt(0),0)%COLORS.length];
+const initials = n => String(n||"?").trim().split(/\s+/).slice(0,2).map(w=>w[0]||"").join("").toUpperCase()||"?";
+const handleize = s => "@"+String(s||"user").toLowerCase().replace(/[^a-z0-9]+/g,"").slice(0,18);
+
+const CATS=["All","Announcements","Science","Sports","Arts","Music","Coding","Events","Clubs","Other"];
+const ARTS=[["🔬",["#003049","#0077b6"]],["🏀",["#0f3057","#00587a"]],["🎨",["#5f0f40","#9a031e"]],
+            ["🎭",["#240046","#7b2cbf"]],["💻",["#0b3d2e","#1b998b"]],["📚",["#3d2c1e","#8a5a2b"]],
+            ["🎵",["#2b0f3a","#b5179e"]],["🏫",["#101d42","#2a4d9b"]],["⚽",["#0b3c1d","#2d9e4f"]],
+            ["🧪",["#12263a","#3f88c5"]],["🎬",["#1b1b3a","#4a1942"]],["🏆",["#4a3200","#c9821a"]]];
+const randArt=()=>{const a=ARTS[(Math.random()*ARTS.length)|0];return {em:a[0],g:a[1]};};
+
+/* ===========================================================================
+   STORE
+   =========================================================================== */
+const KEY="classpulse.v2", SKEY="classpulse.v2.session";
+let DB=null, ME=null;
+
+function seed(){
+  const now=Date.now(), H=3600e3, D=24*H;
+  const users={}, channels={}, videos=[];
+
+  const mkUser=(id,name,email,role,klass,bio)=>users[id]={id,name,email,role,klass,bio,pass:"1234",
+    joined:now-60*D,banned:false,subs:[],likedVids:[],avatar:null};
+  mkUser("u_riv","Ms. Rivera","rivera@school.edu","teacher","Staff · Science","Science teacher & robotics lead 🔬");
+  mkUser("u_ais","Aisha K.","aisha@school.edu","student","10-B","Basketball 🏀 + editing reels");
+  mkUser("u_leo","Leo M.","leo@school.edu","student","11-A","Speedruns, gaming, chaos 🐍");
+  mkUser("u_pri","Priya S.","priya@school.edu","student","9-C","Art club · doodles everything");
+  mkUser("u_mar","Marcus T.","marcus@school.edu","student","11-A","Beats, football and chess");
+  mkUser("u_nin","Nina B.","nina@school.edu","student","10-B","Debate team captain 🎤");
+
+  const mkCh=(id,name,handle,desc,em,g,owner,official)=>channels[id]={id,name,handle,desc,emoji:em,grad:g,
+    owner:owner||null,official:!!official,avatar:null,banner:null,subs:[],created:now-60*D};
+  mkCh("c_school","Official School","@school","Announcements, ceremonies and everything official from the school 🏫","🏫",["#101d42","#2a4d9b"],"u_riv",true);
+  mkCh("c_sci","Science Club","@scienceclub","Experiments, science fair and robotics 🔬","🔬",["#003049","#0077b6"],"u_riv",true);
+  mkCh("c_sport","Sports","@sports","Matches, tryouts and highlights ⚽","⚽",["#0b3c1d","#2d9e4f"],"u_riv",true);
+  mkCh("c_art","Art Club","@artclub","Murals, sketches and timelapses 🎨","🎨",["#5f0f40","#9a031e"],"u_pri",true);
+  mkCh("c_code","Coding Club","@codingclub","We build things that (mostly) work 💻","💻",["#0b3d2e","#1b998b"],"u_leo",true);
+  mkCh("c_drama","Drama Club","@dramaclub","Plays, annual day and rehearsals 🎭","🎭",["#240046","#7b2cbf"],"u_nin",true);
+  mkCh("c_lib","Library","@library","Book club, reading challenges and quiet chaos 📚","📚",["#3d2c1e","#8a5a2b"],"u_riv",true);
+  Object.values(users).forEach(u=>mkCh("c_"+u.id,u.name,handleize(u.name),u.bio,initials(u.name)==="?"?"👤":null,
+    [colorOf(u.id),"#1b1b2e"],u.id,false));
+
+  const V=(ch,title,desc,cat,hours,views,len,art,kind)=>videos.push({
+    id:"v_"+uid(),ch,title,desc,cat,audience:"school",kind:kind||"video",
+    art:{em:art[0],g:art[1]},thumb:null,src:null,session:false,dur:len,views,
+    likes:[],dislikes:[],comments:[],ts:now-hours*H,status:"approved",reports:[],cmtOn:true,tags:[]});
+
+  V("c_school","Annual Day 2026 — Full Ceremony","The complete Annual Day ceremony: prize distribution, performances and the principal's address.\n\nTimestamps in the comments!","Events",26,2310,4472,["🏫",["#101d42","#2a4d9b"]]);
+  V("c_sci","Science Exhibition 2026 — Walkthrough","Every stall from this year's exhibition. Volcano models, a working hydraulic arm, and Priya's terrifying slime.","Science",48,1240,272,["🔬",["#003049","#0077b6"]]);
+  V("c_sci","Liquid Nitrogen Demo (do NOT try at home)","Ms. Rivera freezes a rose, a balloon and briefly, her patience.","Science",8,1780,183,["🧪",["#12263a","#3f88c5"]]);
+  V("c_sport","Basketball Finals — Last 2 Minutes","Buzzer beater. That's it. That's the video.","Sports",15,1890,148,["🏀",["#0f3057","#00587a"]]);
+  V("c_sport","Sports Day Highlights","Relay, long jump, and the teachers' race that got way too competitive.","Sports",72,940,331,["⚽",["#0b3c1d","#2d9e4f"]]);
+  V("c_art","East Corridor Mural — 6 Week Timelapse","Six weeks of Art Club compressed into four minutes. Headphones recommended 🎨","Arts",30,860,247,["🎨",["#5f0f40","#9a031e"]]);
+  V("c_drama","Romeo & Juliet — Act 1 (School Production)","Drama Club's spring production, filmed from the balcony. Sorry about the coughing in row 3.","Arts",96,612,1840,["🎭",["#240046","#7b2cbf"]]);
+  V("c_code","Building a School App in 48 Hours","Coding Club's hackathon recap. We slept for 3 hours combined.","Coding",54,703,918,["💻",["#0b3d2e","#1b998b"]]);
+  V("c_lib","Book Club: What We Read This Term","Six books, six very different opinions, one mild argument about endings.","Clubs",120,318,655,["📚",["#3d2c1e","#8a5a2b"]]);
+  V("c_school","📢 Spirit Week — Full Schedule","Monday pyjama day, Tuesday jersey day, Wednesday decades day, Thursday colour day, Friday house colours.","Announcements",3,1102,96,["🏆",["#4a3200","#c9821a"]]);
+  V("c_u_mar","Study Hall Beat — Made in One Period","Cooked this in 40 minutes between maths and lunch 🔊","Music",22,455,131,["🎵",["#2b0f3a","#b5179e"]]);
+  V("c_u_nin","Debate Final — Should Schools Have Social Networks?","Our debate final. Spoiler: we have opinions, and so does the audience.","Clubs",64,389,1265,["🎬",["#1b1b3a","#4a1942"]]);
+
+  const S=(ch,cap,hours,views,art)=>videos.push({
+    id:"v_"+uid(),ch,title:cap,desc:"",cat:"Other",audience:"school",kind:"short",
+    art:{em:art[0],g:art[1]},thumb:null,src:null,session:false,dur:14,views,
+    likes:[],dislikes:[],comments:[],ts:now-hours*H,status:"approved",reports:[],cmtOn:true,tags:[]});
+  S("c_u_ais","Buzzer beater from half court 🏀 I will never do that again",5,1240,["🏀",["#0f3057","#00587a"]]);
+  S("c_art","6 hours of mural in 12 seconds 🎨",11,860,["🎨",["#5f0f40","#9a031e"]]);
+  S("c_u_leo","POV: the bell rings and you're in the far corridor 🏃",19,2110,["🎬",["#1b1b3a","#4a1942"]]);
+  S("c_u_mar","Beat drop in the music room 🔊",28,540,["🎵",["#2b0f3a","#b5179e"]]);
+  S("c_sci","Elephant toothpaste but it went everywhere 🧪",40,1780,["🧪",["#12263a","#3f88c5"]]);
+  S("c_drama","Annual Day dress rehearsal 🎭 chaos edition",52,980,["🎭",["#240046","#7b2cbf"]]);
+
+  // pre-fill some social signal
+  const ids=Object.keys(users);
+  videos.forEach(v=>{
+    const n=Math.min(ids.length, 1+((v.views/400)|0));
+    v.likes=ids.slice(0,n);
+    if(v.kind==="video"&&Math.random()<.7){
+      v.comments.push({id:"c_"+uid(),by:ids[(Math.random()*ids.length)|0],text:"This is so good 🔥",ts:v.ts+3600e3,likes:[]});
+    }
+  });
+  ids.forEach(id=>{ users[id].subs=["c_school","c_sci"].concat(id==="u_ais"?["c_sport"]:[]); });
+  Object.keys(channels).forEach(cid=>{ channels[cid].subs = ids.filter(id=>users[id].subs.includes(cid)); });
+
+  return {users,channels,videos,
+    announcements:[{id:"a_"+uid(),by:"u_riv",text:"🎉 Spirit Week starts Monday — full schedule is on the Official School channel.",ts:now-2*H}],
+    notifs:{}, settings:{domain:"school.edu",staffCode:"TEACH-2026",moderation:false,theme:"dark",
+      brand:"#6c5ce7",brand2:"#00d2ff",schoolName:"ClassPulse"}};
+}
+
+function load(){
+  try{ const raw=localStorage.getItem(KEY);
+    if(raw){ const d=JSON.parse(raw); if(d&&d.users&&d.videos&&d.channels) return d; }
+  }catch(e){ console.warn("load failed",e); }
+  const s=seed(); persist(s); return s;
+}
+function persist(d=DB){
+  try{ localStorage.setItem(KEY,JSON.stringify(d)); return true; }
+  catch(e){
+    // shed the heaviest thumbnails and retry once
+    for(const v of d.videos){ if(v.thumb){ v.thumb=null; break; } }
+    try{ localStorage.setItem(KEY,JSON.stringify(d)); toast("💾","Storage full","Some thumbnails were cleared to free space."); return true; }
+    catch(_){ toast("💾","Storage full","Couldn't save — try deleting old uploads."); return false; }
+  }
+}
+const save=()=>{ persist(); Bus.send({t:"sync"}); };
+
+/* Cross-tab sync (stand-in for websockets) */
+const Bus=(()=>{ let ch=null;
+  try{ ch=new BroadcastChannel("classpulse2"); }catch(e){ ch=null; }
+  const hs=[]; if(ch) ch.onmessage=e=>hs.forEach(h=>h(e.data));
+  addEventListener("storage",e=>{ if(e.key===KEY) hs.forEach(h=>h({t:"sync"})); });
+  return { send(m){ if(ch){ try{ ch.postMessage(m); }catch(_){} } }, on(f){ hs.push(f); } };
+})();
+Bus.on(m=>{ if(!m)return; DB=load(); applyTheme();
+  if(m.t==="notice"&&ME&&m.for===ME.id) toast(m.icon||"🔔",m.title,m.body);
+  if(ME) renderAll(); });
+
+/* ---------- lookups ---------- */
+const chan = id => DB.channels[id] || {id:"gone",name:"Removed channel",handle:"@gone",grad:["#333","#111"],emoji:"❓",subs:[],desc:""};
+const user = id => DB.users[id] || {id:"gone",name:"Removed user",role:"student",klass:""};
+const vid  = id => DB.videos.find(v=>v.id===id);
+const myChannel = () => DB.channels["c_"+ME.id];
+const iOwn = c => c && (c.owner===ME.id || ME.role==="teacher");
+const isSubbed = cid => (DB.users[ME.id].subs||[]).includes(cid);
+function visible(v){
+  if(v.status!=="approved") return v.status==="pending" && (iOwn(chan(v.ch)) || ME.role==="teacher");
+  if(v.audience==="private") return iOwn(chan(v.ch));
+  if(v.audience==="class"){ const o=user(chan(v.ch).owner); return ME.role==="teacher"||o.klass===ME.klass||iOwn(chan(v.ch)); }
+  return true;
+}
+const feedVideos = () => DB.videos.filter(v=>v.kind==="video"&&visible(v)).sort((a,b)=>b.ts-a.ts);
+const feedShorts = () => DB.videos.filter(v=>v.kind==="short"&&visible(v)).sort((a,b)=>b.ts-a.ts);
+
+/* ---------- notifications ---------- */
+function notify(userId,icon,title,body,href){
+  if(!userId||!DB.users[userId]||userId===(ME&&ME.id&&null)) return;
+  DB.notifs[userId]=DB.notifs[userId]||[];
+  DB.notifs[userId].unshift({id:"n_"+uid(),icon,title,body,href:href||"",ts:Date.now(),read:false});
+  DB.notifs[userId]=DB.notifs[userId].slice(0,80);
+  if(ME&&userId===ME.id) toast(icon,title,body);
+  else Bus.send({t:"notice",for:userId,icon,title,body});
+}
+const unread = ()=> ((DB.notifs[ME.id]||[]).filter(n=>!n.read).length);
+
+/* ---------- toast / sheet ---------- */
+function toast(icon,title,body){
+  const el=document.createElement("div"); el.className="toast";
+  el.innerHTML=`<div style="font-size:22px">${esc(icon)}</div><div style="flex:1"><b>${esc(title)}</b><p>${esc(body||"")}</p></div>`;
+  $("#toasts").appendChild(el);
+  const kill=()=>{el.style.transition=".25s";el.style.opacity="0";el.style.transform="translateY(-14px)";setTimeout(()=>el.remove(),260);};
+  el.onclick=kill; setTimeout(kill,4000);
+}
+function sheet(title,html,after,wide){
+  const m=$("#modal"); m.classList.remove("hide");
+  m.innerHTML=`<div class="sheet" style="${wide?"max-width:740px":""}">
+    <div class="between"><h3>${esc(title)}</h3><button class="ico" data-x>✕</button></div>${html}</div>`;
+  m.onclick=e=>{ if(e.target===m||e.target.closest("[data-x]")) closeSheet(); };
+  if(after) after($(".sheet",m));
+}
+const closeSheet=()=>{ $("#modal").classList.add("hide"); $("#modal").innerHTML=""; };
+
+/* ---------- theme ---------- */
+function applyTheme(){
+  const s=DB.settings;
+  document.documentElement.style.setProperty("--brand",s.brand);
+  document.documentElement.style.setProperty("--brand2",s.brand2);
+  document.body.classList.toggle("light",s.theme==="light");
+  const b=$("#btnTheme"); if(b) b.textContent = s.theme==="light"?"☀️":"🌙";
+  const t=$("#brandTxt"); if(t) t.textContent=s.schoolName||"ClassPulse";
+}
+
+/* ---------- image shrink ---------- */
+function shrink(file,max,q){
+  return new Promise((res,rej)=>{
+    const fr=new FileReader(); fr.onerror=rej;
+    fr.onload=()=>{ const im=new Image(); im.onerror=rej;
+      im.onload=()=>{ const sc=Math.min(1,max/Math.max(im.width,im.height));
+        const c=document.createElement("canvas");
+        c.width=Math.round(im.width*sc); c.height=Math.round(im.height*sc);
+        c.getContext("2d").drawImage(im,0,0,c.width,c.height);
+        res(c.toDataURL("image/jpeg",q||.7)); };
+      im.src=fr.result; };
+    fr.readAsDataURL(file);
+  });
+}
+/* grab a frame from a video file for an auto thumbnail */
+function grabFrame(url){
+  return new Promise(res=>{
+    const v=document.createElement("video"); v.src=url; v.muted=true; v.playsInline=true;
+    let done=false; const bail=()=>{ if(!done){done=true;res(null);} };
+    setTimeout(bail,4000);
+    v.onloadeddata=()=>{ try{ v.currentTime=Math.min(1,(v.duration||2)/3); }catch(_){ bail(); } };
+    v.onseeked=()=>{ if(done)return;
+      try{ const c=document.createElement("canvas");
+        const w=Math.min(640,v.videoWidth||640); const sc=w/(v.videoWidth||640);
+        c.width=w; c.height=Math.round((v.videoHeight||360)*sc);
+        c.getContext("2d").drawImage(v,0,0,c.width,c.height);
+        done=true; res({data:c.toDataURL("image/jpeg",.7),dur:v.duration||0});
+      }catch(_){ bail(); } };
+    v.onerror=bail;
+  });
+}
+
+/* ===========================================================================
+   AUTH
+   =========================================================================== */
+DB=load(); applyTheme();
+
+function buildChips(){
+  $("#demoChips").innerHTML=Object.values(DB.users).slice(0,6)
+    .map(u=>`<button class="chip" data-em="${esc(u.email)}">${u.role==="teacher"?"🛡️ ":""}${esc(u.name)}</button>`).join("");
+
+  $$("#demoChips .chip").forEach(c=>c.onclick=()=>{
+    const u=Object.values(DB.users).find(x=>x.email===c.dataset.em);
+    $("#aEmail").value=u.email; $("#aName").value=u.name; $("#aClass").value=u.klass;
+    $("#aPass").value="1234"; $("#aCode").value = u.role==="teacher"?DB.settings.staffCode:"";
+  });
+  $("#domLabel").textContent=DB.settings.domain;
+}
+buildChips();
+
+$("#aGo").onclick=()=>{
+  const email=$("#aEmail").value.trim().toLowerCase(), name=$("#aName").value.trim();
+  const klass=$("#aClass").value.trim()||"—", pass=$("#aPass").value, code=$("#aCode").value.trim();
+  const dom=DB.settings.domain.toLowerCase();
+  const fail=m=>{ $("#aErr").innerHTML=`<div class="err">⚠️ ${esc(m)}</div>`; };
+  $("#aErr").innerHTML="";
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail("Enter a valid email address.");
+  if(!email.endsWith("@"+dom)) return fail(`Only @${dom} accounts can join this network.`);
+  if(pass.length<4) return fail("Passcode must be at least 4 characters.");
+
+  let u=Object.values(DB.users).find(x=>x.email===email);
+  if(u){
+    if(u.banned) return fail("This account is suspended. Please speak to a teacher.");
+    if(u.pass!==pass) return fail("Wrong passcode for this account.");
+    if(name) u.name=name; if(klass!=="—") u.klass=klass;
+    if(code&&code===DB.settings.staffCode) u.role="teacher";
+  }else{
+    if(!name) return fail("Please enter your display name.");
+    const id="u_"+uid();
+    u={id,name,email,klass,pass,role:code===DB.settings.staffCode?"teacher":"student",
+       bio:"New on ClassPulse 👋",joined:Date.now(),banned:false,subs:["c_school"],likedVids:[],avatar:null};
+    DB.users[id]=u;
+    DB.channels["c_"+id]={id:"c_"+id,name,handle:handleize(name),desc:"New on ClassPulse 👋",
+      emoji:null,grad:[colorOf(id),"#1b1b2e"],owner:id,official:false,avatar:null,banner:null,subs:[],created:Date.now()};
+    DB.channels["c_school"].subs.push(id);
+    notify(id,"👋","Welcome to ClassPulse!","Your channel is ready. Upload your first video from ＋ Create.");
+  }
+  ME=u; localStorage.setItem(SKEY,ME.id); save(); boot();
+};
+$("#aPass").addEventListener("keydown",e=>{ if(e.key==="Enter") $("#aGo").click(); });
+function logout(){ localStorage.removeItem(SKEY); location.hash=""; location.reload(); }
+
+/* ===========================================================================
+   ROUTER
+   =========================================================================== */
+let ROUTE={name:"home",arg:""};
+let cleanups=[];
+function runCleanups(){ cleanups.forEach(f=>{try{f();}catch(_){}}); cleanups=[]; }
+function parseHash(){
+  const h=(location.hash||"#/home").replace(/^#\/?/,"");
+  const parts=h.split("/");
+  return {name:parts[0]||"home", arg:decodeURIComponent(parts.slice(1).join("/")||"")};
+}
+const go=(name,arg)=>{ location.hash="#/"+name+(arg?"/"+encodeURIComponent(arg):""); };
+addEventListener("hashchange",()=>{ ROUTE=parseHash(); renderAll(); window.scrollTo(0,0); });
+
+/* ===========================================================================
+   SHELL
+   =========================================================================== */
+function boot(){
+  $("#auth").classList.add("hide");
+  $("#app").classList.remove("hide");
+  // uploaded blobs don't survive reload
+  DB.videos.forEach(v=>{ if(v.session){ v.src=null; v.session=false; } });
+  persist();
+  wireShell();
+  ROUTE=parseHash();
+  renderAll();
+}
+function wireShell(){
+  $("#btnMenu").onclick=()=>{
+    if(innerWidth>1150) document.body.classList.toggle("sidehidden");
+    else document.body.classList.toggle("drawer");
+  };
+  $("#scrim").onclick=()=>document.body.classList.remove("drawer");
+  $("#btnTheme").onclick=()=>{ DB.settings.theme=DB.settings.theme==="light"?"dark":"light"; applyTheme(); save(); };
+  $("#btnBell").onclick=()=>go("alerts");
+  $("#btnMe").onclick=()=>go("you");
+  $("#topCreate").onclick=openCreate;
+  $("#mSearchBtn").onclick=()=>{ document.body.classList.add("searching"); setTimeout(()=>$("#q").focus(),40); };
+  $("#q").addEventListener("blur",()=>setTimeout(()=>document.body.classList.remove("searching"),160));
+  $("#searchForm").onsubmit=e=>{ e.preventDefault(); const q=$("#q").value.trim();
+    if(q){ document.body.classList.remove("searching"); $("#q").blur(); go("search",q); } };
+
+  $$("#bottom [data-bnav]").forEach(b=>b.onclick=()=>{
+    const t=b.dataset.bnav; if(t==="create") return openCreate(); go(t);
+  });
+  document.addEventListener("keydown",e=>{
+    if(/input|textarea/i.test((e.target.tagName||""))) return;
+    if(e.key==="/"){ e.preventDefault(); document.body.classList.add("searching"); $("#q").focus(); }
+  });
+}
+
+function renderAll(){
+  if(!ME) return;
+  ME=DB.users[ME.id]||ME;
+  document.body.classList.toggle("shortsmode",ROUTE.name==="shorts");
+  $("#btnMe").innerHTML=`<span class="av xs" style="background:${colorOf(ME.id)}">${ME.avatar?`<img src="${ME.avatar}">`:esc(initials(ME.name))}</span>`;
+  const u=unread();
+  $("#btnBell").innerHTML=`🔔${u?`<span class="dot">${u>9?"9+":u}</span>`:""}`;
+  const bd=$("#bDot"); bd.textContent=u>9?"9+":u; bd.classList.toggle("hide",u===0);
+
+  $$("#bottom [data-bnav]").forEach(b=>b.classList.toggle("on",b.dataset.bnav===ROUTE.name));
+  renderSide();
+  renderView();
+}
+
+function renderSide(){
+  const s=$("#side");
+  const subs=(ME.subs||[]).map(chan).filter(c=>c.id!=="gone");
+  const item=(n,i,r,a)=>`<button class="snav ${ROUTE.name===r&&(!a||ROUTE.arg===a)?"on":""}" data-go="${r}" data-arg="${esc(a||"")}"><i>${i}</i>${esc(n)}</button>`;
+  s.innerHTML=`
+    ${item("Home","🏠","home")}
+    ${item("Shorts","⚡","shorts")}
+    ${item("Subscriptions","📺","subs")}
+    <div class="sdiv"></div>
+    ${item("Your channel","👤","you")}
+    ${item("Your videos","🎬","studio")}
+    ${item("Liked videos","👍","liked")}
+    <div class="sdiv"></div>
+    <div class="slabel">Subscriptions</div>
+    ${subs.length?subs.map(c=>`<button class="snav" data-go="channel" data-arg="${c.id}">
+        <i><span class="av xs" style="background:${c.grad[0]}">${c.avatar?`<img src="${c.avatar}">`:esc(c.emoji||initials(c.name))}</span></i>${esc(c.name)}</button>`).join("")
+      :`<div class="note" style="padding:4px 12px 8px">No subscriptions yet.</div>`}
+    <div class="sdiv"></div>
+    <div class="slabel">Explore</div>
+    ${item("Trending","🔥","trending")}
+    ${item("Events","🎪","cat","Events")}
+    ${item("Announcements","📢","cat","Announcements")}
+    ${item("All channels","🏫","channels")}
+    ${ME.role==="teacher"?`<div class="sdiv"></div><div class="slabel">Staff</div>${item("Admin dashboard","🛡️","admin")}`:""}
+    <div class="sdiv"></div>
+    ${item("Settings","⚙️","settings")}
+    <button class="snav" data-logout><i>🚪</i>Log out</button>
+    <div class="note" style="padding:14px 12px 0">ClassPulse V2 · demo build<br>Data lives in this browser only.</div>`;
+
+  $$("[data-go]",s).forEach(b=>b.onclick=()=>{ document.body.classList.remove("drawer"); go(b.dataset.go,b.dataset.arg); });
+  $("[data-logout]",s).onclick=()=>{ if(confirm("Log out of ClassPulse?")) logout(); };
+}
+
+/* ===========================================================================
+   COMPONENTS
+   =========================================================================== */
+function chAvatar(c,cls){
+  return `<div class="av ${cls||""}" style="background:linear-gradient(135deg,${c.grad[0]},${c.grad[1]||c.grad[0]})">
+    ${c.avatar?`<img src="${c.avatar}">`:esc(c.emoji||initials(c.name))}</div>`;
+}
+function uAvatar(u,cls){
+  return `<div class="av ${cls||""}" style="background:${colorOf(u.id)}">${u.avatar?`<img src="${u.avatar}">`:esc(initials(u.name))}</div>`;
+}
+function thumbInner(v,big){
+  if(v.thumb) return `<img src="${v.thumb}" alt="">`;
+  return `<div class="em">${esc(v.art.em)}</div>`;
+}
+function thumbStyle(v){ return `background:linear-gradient(140deg,${v.art.g[0]},${v.art.g[1]})`; }
+function videoCard(v){
+  const c=chan(v.ch);
+  return `<div class="vcard" data-open="${v.id}">
+    <div class="thumb" style="${thumbStyle(v)}">${thumbInner(v)}
+      <span class="dur">${dur(v.dur)}</span>
+      ${v.status==="pending"?`<span class="pend">Pending review</span>`:""}
+      ${v.audience!=="school"&&v.status==="approved"?`<span class="priv">${v.audience==="private"?"Private":"Class only"}</span>`:""}
+    </div>
+    <div class="vmeta">
+      ${chAvatar(c)}
+      <div style="min-width:0">
+        <h3 class="vtitle">${esc(v.title)}</h3>
+        <div class="vsub"><div class="cn">${esc(c.name)} ${c.official?`<span class="verif">✓</span>`:""}</div>
+          ${nf(v.views)} views · ${ago(v.ts)}</div>
+      </div>
+    </div></div>`;
+}
+function shortCard(v){
+  return `<div class="scard" data-short="${v.id}">
+    <div class="sthumb" style="${thumbStyle(v)}">${v.thumb?`<img src="${v.thumb}">`:`<div class="em">${esc(v.art.em)}</div>`}
+      <div class="cap">${esc(v.title)}</div></div>
+    <div class="vsub" style="margin-top:6px">${nf(v.views)} views</div></div>`;
+}
+function grid(list,emptyMsg){
+  if(!list.length) return `<div class="empty"><span class="e">📭</span>${esc(emptyMsg||"Nothing here yet.")}</div>`;
+  return `<div class="vgrid">${list.map(videoCard).join("")}</div>`;
+}
+function wireCards(root){
+
+  $$("[data-open]",root).forEach(el=>el.onclick=()=>go("watch",el.dataset.open));
+
+  $$("[data-short]",root).forEach(el=>el.onclick=()=>go("shorts",el.dataset.short));
+
+  $$("[data-chan]",root).forEach(el=>el.onclick=e=>{e.stopPropagation();go("channel",el.dataset.chan);});
+}
+
+/* ===========================================================================
+   VIEWS
+   =========================================================================== */
+function renderView(){
+  runCleanups();
+  const v=$("#view");
+  const R=ROUTE.name;
+  if(R==="home") return viewHome(v);
+  if(R==="trending") return viewList(v,"🔥 Trending",feedVideos().slice().sort((a,b)=>b.views-a.views));
+  if(R==="cat") return viewList(v,"📁 "+ROUTE.arg,feedVideos().filter(x=>x.cat===ROUTE.arg));
+  if(R==="subs") return viewSubs(v);
+  if(R==="shorts") return viewShorts(v);
+  if(R==="watch") return viewWatch(v,ROUTE.arg);
+  if(R==="channel") return viewChannel(v,ROUTE.arg);
+  if(R==="you") return viewChannel(v,"c_"+ME.id);
+  if(R==="studio") return viewStudio(v);
+  if(R==="liked") return viewList(v,"👍 Liked videos",DB.videos.filter(x=>x.likes.includes(ME.id)&&visible(x)));
+  if(R==="search") return viewSearch(v,ROUTE.arg);
+  if(R==="channels") return viewChannels(v);
+  if(R==="alerts") return viewAlerts(v);
+  if(R==="settings") return viewSettings(v);
+  if(R==="admin") return viewAdmin(v);
+  go("home");
+}
+
+/* ---------- HOME ---------- */
+let homeCat="All";
+function viewHome(v){
+  const ann=DB.announcements.slice().sort((a,b)=>b.ts-a.ts)[0];
+  let vids=feedVideos();
+  if(homeCat!=="All") vids=vids.filter(x=>x.cat===homeCat);
+  const shorts=feedShorts();
+  const top=vids.slice(0,8), rest=vids.slice(8);
+  v.innerHTML=`
+    <div class="chiprow">${CATS.map(c=>`<button class="chip ${c===homeCat?"on":""}" data-cat="${c}">${c}</button>`).join("")}</div>
+    ${ann&&homeCat==="All"?`<div class="card" style="background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 85%,#000),color-mix(in srgb,var(--brand2) 60%,#000));border:0;color:#fff">
+      <div class="row"><div class="av" style="background:rgba(0,0,0,.25)">📢</div>
+        <div style="flex:1"><b>${esc(user(ann.by).name)} · Announcement</b>
+        <div style="font-size:14px;line-height:1.5;margin-top:4px">${esc(ann.text)}</div>
+        <div style="font-size:11.5px;opacity:.8;margin-top:5px">${ago(ann.ts)}</div></div></div></div>`:""}
+    ${grid(top,"No videos in this category yet — be the first to upload!")}
+    ${shorts.length&&homeCat==="All"?`<div class="sect">⚡ Shorts <button class="btn sm" data-allshorts style="margin-left:auto">See all</button></div>
+      <div class="shelf">${shorts.slice(0,12).map(shortCard).join("")}</div>`:""}
+    ${rest.length?`<div class="sect">More from your school</div>${grid(rest)}`:""}`;
+
+  $$("[data-cat]",v).forEach(b=>b.onclick=()=>{ homeCat=b.dataset.cat; renderView(); });
+  const as=$("[data-allshorts]",v); if(as) as.onclick=()=>go("shorts");
+  wireCards(v);
+}
+function viewList(v,title,list){
+  v.innerHTML=`<div class="sect">${esc(title)}</div>${grid(list)}`;
+  wireCards(v);
+}
+function viewSubs(v){
+  const subs=ME.subs||[];
+  const list=feedVideos().filter(x=>subs.includes(x.ch));
+  const sh=feedShorts().filter(x=>subs.includes(x.ch));
+  v.innerHTML=`<div class="sect">📺 Subscriptions</div>
+    ${subs.length?`<div class="chiprow">${subs.map(chan).map(c=>`<button class="chip" data-chan="${c.id}">${esc(c.emoji||"")} ${esc(c.name)}</button>`).join("")}</div>`:""}
+    ${grid(list,"Subscribe to channels to fill this feed.")}
+    ${sh.length?`<div class="sect">⚡ Shorts from your subs</div><div class="shelf">${sh.map(shortCard).join("")}</div>`:""}`;
+  wireCards(v);
+}
+function viewChannels(v){
+  const cs=Object.values(DB.channels).sort((a,b)=>(b.official?1:0)-(a.official?1:0)||b.subs.length-a.subs.length);
+  v.innerHTML=`<div class="sect">🏫 Channels</div>
+    <div class="vgrid">${cs.map(c=>`<div class="card" style="cursor:pointer" data-chan="${c.id}">
+      <div class="row">${chAvatar(c,"lg")}
+        <div style="min-width:0"><b style="font-size:16px">${esc(c.name)} ${c.official?'<span class="verif">✓</span>':""}</b>
+          <div class="vsub">${esc(c.handle)} · ${nf(c.subs.length)} subscribers</div>
+          <div class="vsub" style="margin-top:5px">${esc((c.desc||"").slice(0,70))}</div></div></div></div>`).join("")}</div>`;
+  wireCards(v);
+}
+
+/* ---------- SEARCH ---------- */
+let searchTab="All";
+function viewSearch(v,q){
+  const s=q.toLowerCase();
+  const vids=DB.videos.filter(x=>visible(x)&&x.kind==="video"&&
+    ((x.title+" "+x.desc+" "+x.cat+" "+chan(x.ch).name).toLowerCase().includes(s)));
+  const shorts=DB.videos.filter(x=>visible(x)&&x.kind==="short"&&(x.title.toLowerCase().includes(s)||chan(x.ch).name.toLowerCase().includes(s)));
+  const chans=Object.values(DB.channels).filter(c=>(c.name+" "+c.handle+" "+(c.desc||"")).toLowerCase().includes(s));
+  $("#q").value=q;
+  const tabs=["All","Videos","Shorts","Channels"];
+  const chBlock=chans.length?`<div class="sect">Channels</div>
+    ${chans.map(c=>`<div class="card row" style="cursor:pointer" data-chan="${c.id}">${chAvatar(c,"lg")}
+      <div style="flex:1;min-width:0"><b style="font-size:16px">${esc(c.name)} ${c.official?'<span class="verif">✓</span>':""}</b>
+        <div class="vsub">${esc(c.handle)} · ${nf(c.subs.length)} subscribers · ${DB.videos.filter(x=>x.ch===c.id).length} uploads</div>
+        <div class="vsub" style="margin-top:4px">${esc((c.desc||"").slice(0,90))}</div></div>
+      <button class="btn sm ${isSubbed(c.id)?"":"dark"}" data-sub="${c.id}">${isSubbed(c.id)?"Subscribed":"Subscribe"}</button></div>`).join("")}`:"";
+  const vBlock=vids.length?`<div class="sect">Videos</div>${grid(vids)}`:"";
+  const sBlock=shorts.length?`<div class="sect">Shorts</div><div class="shelf">${shorts.map(shortCard).join("")}</div>`:"";
+  let body="";
+  if(searchTab==="All") body=(vBlock+sBlock+chBlock)||`<div class="empty"><span class="e">🔍</span>No results for “${esc(q)}”.</div>`;
+  if(searchTab==="Videos") body=vBlock||`<div class="empty"><span class="e">🎬</span>No videos found.</div>`;
+  if(searchTab==="Shorts") body=sBlock||`<div class="empty"><span class="e">⚡</span>No shorts found.</div>`;
+  if(searchTab==="Channels") body=chBlock||`<div class="empty"><span class="e">🏫</span>No channels found.</div>`;
+  v.innerHTML=`<div class="sect">Results for “${esc(q)}”</div>
+    <div class="chiprow">${tabs.map(t=>`<button class="chip ${t===searchTab?"on":""}" data-st="${t}">${t}</button>`).join("")}</div>${body}`;
+
+  $$("[data-st]",v).forEach(b=>b.onclick=()=>{ searchTab=b.dataset.st; renderView(); });
+
+  $$("[data-sub]",v).forEach(b=>b.onclick=e=>{ e.stopPropagation(); toggleSub(b.dataset.sub); });
+  wireCards(v);
+}
+
+/* ---------- WATCH ---------- */
+const viewedSession=new Set();
+let descOpen=false;
+function viewWatch(v,id){
+  const V=vid(id);
+  if(!V){ v.innerHTML=`<div class="empty"><span class="e">🚫</span>That video isn't available.</div>`; return; }
+  if(V.kind==="short") return go("shorts",V.id);
+  if(!visible(V)){ v.innerHTML=`<div class="empty"><span class="e">🔒</span>This video is private or awaiting review.</div>`; return; }
+  if(!viewedSession.has(V.id)){ viewedSession.add(V.id); V.views++; persist();
+    if(V.views===1000) notify(chan(V.ch).owner,"🎉","1,000 views!",`"${V.title}" just hit 1K views 🚀`,"#/watch/"+V.id); }
+
+  const c=chan(V.ch), liked=V.likes.includes(ME.id), disliked=V.dislikes.includes(ME.id);
+  const canEdit=iOwn(c);
+  const rel=DB.videos.filter(x=>x.id!==V.id&&visible(x)&&x.kind==="video")
+    .sort((a,b)=>(b.ch===V.ch?2:0)+(b.cat===V.cat?1:0)-((a.ch===V.ch?2:0)+(a.cat===V.cat?1:0))||b.views-a.views).slice(0,12);
+
+  v.innerHTML=`<div class="watch">
+    <div>
+      <div class="player" id="player"></div>
+      <h1 class="wtitle">${esc(V.title)}</h1>
+      <div class="wbar">
+        <div class="row grow" style="cursor:pointer" data-chan="${c.id}">
+          ${chAvatar(c)}
+          <div><div style="font-weight:700;font-size:14.5px">${esc(c.name)} ${c.official?'<span class="verif">✓ Verified</span>':""}</div>
+            <div class="vsub">${nf(c.subs.length)} subscribers</div></div>
+        </div>
+        <button class="btn ${isSubbed(c.id)?"":"dark"}" data-sub="${c.id}">${isSubbed(c.id)?"✓ Subscribed":"Subscribe"}</button>
+        <div class="actgrp">
+          <button class="${liked?"on":""}" data-like><span>${liked?"👍":"👍🏻"}</span> ${nf(V.likes.length)}</button>
+          <div class="sep"></div>
+          <button class="${disliked?"on":""}" data-dislike>👎</button>
+        </div>
+        <button class="btn" data-share>↗ Share</button>
+        <button class="btn" data-report>🚩</button>
+        ${canEdit?`<button class="btn" data-edit>✏️ Edit</button><button class="btn bad" data-del>🗑️</button>`:""}
+      </div>
+      <div class="desc">
+        <div class="st">${nf(V.views)} views · ${ago(V.ts)} · <span class="tag">${esc(V.cat)}</span>
+          ${V.status==="pending"?' <span class="tag w">Pending review</span>':""}
+          ${V.audience!=="school"?` <span class="tag">${V.audience==="private"?"Private":"Class only"}</span>`:""}</div>
+        <div class="body ${descOpen?"":"clip"}" id="descBody">${esc(V.desc||"No description.")}</div>
+        ${(V.desc||"").length>140?`<button class="btn sm ghost" data-more style="margin-top:8px">${descOpen?"Show less":"Show more"}</button>`:""}
+      </div>
+      <div class="sect" style="margin-top:22px">💬 ${V.comments.length} Comments</div>
+      ${V.cmtOn?`<div class="cbox">${uAvatar(ME,"sm")}
+        <input id="cin" placeholder="Add a comment…" maxlength="400"/>
+        <button class="btn primary sm" data-send>Comment</button></div>`
+        :`<div class="note" style="margin-bottom:16px">Comments are turned off for this video.</div>`}
+      <div id="cmts">${V.comments.slice().sort((a,b)=>b.ts-a.ts).map(cm=>commentHTML(V,cm)).join("")
+        ||`<div class="note">No comments yet — say something kind.</div>`}</div>
+    </div>
+    <aside>
+      <div class="sect" style="margin-top:0">Up next</div>
+      ${rel.map(r=>`<div class="rel" data-open="${r.id}">
+        <div class="rt" style="${thumbStyle(r)}">${r.thumb?`<img src="${r.thumb}">`:`<div class="em">${esc(r.art.em)}</div>`}
+          <span class="dur">${dur(r.dur)}</span></div>
+        <div style="min-width:0"><h4>${esc(r.title)}</h4>
+          <p>${esc(chan(r.ch).name)}<br>${nf(r.views)} views · ${ago(r.ts)}</p></div></div>`).join("")
+        ||`<div class="note">Nothing else yet.</div>`}
+    </aside></div>`;
+
+  mountPlayer(V);
+  wireCards(v);
+  $("[data-sub]",v).onclick=()=>toggleSub(c.id);
+  $("[data-like]",v).onclick=()=>{ rate(V,"like"); };
+  $("[data-dislike]",v).onclick=()=>{ rate(V,"dislike"); };
+  $("[data-share]",v).onclick=()=>share(V);
+  $("[data-report]",v).onclick=()=>reportSheet("video",V.id);
+  const mo=$("[data-more]",v); if(mo) mo.onclick=()=>{ descOpen=!descOpen; renderView(); };
+  if(canEdit){
+    $("[data-edit]",v).onclick=()=>editVideo(V.id);
+    $("[data-del]",v).onclick=()=>{ if(!confirm("Delete this video permanently?"))return;
+      DB.videos=DB.videos.filter(x=>x.id!==V.id); save(); toast("🗑️","Deleted",""); go("you"); };
+  }
+  const send=$("[data-send]",v);
+  if(send){ send.onclick=()=>addComment(V.id);
+    $("#cin").onkeydown=e=>{ if(e.key==="Enter") addComment(V.id); }; }
+  wireComments(v,V);
+}
+function commentHTML(V,cm){
+  const u=user(cm.by), mine=cm.by===ME.id||ME.role==="teacher";
+  const liked=(cm.likes||[]).includes(ME.id);
+  return `<div class="cmt" data-cmt="${cm.id}">
+    ${uAvatar(u,"sm")}
+    <div class="cbody">
+      <div class="chead">${esc(u.name)} ${u.role==="teacher"?'<span class="tag">Staff</span>':""}
+        <span class="mut" style="font-weight:500">${ago(cm.ts)}</span></div>
+      <div class="ctext">${esc(cm.text)}</div>
+      <div class="cacts">
+        <button data-clike="${cm.id}" class="${liked?"on":""}">👍 ${(cm.likes||[]).length||""}</button>
+        <button data-crep="${cm.id}">🚩 Report</button>
+        ${mine?`<button data-cdel="${cm.id}">🗑️ Delete</button>`:""}
+      </div></div></div>`;
+}
+function wireComments(root,V){
+
+  $$("[data-clike]",root).forEach(b=>b.onclick=()=>{
+    const cm=V.comments.find(x=>x.id===b.dataset.clike); if(!cm)return;
+    cm.likes=cm.likes||[]; const i=cm.likes.indexOf(ME.id);
+    i>=0?cm.likes.splice(i,1):cm.likes.push(ME.id); save(); renderView();
+  });
+
+  $$("[data-cdel]",root).forEach(b=>b.onclick=()=>{
+    if(!confirm("Delete this comment?"))return;
+    V.comments=V.comments.filter(x=>x.id!==b.dataset.cdel); save(); renderView();
+  });
+
+  $$("[data-crep]",root).forEach(b=>b.onclick=()=>reportSheet("comment",V.id+"|"+b.dataset.crep));
+}
+function addComment(id){
+  const V=vid(id), inp=$("#cin"); if(!V||!inp)return;
+  const t=inp.value.trim(); if(!t)return;
+  const bad=["idiot","stupid","hate you","kill yourself","loser","shut up"];
+  if(bad.some(w=>t.toLowerCase().includes(w))){ toast("🛡️","Hold on","That wording looks unkind — try rephrasing."); return; }
+  V.comments.push({id:"c_"+uid(),by:ME.id,text:t,ts:Date.now(),likes:[]});
+  const owner=chan(V.ch).owner;
+  if(owner&&owner!==ME.id) notify(owner,"💬","New comment",`${ME.name}: ${t.slice(0,60)}`,"#/watch/"+V.id);
+  inp.value=""; save(); renderView();
+}
+function rate(V,kind){
+  const L=V.likes,D=V.dislikes,i=L.indexOf(ME.id),j=D.indexOf(ME.id);
+  if(kind==="like"){ if(i>=0) L.splice(i,1); else { L.push(ME.id); if(j>=0)D.splice(j,1);
+      const o=chan(V.ch).owner; if(o&&o!==ME.id) notify(o,"👍","New like",`${ME.name} liked "${V.title.slice(0,40)}"`,"#/watch/"+V.id); } }
+  else { if(j>=0) D.splice(j,1); else { D.push(ME.id); if(i>=0)L.splice(i,1); } }
+  save(); renderView();
+}
+function toggleSub(cid){
+  const c=DB.channels[cid]; if(!c)return;
+  if(c.owner===ME.id){ toast("🙂","That's your channel",""); return; }
+  const u=DB.users[ME.id]; u.subs=u.subs||[]; c.subs=c.subs||[];
+  const i=u.subs.indexOf(cid);
+  if(i>=0){ u.subs.splice(i,1); c.subs=c.subs.filter(x=>x!==ME.id); toast("👋","Unsubscribed",c.name); }
+  else { u.subs.push(cid); c.subs.push(ME.id); toast("🔔","Subscribed",`You'll get alerts from ${c.name}.`);
+    if(c.owner&&c.owner!==ME.id) notify(c.owner,"🔔","New subscriber",`${ME.name} subscribed to ${c.name}.`,"#/channel/"+cid); }
+  save(); renderAll();
+}
+function share(V){
+  const url=location.origin+location.pathname+"#/watch/"+V.id;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(()=>toast("🔗","Link copied",url.slice(0,52)+"…"))
+      .catch(()=>sheet("Share",`<p class="note">Copy this link:</p><input class="inp" value="${esc(url)}" onclick="this.select()">`));
+  } else sheet("Share",`<p class="note">Copy this link:</p><input class="inp" value="${esc(url)}" onclick="this.select()">`);
+}
+
+/* ---------- PLAYER ---------- */
+function mountPlayer(V){
+  const box=$("#player"); if(!box) return;
+  if(V.src){
+    box.innerHTML=`<video id="pv" src="${V.src}" controls playsinline autoplay></video>`;
+    const el=$("#pv");
+    const key=e=>{ if(/input|textarea/i.test(e.target.tagName))return;
+      if(e.key===" "){e.preventDefault(); el.paused?el.play():el.pause();}
+      if(e.key==="ArrowRight") el.currentTime+=5;
+      if(e.key==="ArrowLeft") el.currentTime-=5;
+      if(e.key==="m") el.muted=!el.muted;
+      if(e.key==="f"){ (document.fullscreenElement?document.exitFullscreen():box.requestFullscreen()).catch&&0; } };
+    document.addEventListener("keydown",key);
+    cleanups.push(()=>{ document.removeEventListener("keydown",key); try{el.pause();}catch(_){} });
+    return;
+  }
+  // simulated player for demo/seeded videos
+  let t=0, playing=true, muted=false;
+  box.innerHTML=`<div class="art" style="background:linear-gradient(140deg,${V.art.g[0]},${V.art.g[1]})">
+      ${V.thumb?`<img src="${V.thumb}" style="width:100%;height:100%;object-fit:cover">`:`<div class="em">${esc(V.art.em)}</div>`}</div>
+    <div class="pbig" id="pbig">▶</div>
+    <div class="pbar">
+      <div class="track" id="ptrack"><i id="pfill" style="width:0%"></i><b id="pknob" style="left:0%"></b></div>
+      <div class="pctrl">
+        <button id="pplay">⏸</button>
+        <button id="pback">⏪</button><button id="pfwd">⏩</button>
+        <span class="t"><span id="ptime">0:00</span> / ${dur(V.dur)}</span>
+        <span style="flex:1"></span>
+        <button id="pmute">🔊</button>
+        <button id="pfs">⛶</button>
+      </div></div>`;
+  const fill=$("#pfill"),knob=$("#pknob"),time=$("#ptime"),pb=$("#pplay"),big=$("#pbig");
+  const paint=()=>{ const p=clamp(t/Math.max(1,V.dur)*100,0,100);
+    fill.style.width=p+"%"; knob.style.left=p+"%"; time.textContent=dur(t); };
+  const flash=s=>{ big.textContent=s; big.classList.add("show"); setTimeout(()=>big.classList.remove("show"),420); };
+  const iv=setInterval(()=>{ if(!playing)return; t+=.25; if(t>=V.dur){ t=V.dur; playing=false; pb.textContent="↻"; } paint(); },250);
+  cleanups.push(()=>clearInterval(iv));
+  const toggle=()=>{ if(t>=V.dur) t=0; playing=!playing; pb.textContent=playing?"⏸":"▶"; flash(playing?"▶":"⏸"); };
+  pb.onclick=toggle;
+  box.onclick=e=>{ if(e.target.closest(".pbar"))return; toggle(); };
+  $("#pback").onclick=e=>{e.stopPropagation(); t=Math.max(0,t-10); paint(); flash("⏪");};
+  $("#pfwd").onclick=e=>{e.stopPropagation(); t=Math.min(V.dur,t+10); paint(); flash("⏩");};
+  $("#pmute").onclick=e=>{e.stopPropagation(); muted=!muted; $("#pmute").textContent=muted?"🔇":"🔊";};
+  $("#pfs").onclick=e=>{e.stopPropagation(); if(document.fullscreenElement)document.exitFullscreen(); else box.requestFullscreen&&box.requestFullscreen();};
+  const seek=e=>{ const r=$("#ptrack").getBoundingClientRect();
+    const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+    t=clamp(x/r.width,0,1)*V.dur; paint(); };
+  $("#ptrack").onclick=e=>{ e.stopPropagation(); seek(e); };
+  const key=e=>{ if(/input|textarea/i.test(e.target.tagName))return;
+    if(e.key===" "){ e.preventDefault(); toggle(); }
+    if(e.key==="ArrowRight"){ t=Math.min(V.dur,t+5); paint(); flash("⏩"); }
+    if(e.key==="ArrowLeft"){ t=Math.max(0,t-5); paint(); flash("⏪"); }
+    if(e.key==="f") $("#pfs").click();
+    if(e.key==="m") $("#pmute").click(); };
+  document.addEventListener("keydown",key);
+  cleanups.push(()=>document.removeEventListener("keydown",key));
+  paint();
+}
+
+/* ---------- SHORTS ---------- */
+function viewShorts(v,startId){
+  const list=feedShorts();
+  if(!list.length){ v.innerHTML=`<div class="empty" style="padding-top:90px"><span class="e">⚡</span>No shorts yet — make one from ＋ Create.</div>`;
+    document.body.classList.remove("shortsmode"); return; }
+  const want=ROUTE.arg;
+  v.innerHTML=`<div id="sfeed">${list.map((s,i)=>{
+    const c=chan(s.ch), liked=s.likes.includes(ME.id);
+    return `<div class="sreel" data-reel="${s.id}">
+      ${s.src?`<video src="${s.src}" playsinline loop muted preload="metadata"></video>`
+        :`<div class="art" style="background:linear-gradient(160deg,${s.art.g[0]},${s.art.g[1]})">
+            ${s.thumb?`<img src="${s.thumb}" style="width:100%;height:100%;object-fit:cover">`:`<div class="em">${esc(s.art.em)}</div>`}</div>`}
+      <div class="sov"></div><div class="stap">▶</div>
+      ${i===0?`<div class="shint">${matchMedia("(pointer:fine)").matches?"scroll or press ↑ ↓":"swipe up for next"}</div>`:""}
+      <div class="sinfo">
+        <div class="row" style="color:#fff;cursor:pointer" data-chan="${c.id}">
+          ${chAvatar(c,"sm")}<b style="font-size:13.5px">${esc(c.name)}</b>
+          ${c.official?'<span class="verif" style="color:#fff">✓</span>':""}
+          ${s.status==="pending"?'<span class="tag w">Pending</span>':""}
+          <button class="btn sm ${isSubbed(c.id)?"":"dark"}" data-sub="${c.id}" style="margin-left:6px">${isSubbed(c.id)?"✓":"Subscribe"}</button>
+        </div>
+        <div class="cap">${esc(s.title)}</div>
+        <div class="vw">👁️ ${nf(s.views)} views · ${ago(s.ts)}</div>
+      </div>
+      <div class="srail">
+        <button data-slike="${s.id}" class="${liked?"on":""}"><i>${liked?"❤️":"🤍"}</i>${nf(s.likes.length)}</button>
+        <button data-scmt="${s.id}"><i>💬</i>${nf(s.comments.length)}</button>
+        <button data-sshare="${s.id}"><i>↗</i>Share</button>
+        <button data-srep="${s.id}"><i>🚩</i></button>
+        ${iOwn(c)?`<button data-sdel="${s.id}"><i>🗑️</i></button>`:""}
+      </div></div>`;
+  }).join("")}</div>`;
+
+  const feed=$("#sfeed");
+
+  $$(".sreel",feed).forEach(el=>{
+    el.addEventListener("click",e=>{
+      if(e.target.closest(".srail")||e.target.closest("[data-chan]")||e.target.closest("[data-sub]"))return;
+      const vd=$("video",el),tp=$(".stap",el);
+      if(vd){ vd.paused?vd.play().catch(()=>{}):vd.pause(); tp.textContent=vd.paused?"⏸":"▶"; }
+      else tp.textContent="⏸";
+      tp.classList.add("show"); setTimeout(()=>tp.classList.remove("show"),420);
+    });
+  });
+
+  $$("[data-slike]",feed).forEach(b=>b.onclick=e=>{e.stopPropagation();
+    const s=vid(b.dataset.slike); const i=s.likes.indexOf(ME.id);
+    if(i>=0) s.likes.splice(i,1); else { s.likes.push(ME.id);
+      const o=chan(s.ch).owner; if(o&&o!==ME.id) notify(o,"❤️","Like on your short",`${ME.name} liked "${s.title.slice(0,30)}"`,"#/shorts"); }
+    save(); const on=s.likes.includes(ME.id);
+    b.classList.toggle("on",on); b.innerHTML=`<i>${on?"❤️":"🤍"}</i>${nf(s.likes.length)}`;
+  });
+
+  $$("[data-scmt]",feed).forEach(b=>b.onclick=e=>{e.stopPropagation(); shortComments(b.dataset.scmt);});
+
+  $$("[data-sshare]",feed).forEach(b=>b.onclick=e=>{e.stopPropagation(); share(vid(b.dataset.sshare));});
+
+  $$("[data-srep]",feed).forEach(b=>b.onclick=e=>{e.stopPropagation(); reportSheet("video",b.dataset.srep);});
+
+  $$("[data-sdel]",feed).forEach(b=>b.onclick=e=>{e.stopPropagation();
+    if(!confirm("Delete this short?"))return; DB.videos=DB.videos.filter(x=>x.id!==b.dataset.sdel); save(); renderView();});
+
+  $$("[data-sub]",feed).forEach(b=>b.onclick=e=>{e.stopPropagation(); toggleSub(b.dataset.sub);});
+
+  $$("[data-chan]",feed).forEach(b=>b.onclick=e=>{e.stopPropagation(); go("channel",b.dataset.chan);});
+
+  const io=new IntersectionObserver(ents=>{
+    ents.forEach(en=>{ const el=en.target,id=el.dataset.reel,vd=$("video",el);
+      if(en.isIntersecting&&en.intersectionRatio>.6){
+        if(vd) vd.play().catch(()=>{});
+        if(!viewedSession.has(id)){ viewedSession.add(id); const s=vid(id);
+          if(s){ s.views++; const w=$(".vw",el); if(w) w.textContent=`👁️ ${nf(s.views)} views · ${ago(s.ts)}`; persist(); } }
+      } else if(vd) vd.pause();
+    });
+  },{root:feed,threshold:[0,.6,1]});
+
+  $$(".sreel",feed).forEach(el=>io.observe(el));
+  cleanups.push(()=>io.disconnect());
+
+  feed.tabIndex=0;
+  feed.onkeydown=e=>{
+    if(["ArrowDown","ArrowUp","j","k"].includes(e.key)){ e.preventDefault();
+      feed.scrollBy({top:(e.key==="ArrowUp"||e.key==="k"?-1:1)*feed.clientHeight,behavior:"smooth"}); }
+  };
+  setTimeout(()=>{
+    if(want){ const el=$(`[data-reel="${want}"]`,feed); if(el) feed.scrollTop=el.offsetTop; }
+    feed.focus({preventScroll:true});
+  },40);
+}
+function shortComments(id){
+  const V=vid(id); if(!V)return;
+  sheet(`Comments (${V.comments.length})`,
+    `<div id="scl">${V.comments.slice().sort((a,b)=>b.ts-a.ts).map(cm=>commentHTML(V,cm)).join("")||`<div class="note">No comments yet.</div>`}</div>
+     <div class="cbox" style="margin-bottom:0">${uAvatar(ME,"sm")}
+       <input id="cin" placeholder="Add a comment…" maxlength="300"><button class="btn primary sm" id="scs">Send</button></div>`,
+    box=>{
+      const send=()=>{ const t=$("#cin",box).value.trim(); if(!t)return;
+        V.comments.push({id:"c_"+uid(),by:ME.id,text:t,ts:Date.now(),likes:[]});
+        const o=chan(V.ch).owner; if(o&&o!==ME.id) notify(o,"💬","Comment on your short",`${ME.name}: ${t.slice(0,50)}`,"#/shorts");
+        save(); closeSheet(); toast("💬","Comment posted",""); renderView(); };
+      $("#scs",box).onclick=send;
+      $("#cin",box).onkeydown=e=>{ if(e.key==="Enter") send(); };
+      wireComments(box,V);
+    });
+}
+
+/* ---------- CHANNEL ---------- */
+let chTab="Videos";
+function viewChannel(v,cid){
+  const c=DB.channels[cid];
+  if(!c){ v.innerHTML=`<div class="empty"><span class="e">🚫</span>Channel not found.</div>`; return; }
+  const mine=iOwn(c);
+  const vids=DB.videos.filter(x=>x.ch===cid&&x.kind==="video"&&visible(x)).sort((a,b)=>b.ts-a.ts);
+  const shorts=DB.videos.filter(x=>x.ch===cid&&x.kind==="short"&&visible(x)).sort((a,b)=>b.ts-a.ts);
+  const views=DB.videos.filter(x=>x.ch===cid).reduce((a,x)=>a+x.views,0);
+  const tabs=["Videos","Shorts","About"];
+  let body="";
+  if(chTab==="Videos") body=grid(vids,mine?"You haven't uploaded a video yet. Tap ＋ Create!":"No videos on this channel yet.");
+  if(chTab==="Shorts") body=shorts.length?`<div class="vgrid" style="grid-template-columns:repeat(auto-fill,minmax(158px,1fr))">${shorts.map(shortCard).join("")}</div>`
+    :`<div class="empty"><span class="e">⚡</span>No shorts yet.</div>`;
+  if(chTab==="About") body=`<div class="card"><div class="st" style="font-weight:800;margin-bottom:8px">Description</div>
+      <div style="white-space:pre-wrap;line-height:1.6;font-size:14px">${esc(c.desc||"No description yet.")}</div>
+      <div class="hr"></div>
+      <div class="grid2">
+        <div class="stat"><b>${nf(c.subs.length)}</b><span>Subscribers</span></div>
+        <div class="stat"><b>${vids.length+shorts.length}</b><span>Uploads</span></div>
+        <div class="stat"><b>${nf(views)}</b><span>Total views</span></div>
+        <div class="stat"><b>${new Date(c.created).toLocaleDateString()}</b><span>Joined</span></div>
+      </div>
+      ${c.owner?`<div class="hr"></div><div class="row">${uAvatar(user(c.owner),"sm")}
+        <div><b>${esc(user(c.owner).name)}</b><div class="vsub">${esc(user(c.owner).klass||"")} ${user(c.owner).role==="teacher"?"· Staff":""}</div></div></div>`:""}
+    </div>`;
+
+  v.innerHTML=`
+    <div class="banner" style="background:linear-gradient(120deg,${c.grad[0]},${c.grad[1]||c.grad[0]})">
+      ${c.banner?`<img src="${c.banner}">`:""}</div>
+    <div class="chead">
+      ${chAvatar(c,"xl")}
+      <div style="flex:1;min-width:200px">
+        <h1>${esc(c.name)} ${c.official?'<span class="verif" style="font-size:14px">✓ Verified</span>':""}</h1>
+        <div class="h">${esc(c.handle)} · ${nf(c.subs.length)} subscribers · ${vids.length+shorts.length} uploads</div>
+        <div class="h" style="margin-top:6px;max-width:620px">${esc((c.desc||"").slice(0,150))}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${mine?`<button class="btn" data-editch>✏️ Edit channel</button><button class="btn primary" data-up>⬆️ Upload</button>`
+              :`<button class="btn ${isSubbed(cid)?"":"dark"}" data-sub="${cid}">${isSubbed(cid)?"✓ Subscribed":"Subscribe"}</button>`}
+      </div>
+    </div>
+    <div class="ctabs">${tabs.map(t=>`<button class="ctab ${t===chTab?"on":""}" data-ct="${t}">${t}</button>`).join("")}</div>
+    ${body}`;
+
+  $$("[data-ct]",v).forEach(b=>b.onclick=()=>{ chTab=b.dataset.ct; renderView(); });
+  const sb=$("[data-sub]",v); if(sb) sb.onclick=()=>toggleSub(cid);
+  const ec=$("[data-editch]",v); if(ec) ec.onclick=()=>editChannel(cid);
+  const up=$("[data-up]",v); if(up) up.onclick=()=>openCreate(cid);
+  wireCards(v);
+}
+
+/* ---------- STUDIO (your videos) ---------- */
+function viewStudio(v){
+  const mineCh=Object.values(DB.channels).filter(c=>c.owner===ME.id);
+  const ids=mineCh.map(c=>c.id);
+  const list=DB.videos.filter(x=>ids.includes(x.ch)).sort((a,b)=>b.ts-a.ts);
+  const views=list.reduce((a,x)=>a+x.views,0), likes=list.reduce((a,x)=>a+x.likes.length,0);
+  v.innerHTML=`<div class="sect">🎬 Your videos</div>
+    <div class="grid2" style="margin-bottom:18px">
+      <div class="stat"><b>${list.length}</b><span>Uploads</span></div>
+      <div class="stat"><b>${nf(views)}</b><span>Total views</span></div>
+      <div class="stat"><b>${nf(likes)}</b><span>Likes</span></div>
+      <div class="stat"><b>${nf(mineCh.reduce((a,c)=>a+c.subs.length,0))}</b><span>Subscribers</span></div>
+    </div>
+    <button class="btn primary" data-up style="margin-bottom:16px">⬆️ Upload new</button>
+    ${list.length?list.map(x=>`<div class="card row">
+      <div class="rt" style="width:150px;flex:none;aspect-ratio:16/9;border-radius:10px;overflow:hidden;display:grid;place-items:center;cursor:pointer;${thumbStyle(x)}" data-open="${x.id}">
+        ${x.thumb?`<img src="${x.thumb}" style="width:100%;height:100%;object-fit:cover">`:`<div style="font-size:28px">${esc(x.art.em)}</div>`}</div>
+      <div style="flex:1;min-width:0">
+        <b style="font-size:14.5px">${esc(x.title)}</b>
+        <div class="vsub">${esc(chan(x.ch).name)} · ${nf(x.views)} views · 👍 ${x.likes.length} · 💬 ${x.comments.length}</div>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+          <span class="tag ${x.status==="approved"?"g":"w"}">${x.status}</span>
+          <span class="tag">${x.kind}</span><span class="tag">${x.audience}</span><span class="tag">${esc(x.cat)}</span>
+          ${(x.reports||[]).length?`<span class="tag r">${x.reports.length} reports</span>`:""}
+        </div></div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn sm" data-ed="${x.id}">✏️</button>
+        <button class="btn sm bad" data-rm="${x.id}">🗑️</button></div></div>`).join("")
+      :`<div class="empty"><span class="e">🎬</span>Nothing uploaded yet.</div>`}`;
+  $("[data-up]",v).onclick=()=>openCreate();
+
+  $$("[data-ed]",v).forEach(b=>b.onclick=()=>editVideo(b.dataset.ed));
+
+  $$("[data-rm]",v).forEach(b=>b.onclick=()=>{ if(!confirm("Delete this upload?"))return;
+    DB.videos=DB.videos.filter(x=>x.id!==b.dataset.rm); save(); renderView(); });
+  wireCards(v);
+}
+
+/* ---------- ALERTS ---------- */
+function viewAlerts(v){
+  const list=DB.notifs[ME.id]||[];
+  v.innerHTML=`<div class="between" style="margin-bottom:12px"><div class="sect" style="margin:0">🔔 Notifications</div>
+      ${list.length?`<button class="btn sm" data-clr>Clear all</button>`:""}</div>
+    ${list.length?list.map(n=>`<div class="card row" style="cursor:${n.href?"pointer":"default"}" data-href="${esc(n.href||"")}">
+        <div class="av" style="background:var(--hover);font-size:19px">${esc(n.icon)}</div>
+        <div style="flex:1;min-width:0"><b style="font-size:14px">${esc(n.title)}</b>
+          <div class="vsub">${esc(n.body||"")}</div>
+          <div class="vsub" style="margin-top:3px">${ago(n.ts)}</div></div>
+        ${!n.read?`<span class="tag g">New</span>`:""}</div>`).join("")
+      :`<div class="empty"><span class="e">🔔</span>All caught up.</div>`}`;
+
+  $$("[data-href]",v).forEach(el=>{ if(el.dataset.href) el.onclick=()=>{ location.hash=el.dataset.href; }; });
+  const c=$("[data-clr]",v); if(c) c.onclick=()=>{ DB.notifs[ME.id]=[]; save(); renderAll(); };
+  (DB.notifs[ME.id]||[]).forEach(n=>n.read=true); persist();
+  setTimeout(()=>{ const u=unread(); $("#btnBell").innerHTML="🔔"+(u?`<span class="dot">${u}</span>`:"");
+    const bd=$("#bDot"); bd.classList.toggle("hide",u===0); },50);
+}
+
+/* ---------- SETTINGS ---------- */
+function viewSettings(v){
+  const s=DB.settings;
+  v.innerHTML=`<div class="sect">⚙️ Settings</div>
+    <div class="card">
+      <div class="srow"><div><b>Light theme</b><p>Easier on the eyes in bright classrooms.</p></div>
+        <div class="switch ${s.theme==="light"?"on":""}" data-sw="theme"><i></i></div></div>
+      <div class="hr"></div>
+      <div><b style="font-size:14px">School colours</b>
+        <div class="chiprow" style="margin-top:10px;padding-bottom:0">
+        ${[["#6c5ce7","#00d2ff"],["#e63946","#ffb703"],["#0077b6","#90e0ef"],["#2d6a4f","#95d5b2"],["#7b2cbf","#ff70a6"],["#ff6d00","#ffd60a"]]
+          .map(c=>`<button class="chip" data-a="${c[0]}" data-b="${c[1]}"
+            style="width:46px;height:30px;background:linear-gradient(135deg,${c[0]},${c[1]});${s.brand===c[0]?"outline:2px solid var(--txt);outline-offset:2px":""}"></button>`).join("")}</div>
+      </div>
+    </div>
+    <div class="sect">👤 Your account</div>
+    <div class="card">
+      <div class="row">${uAvatar(ME,"lg")}<div style="flex:1">
+        <b style="font-size:17px">${esc(ME.name)}</b>
+        <div class="vsub">${esc(ME.email)} · ${esc(ME.klass)} ${ME.role==="teacher"?"· <span class='tag'>Staff</span>":""}</div></div></div>
+      <div class="hr"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" data-editch>✏️ Edit channel</button>
+        <button class="btn" data-pass>🔑 Change passcode</button>
+        <button class="btn bad" data-out>🚪 Log out</button></div>
+    </div>
+    <div class="sect">⌨️ Shortcuts</div>
+    <div class="card note" style="line-height:1.9">
+      <b>/</b> focus search · <b>Space</b> play/pause · <b>← →</b> seek 5s · <b>f</b> fullscreen · <b>m</b> mute<br>
+      <b>↑ ↓</b> or <b>j / k</b> next/previous short · tap a short to pause
+    </div>`;
+  $("[data-sw=theme]",v).onclick=()=>{ s.theme=s.theme==="light"?"dark":"light"; applyTheme(); save(); renderView(); };
+
+  $$("[data-a]",v).forEach(b=>b.onclick=()=>{ s.brand=b.dataset.a; s.brand2=b.dataset.b; applyTheme(); save(); renderView(); });
+  $("[data-editch]",v).onclick=()=>editChannel("c_"+ME.id);
+  $("[data-out]",v).onclick=()=>{ if(confirm("Log out?")) logout(); };
+  $("[data-pass]",v).onclick=()=>sheet("Change passcode",
+    `<div class="field"><label>Current passcode</label><input class="inp" id="p0" type="password"></div>
+     <div class="field"><label>New passcode (min 4)</label><input class="inp" id="p1" type="password"></div>
+     <button class="btn primary block" id="pgo" style="margin-top:14px">Save</button>`,
+    box=>{ $("#pgo",box).onclick=()=>{
+      if($("#p0",box).value!==ME.pass) return toast("⚠️","Wrong passcode","");
+      if($("#p1",box).value.length<4) return toast("⚠️","Too short","Use at least 4 characters.");
+      DB.users[ME.id].pass=$("#p1",box).value; save(); closeSheet(); toast("✅","Passcode updated",""); }; });
+}
+
+/* ===========================================================================
+   CREATE / UPLOAD
+   =========================================================================== */
+function myChannels(){
+  const mine=Object.values(DB.channels).filter(c=>c.owner===ME.id);
+  if(ME.role==="teacher") Object.values(DB.channels).forEach(c=>{ if(c.official&&!mine.includes(c)) mine.push(c); });
+  return mine;
+}
+function openCreate(preCh){
+  sheet("Create",
+    `<p class="note">What do you want to publish?</p>
+     <div style="display:grid;gap:11px;margin-top:14px">
+       <button class="btn block" data-k="video" style="justify-content:flex-start;padding:16px;border-radius:15px">
+         <span style="font-size:24px">🎥</span><span style="text-align:left"><b>Upload video</b>
+         <div class="note" style="font-weight:400">Landscape video with title, thumbnail and description</div></span></button>
+       <button class="btn block" data-k="short" style="justify-content:flex-start;padding:16px;border-radius:15px">
+         <span style="font-size:24px">⚡</span><span style="text-align:left"><b>Create Short</b>
+         <div class="note" style="font-weight:400">Vertical clip, one caption, straight to the Shorts feed</div></span></button>
+       ${ME.role==="teacher"?`<button class="btn block" data-k="ann" style="justify-content:flex-start;padding:16px;border-radius:15px">
+         <span style="font-size:24px">📢</span><span style="text-align:left"><b>Post announcement</b>
+         <div class="note" style="font-weight:400">Pinned on Home and pushed to everyone</div></span></button>`:""}
+     </div>`,
+    box=>{ $$("[data-k]",box).forEach(b=>b.onclick=()=>{
+      const k=b.dataset.k; closeSheet();
+      if(k==="ann") return announceSheet();
+      uploadFlow(k,preCh);
+    }); });
+}
+function announceSheet(){
+  sheet("📢 New announcement",
+    `<div class="field"><label>Message</label><textarea class="inp" id="atxt" rows="4" placeholder="Something the whole school should know…"></textarea></div>
+     <button class="btn primary block" id="ago" style="margin-top:14px">Publish to everyone</button>`,
+    box=>{ $("#ago",box).onclick=()=>{
+      const t=$("#atxt",box).value.trim(); if(!t) return toast("✍️","Write something first","");
+      DB.announcements.unshift({id:"a_"+uid(),by:ME.id,text:t,ts:Date.now()});
+      Object.keys(DB.users).forEach(id=>{ if(id!==ME.id) notify(id,"📢","School announcement",t.slice(0,80),"#/home"); });
+      save(); closeSheet(); toast("📢","Announcement posted",""); go("home"); }; });
+}
+
+let U={};  // upload draft
+function uploadFlow(kind,preCh){
+  U={kind,file:null,src:null,thumb:null,art:randArt(),dur:kind==="short"?15:180,
+     title:"",desc:"",cat:kind==="short"?"Other":"Science",aud:"school",
+     ch:preCh||("c_"+ME.id),cmtOn:true,tags:""};
+  uploadStep(1);
+}
+function uploadStep(n){
+  const isShort=U.kind==="short";
+  const head=isShort?"⚡ Create Short":"🎥 Upload video";
+  if(n===1){
+    sheet(head,
+      `<div class="steps"><i class="on"></i><i></i><i></i></div>
+       <div class="drop" id="drop"><span class="e">${isShort?"⚡":"📼"}</span>
+         <b>Tap to choose a ${isShort?"vertical clip":"video file"}</b>
+         <div class="note" style="margin-top:6px">Max 60MB in this demo. Files stay in this browser session only.</div></div>
+       <input type="file" id="vf" accept="video/*" class="hide">
+       <div id="upBox"></div>
+       <div class="hr"></div>
+       <p class="note">No file handy? You can still publish a demo entry with generated cover art — perfect for testing the layout.</p>
+       <button class="btn block" id="skip" style="margin-top:10px">🎨 Continue without a file</button>`,
+      box=>{
+        $("#drop",box).onclick=()=>$("#vf",box).click();
+        $("#skip",box).onclick=()=>uploadStep(2);
+        $("#vf",box).onchange=async e=>{
+          const f=e.target.files[0]; if(!f)return;
+          if(f.size>60e6){ toast("⚠️","File too large","Keep demo clips under 60MB."); e.target.value=""; return; }
+          U.file=f; U.src=URL.createObjectURL(f);
+          $("#upBox",box).innerHTML=`<div class="prog"><i id="pg"></i></div><div class="note" id="pgt">Reading file…</div>`;
+          let p=0; const iv=setInterval(()=>{ p=Math.min(92,p+9); const el=$("#pg",box); if(el) el.style.width=p+"%"; },90);
+          const fr=await grabFrame(U.src);
+          clearInterval(iv);
+          const pg=$("#pg",box); if(pg) pg.style.width="100%";
+          if(fr){ U.thumb=fr.data; U.dur=Math.round(fr.dur)||U.dur; }
+          const t=$("#pgt",box); if(t) t.textContent="Ready ✓ "+f.name.slice(0,40);
+          U.title=U.title||f.name.replace(/\.[^.]+$/,"").slice(0,80);
+          setTimeout(()=>uploadStep(2),450);
+        };
+      });
+    return;
+  }
+  if(n===2){
+    const chans=myChannels();
+    sheet(head,
+      `<div class="steps"><i class="on"></i><i class="on"></i><i></i></div>
+       <div class="row" style="align-items:flex-start;gap:14px;margin-bottom:6px">
+         <div style="width:${isShort?"96px":"150px"};flex:none;${isShort?"aspect-ratio:9/16":"aspect-ratio:16/9"};border-radius:12px;overflow:hidden;display:grid;place-items:center;background:linear-gradient(140deg,${U.art.g[0]},${U.art.g[1]})" id="pvw">
+           ${U.thumb?`<img src="${U.thumb}" style="width:100%;height:100%;object-fit:cover">`:`<div style="font-size:34px">${U.art.em}</div>`}
+         </div>
+         <div style="flex:1"><div class="note">${U.file?"File: "+esc(U.file.name.slice(0,34)):"No file — using generated cover art"}</div>
+           <div class="note">Length: ${dur(U.dur)}</div></div>
+       </div>
+       <div class="field"><label>${isShort?"Caption":"Title"} *</label>
+         <input class="inp" id="uT" maxlength="100" placeholder="${isShort?"Annual day chaos 🎭":"Science Exhibition 2026"}" value="${esc(U.title)}"></div>
+       ${isShort?"":`<div class="field"><label>Description</label>
+         <textarea class="inp" id="uD" rows="3" placeholder="What's this video about?">${esc(U.desc)}</textarea></div>`}
+       <div class="field"><label>Thumbnail</label>
+         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+           <button class="btn sm" id="tpick">🖼️ Upload image</button>
+           ${U.thumb?`<button class="btn sm ghost" id="tclear">Use cover art instead</button>`:""}</div>
+         <div class="thumbpick" id="tp">${ARTS.slice(0,6).map((a,i)=>`<button class="tp ${!U.thumb&&U.art.em===a[0]?"on":""}" data-art="${i}"
+            style="background:linear-gradient(140deg,${a[1][0]},${a[1][1]})">${a[0]}</button>`).join("")}</div>
+         <input type="file" id="tf" accept="image/*" class="hide"></div>
+       <button class="btn block ghost" id="moreBtn" style="margin-top:14px">⚙️ More settings</button>
+       <div id="more" class="hide" style="margin-top:12px">
+         <div class="field"><label>Channel</label>
+           <select class="inp" id="uCh">${chans.map(c=>`<option value="${c.id}" ${c.id===U.ch?"selected":""}>${esc(c.name)}</option>`).join("")}</select></div>
+         <div class="field"><label>Category</label>
+           <select class="inp" id="uC">${CATS.filter(c=>c!=="All").map(c=>`<option ${c===U.cat?"selected":""}>${c}</option>`).join("")}</select></div>
+         <div class="field"><label>Audience</label>
+           <div class="radio" id="uA">
+             <button data-a="school" class="${U.aud==="school"?"on":""}">🏫 Whole school</button>
+             <button data-a="class" class="${U.aud==="class"?"on":""}">👥 My class only</button>
+             <button data-a="private" class="${U.aud==="private"?"on":""}">🔒 Private</button></div></div>
+         <div class="srow"><div><b>Allow comments</b><p>Turn off if you'd rather not get replies.</p></div>
+           <div class="switch ${U.cmtOn?"on":""}" id="uCm"><i></i></div></div>
+         <div class="field"><label>Tags (comma separated)</label><input class="inp" id="uTag" value="${esc(U.tags)}" placeholder="science, fair, robotics"></div>
+       </div>
+       ${DB.settings.moderation&&ME.role!=="teacher"?`<p class="note" style="margin-top:12px">🛡️ Moderation is ON — a teacher will review this before the school sees it.</p>`:""}
+       <div style="display:flex;gap:9px;margin-top:16px">
+         <button class="btn" id="back" style="flex:none">← Back</button>
+         <button class="btn primary" id="pub" style="flex:1">Publish</button></div>`,
+      box=>{
+        const read=()=>{
+          U.title=$("#uT",box).value.trim();
+          if($("#uD",box)) U.desc=$("#uD",box).value;
+          if($("#uCh",box)) U.ch=$("#uCh",box).value;
+          if($("#uC",box)) U.cat=$("#uC",box).value;
+          if($("#uTag",box)) U.tags=$("#uTag",box).value;
+        };
+        $("#moreBtn",box).onclick=()=>{ read(); $("#more",box).classList.toggle("hide");
+          $("#moreBtn",box).textContent=$("#more",box).classList.contains("hide")?"⚙️ More settings":"⚙️ Hide settings"; };
+        $("#tpick",box).onclick=()=>$("#tf",box).click();
+        $("#tf",box).onchange=async e=>{ const f=e.target.files[0]; if(!f)return;
+          try{ U.thumb=await shrink(f,640,.72); read(); uploadStep(2); }catch(_){ toast("⚠️","Couldn't read that image",""); } };
+        const tc=$("#tclear",box); if(tc) tc.onclick=()=>{ U.thumb=null; read(); uploadStep(2); };
+
+        $$("[data-art]",box).forEach(b=>b.onclick=()=>{ const a=ARTS[+b.dataset.art];
+          U.art={em:a[0],g:a[1]}; U.thumb=null; read(); uploadStep(2); });
+
+        $$("#uA button",box).forEach(b=>b.onclick=()=>{ U.aud=b.dataset.a;
+
+          $$("#uA button",box).forEach(x=>x.classList.toggle("on",x===b)); });
+        $("#uCm",box).onclick=()=>{ U.cmtOn=!U.cmtOn; $("#uCm",box).classList.toggle("on",U.cmtOn); };
+        $("#back",box).onclick=()=>{ read(); uploadStep(1); };
+        $("#pub",box).onclick=()=>{ read(); publish(); };
+      });
+  }
+}
+function publish(){
+  if(!U.title){ toast("✍️","Add a title first",""); return; }
+  const bad=["idiot","stupid","kill yourself","loser"];
+  if(bad.some(w=>(U.title+" "+U.desc).toLowerCase().includes(w))){ toast("🛡️","Hold on","That wording looks unkind — try rephrasing."); return; }
+  const pending = DB.settings.moderation && ME.role!=="teacher";
+  const V={id:"v_"+uid(),ch:U.ch,title:U.title,desc:U.desc||"",cat:U.cat,audience:U.aud,kind:U.kind,
+    art:U.art,thumb:U.thumb,src:U.src,session:!!U.src,dur:U.dur,views:0,likes:[],dislikes:[],comments:[],
+    ts:Date.now(),status:pending?"pending":"approved",reports:[],cmtOn:U.cmtOn,
+    tags:U.tags?U.tags.split(",").map(s=>s.trim()).filter(Boolean):[]};
+  DB.videos.unshift(V);
+  if(!pending){
+    (chan(V.ch).subs||[]).forEach(uidd=>{ if(uidd!==ME.id)
+      notify(uidd,"🔔",`${chan(V.ch).name} uploaded`,V.title.slice(0,60),"#/watch/"+V.id); });
+  }else{
+    Object.values(DB.users).filter(u=>u.role==="teacher")
+      .forEach(t=>notify(t.id,"🛡️","Video awaiting review",`${ME.name}: ${V.title.slice(0,50)}`,"#/admin"));
+  }
+  save(); closeSheet();
+  toast(pending?"🛡️":"✅",pending?"Sent for review":"Published!",pending?"A teacher will approve it shortly.":"Your upload is live.");
+  U={};
+  go(V.kind==="short"?"shorts":"watch",V.kind==="short"?"":V.id);
+}
+function editVideo(id){
+  const V=vid(id); if(!V)return;
+  sheet("✏️ Edit video",
+    `<div class="field"><label>Title</label><input class="inp" id="eT" value="${esc(V.title)}" maxlength="100"></div>
+     <div class="field"><label>Description</label><textarea class="inp" id="eD" rows="3">${esc(V.desc)}</textarea></div>
+     <div class="field"><label>Category</label><select class="inp" id="eC">${CATS.filter(c=>c!=="All").map(c=>`<option ${c===V.cat?"selected":""}>${c}</option>`).join("")}</select></div>
+     <div class="field"><label>Audience</label><div class="radio" id="eA">
+       <button data-a="school" class="${V.audience==="school"?"on":""}">🏫 School</button>
+       <button data-a="class" class="${V.audience==="class"?"on":""}">👥 Class</button>
+       <button data-a="private" class="${V.audience==="private"?"on":""}">🔒 Private</button></div></div>
+     <div class="srow"><div><b>Allow comments</b></div><div class="switch ${V.cmtOn?"on":""}" id="eCm"><i></i></div></div>
+     <div class="field"><label>Replace thumbnail</label><button class="btn sm" id="eTp">🖼️ Choose image</button>
+       <input type="file" id="etf" accept="image/*" class="hide"></div>
+     <button class="btn primary block" id="eGo" style="margin-top:14px">Save changes</button>`,
+    box=>{
+      let aud=V.audience, cm=V.cmtOn, th=V.thumb;
+
+      $$("#eA button",box).forEach(b=>b.onclick=()=>{ aud=b.dataset.a; $$("#eA button",box).forEach(x=>x.classList.toggle("on",x===b)); });
+      $("#eCm",box).onclick=()=>{ cm=!cm; $("#eCm",box).classList.toggle("on",cm); };
+      $("#eTp",box).onclick=()=>$("#etf",box).click();
+      $("#etf",box).onchange=async e=>{ const f=e.target.files[0]; if(!f)return;
+        try{ th=await shrink(f,640,.72); toast("🖼️","Thumbnail ready","Press save to apply."); }catch(_){} };
+      $("#eGo",box).onclick=()=>{
+        V.title=$("#eT",box).value.trim()||V.title; V.desc=$("#eD",box).value;
+        V.cat=$("#eC",box).value; V.audience=aud; V.cmtOn=cm; V.thumb=th;
+        save(); closeSheet(); toast("✅","Saved",""); renderView(); };
+    });
+}
+function editChannel(cid){
+  const c=DB.channels[cid]; if(!c||!iOwn(c))return;
+  sheet("✏️ Edit channel",
+    `<div class="row" style="margin-bottom:12px">${chAvatar(c,"lg")}
+      <div style="flex:1"><div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn sm" id="ePic">🖼️ Change picture</button>
+        <button class="btn sm" id="eBan">🏞️ Change banner</button></div>
+        <div class="note" style="margin-top:6px">Square image for the picture, wide image for the banner.</div></div></div>
+     <input type="file" id="fp" accept="image/*" class="hide"><input type="file" id="fb" accept="image/*" class="hide">
+     <div class="field"><label>Name</label><input class="inp" id="cN" value="${esc(c.name)}" maxlength="40"></div>
+     <div class="field"><label>Handle</label><input class="inp" id="cH" value="${esc(c.handle)}" maxlength="24"></div>
+     <div class="field"><label>Description</label><textarea class="inp" id="cD" rows="3" maxlength="300">${esc(c.desc||"")}</textarea></div>
+     <div class="field"><label>Emoji badge (used when no picture)</label><input class="inp" id="cE" value="${esc(c.emoji||"")}" maxlength="3" placeholder="🔬"></div>
+     <div class="field"><label>Channel colours</label>
+       <div class="chiprow" style="padding-bottom:0" id="cG">
+       ${[["#6c5ce7","#00d2ff"],["#003049","#0077b6"],["#5f0f40","#9a031e"],["#0b3c1d","#2d9e4f"],["#240046","#7b2cbf"],["#4a3200","#c9821a"]]
+        .map(g=>`<button class="chip" data-g1="${g[0]}" data-g2="${g[1]}" style="width:46px;height:30px;background:linear-gradient(135deg,${g[0]},${g[1]})"></button>`).join("")}</div></div>
+     ${c.owner===ME.id&&!c.official?`<div class="note" style="margin-top:10px">Tip: your display name and channel name are separate — you can keep your channel name fun.</div>`:""}
+     <button class="btn primary block" id="cGo" style="margin-top:16px">Save</button>`,
+    box=>{
+      let av=c.avatar,bn=c.banner,g=c.grad.slice();
+      $("#ePic",box).onclick=()=>$("#fp",box).click();
+      $("#eBan",box).onclick=()=>$("#fb",box).click();
+      $("#fp",box).onchange=async e=>{ const f=e.target.files[0]; if(!f)return;
+        try{ av=await shrink(f,240,.8); toast("🖼️","Picture ready","Press save to apply."); }catch(_){} };
+      $("#fb",box).onchange=async e=>{ const f=e.target.files[0]; if(!f)return;
+        try{ bn=await shrink(f,1280,.7); toast("🏞️","Banner ready","Press save to apply."); }catch(_){} };
+
+      $$("[data-g1]",box).forEach(b=>b.onclick=()=>{ g=[b.dataset.g1,b.dataset.g2]; toast("🎨","Colour picked","Press save to apply."); });
+      $("#cGo",box).onclick=()=>{
+        const nm=$("#cN",box).value.trim(); if(!nm) return toast("✍️","Name can't be empty","");
+        c.name=nm; c.handle=$("#cH",box).value.trim().replace(/^@?/,"@")||handleize(nm);
+        c.desc=$("#cD",box).value.trim(); c.emoji=$("#cE",box).value.trim()||null;
+        c.avatar=av; c.banner=bn; c.grad=g;
+        if(c.owner===ME.id&&!c.official){ DB.users[ME.id].avatar=av; DB.users[ME.id].bio=c.desc; }
+        save(); closeSheet(); toast("✅","Channel updated",""); renderAll(); };
+    });
+}
+
+/* ---------- REPORTS ---------- */
+function reportSheet(kind,ref){
+  sheet("Report content",
+    `<p class="note">Reports go straight to staff. The author is never told who reported them.</p>
+     <div class="chiprow" style="flex-wrap:wrap;overflow:visible;margin-top:12px;padding-bottom:0">
+     ${["Bullying","Spam","Inappropriate","Misleading","Other"].map(r=>`<button class="chip" data-r="${r}">${r}</button>`).join("")}</div>`,
+    box=>{ $$("[data-r]",box).forEach(b=>b.onclick=()=>{
+      const rec={by:ME.id,reason:b.dataset.r,ts:Date.now(),kind,ref};
+      if(kind==="video"){ const V=vid(ref); if(V){ V.reports=V.reports||[]; V.reports.push(rec); } }
+      else { const [vidId,cmId]=ref.split("|"); const V=vid(vidId);
+        const cm=V&&V.comments.find(x=>x.id===cmId); if(cm){ cm.reports=cm.reports||[]; cm.reports.push(rec); } }
+      Object.values(DB.users).filter(u=>u.role==="teacher")
+        .forEach(t=>notify(t.id,"🚩","New report",`${b.dataset.r} — reported by ${ME.name}`,"#/admin"));
+      save(); closeSheet(); toast("🚩","Report sent","Staff will review it shortly."); }); });
+}
+
+/* ===========================================================================
+   ADMIN
+   =========================================================================== */
+let adminTab="Overview";
+function viewAdmin(v){
+  if(ME.role!=="teacher"){ v.innerHTML=`<div class="empty"><span class="e">🔒</span>Staff only.</div>`; return; }
+  const pend=DB.videos.filter(x=>x.status==="pending");
+  const repVids=DB.videos.filter(x=>(x.reports||[]).length);
+  const repCmts=[];
+  DB.videos.forEach(V=>(V.comments||[]).forEach(cm=>{ if((cm.reports||[]).length) repCmts.push({V,cm}); }));
+  const tabs=["Overview","Videos","Channels","Students","Comments","Reports","Settings"];
+  let body="";
+
+  if(adminTab==="Overview"){
+    const views=DB.videos.reduce((a,x)=>a+x.views,0);
+    body=`<div class="grid2" style="margin-bottom:16px">
+      <div class="stat"><b>${Object.keys(DB.users).length}</b><span>Members</span></div>
+      <div class="stat"><b>${DB.videos.length}</b><span>Uploads</span></div>
+      <div class="stat"><b>${nf(views)}</b><span>Total views</span></div>
+      <div class="stat"><b>${pend.length}</b><span>Awaiting review</span></div>
+      <div class="stat"><b>${repVids.length+repCmts.length}</b><span>Reported</span></div>
+      <div class="stat"><b>${Object.keys(DB.channels).length}</b><span>Channels</span></div></div>
+      <div class="sect">Pending queue</div>
+      ${pend.length?pend.map(pendRow).join(""):`<div class="card note">Nothing waiting. Nice.</div>`}
+      <div class="sect">Recent uploads</div>
+      ${DB.videos.slice(0,6).map(adminVidRow).join("")}`;
+  }
+  if(adminTab==="Videos"){
+    body=`<div class="sect">All uploads (${DB.videos.length})</div>${DB.videos.map(adminVidRow).join("")}`;
+  }
+  if(adminTab==="Channels"){
+    body=`<button class="btn primary" id="newCh" style="margin-bottom:14px">＋ New official channel</button>
+      ${Object.values(DB.channels).map(c=>`<div class="card row">${chAvatar(c,"sm")}
+        <div style="flex:1;min-width:0"><b>${esc(c.name)}</b> ${c.official?'<span class="tag g">Official</span>':""}
+          <div class="vsub">${esc(c.handle)} · ${c.subs.length} subs · ${DB.videos.filter(x=>x.ch===c.id).length} uploads · owner: ${esc(user(c.owner).name)}</div></div>
+        <button class="btn sm" data-chedit="${c.id}">✏️</button>
+        ${c.official?`<button class="btn sm bad" data-chdel="${c.id}">🗑️</button>`:""}</div>`).join("")}`;
+  }
+  if(adminTab==="Students"){
+    body=`<div class="sect">Members (${Object.keys(DB.users).length})</div>
+      ${Object.values(DB.users).map(u=>`<div class="card row">${uAvatar(u,"sm")}
+        <div style="flex:1;min-width:0"><b>${esc(u.name)}</b> ${u.role==="teacher"?'<span class="tag">Staff</span>':""} ${u.banned?'<span class="tag r">Suspended</span>':""}
+          <div class="vsub">${esc(u.email)} · ${esc(u.klass)} · ${DB.videos.filter(x=>x.ch==="c_"+u.id).length} uploads</div></div>
+        ${u.id!==ME.id?`<button class="btn sm ${u.banned?"ok":"bad"}" data-ban="${u.id}">${u.banned?"Restore":"Suspend"}</button>`:`<span class="tag">You</span>`}
+        </div>`).join("")}`;
+  }
+  if(adminTab==="Comments"){
+    const all=[]; DB.videos.forEach(V=>(V.comments||[]).forEach(cm=>all.push({V,cm})));
+    all.sort((a,b)=>b.cm.ts-a.cm.ts);
+    body=`<div class="sect">Latest comments (${all.length})</div>
+      ${all.slice(0,60).map(({V,cm})=>`<div class="card">
+        <div class="row">${uAvatar(user(cm.by),"sm")}<div style="flex:1;min-width:0">
+          <b style="font-size:13.5px">${esc(user(cm.by).name)}</b> <span class="vsub">on “${esc(V.title.slice(0,40))}” · ${ago(cm.ts)}</span>
+          <div style="font-size:14px;margin-top:4px">${esc(cm.text)}</div></div>
+          <button class="btn sm bad" data-cmdel="${V.id}|${cm.id}">🗑️</button></div></div>`).join("")
+        ||`<div class="card note">No comments yet.</div>`}`;
+  }
+  if(adminTab==="Reports"){
+    body=`<div class="sect">Reported videos (${repVids.length})</div>
+      ${repVids.map(x=>`<div class="card">
+        <div class="row"><div style="width:110px;flex:none;aspect-ratio:16/9;border-radius:9px;overflow:hidden;display:grid;place-items:center;${thumbStyle(x)}">
+          ${x.thumb?`<img src="${x.thumb}" style="width:100%;height:100%;object-fit:cover">`:`<div style="font-size:24px">${esc(x.art.em)}</div>`}</div>
+          <div style="flex:1;min-width:0"><b>${esc(x.title)}</b>
+            <div class="vsub">${esc(chan(x.ch).name)} · ${x.reports.length} reports</div>
+            <div class="vsub" style="margin-top:4px">${x.reports.slice(0,4).map(r=>`${esc(r.reason)} — ${esc(user(r.by).name)}`).join("<br>")}</div></div></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn sm" data-open="${x.id}">View</button>
+          <button class="btn sm ok" data-dismiss="${x.id}">Dismiss</button>
+          <button class="btn sm bad" data-rmv="${x.id}">Remove video</button></div></div>`).join("")
+        ||`<div class="card note">No reported videos.</div>`}
+      <div class="sect">Reported comments (${repCmts.length})</div>
+      ${repCmts.map(({V,cm})=>`<div class="card">
+        <div class="row">${uAvatar(user(cm.by),"sm")}<div style="flex:1;min-width:0">
+          <b>${esc(user(cm.by).name)}</b> <span class="vsub">on “${esc(V.title.slice(0,32))}”</span>
+          <div style="font-size:14px;margin-top:4px">${esc(cm.text)}</div>
+          <div class="vsub" style="margin-top:4px">${cm.reports.map(r=>esc(r.reason)).join(", ")}</div></div></div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn sm ok" data-cdismiss="${V.id}|${cm.id}">Dismiss</button>
+          <button class="btn sm bad" data-cmdel="${V.id}|${cm.id}">Delete comment</button></div></div>`).join("")
+        ||`<div class="card note">No reported comments.</div>`}`;
+  }
+  if(adminTab==="Settings"){
+    const s=DB.settings;
+    body=`<div class="card">
+      <div class="srow"><div><b>Pre-approve student uploads</b><p>Videos stay hidden until a teacher approves them.</p></div>
+        <div class="switch ${s.moderation?"on":""}" id="swMod"><i></i></div></div>
+      <div class="hr"></div>
+      <div class="field"><label>Platform name</label><input class="inp" id="sName" value="${esc(s.schoolName||"ClassPulse")}"></div>
+      <div class="field"><label>Allowed email domain</label><input class="inp" id="sDom" value="${esc(s.domain)}"></div>
+      <div class="field"><label>Staff sign-up code</label><input class="inp" id="sCode" value="${esc(s.staffCode)}"></div>
+      <button class="btn primary" id="sSave" style="margin-top:12px">Save settings</button>
+    </div>
+    <div class="sect">📢 Announcements</div>
+    <button class="btn" id="newAnn" style="margin-bottom:12px">＋ New announcement</button>
+    ${DB.announcements.map(a=>`<div class="card row"><div style="flex:1">
+      <div style="font-size:14px;line-height:1.5">${esc(a.text)}</div>
+      <div class="vsub" style="margin-top:4px">${esc(user(a.by).name)} · ${ago(a.ts)}</div></div>
+      <button class="btn sm bad" data-adel="${a.id}">🗑️</button></div>`).join("")||`<div class="card note">No announcements.</div>`}
+    <div class="sect">⚠️ Danger zone</div>
+    <div class="card"><b>Reset demo data</b><p class="note" style="margin:4px 0 10px">Wipes every user, channel, video and comment and restores the original demo content.</p>
+      <button class="btn bad" id="reset">Reset everything</button></div>`;
+  }
+
+  v.innerHTML=`<div class="sect">🛡️ Staff dashboard</div>
+    <div class="chiprow">${tabs.map(t=>`<button class="chip ${t===adminTab?"on":""}" data-at="${t}">${t}</button>`).join("")}</div>${body}`;
+
+
+  $$("[data-at]",v).forEach(b=>b.onclick=()=>{ adminTab=b.dataset.at; renderView(); });
+
+  $$("[data-ok]",v).forEach(b=>b.onclick=()=>{ const V=vid(b.dataset.ok); if(!V)return;
+    V.status="approved"; (chan(V.ch).subs||[]).forEach(id=>notify(id,"🔔",`${chan(V.ch).name} uploaded`,V.title.slice(0,60),"#/watch/"+V.id));
+    if(chan(V.ch).owner) notify(chan(V.ch).owner,"✅","Video approved",`"${V.title.slice(0,40)}" is now live.`,"#/watch/"+V.id);
+    save(); renderView(); toast("✅","Approved",""); });
+
+  $$("[data-no]",v).forEach(b=>b.onclick=()=>{ const V=vid(b.dataset.no); if(!V)return;
+    if(!confirm("Reject and delete this upload?"))return;
+    if(chan(V.ch).owner) notify(chan(V.ch).owner,"🛡️","Upload rejected",`"${V.title.slice(0,40)}" didn't meet the guidelines.`);
+    DB.videos=DB.videos.filter(x=>x.id!==V.id); save(); renderView(); toast("🗑️","Rejected",""); });
+
+  $$("[data-rmv]",v).forEach(b=>b.onclick=()=>{ const V=vid(b.dataset.rmv); if(!V)return;
+    if(!confirm("Remove this video?"))return;
+    if(chan(V.ch).owner) notify(chan(V.ch).owner,"🛡️","Video removed","A teacher removed one of your uploads. Check the guidelines.");
+    DB.videos=DB.videos.filter(x=>x.id!==V.id); save(); renderView(); });
+
+  $$("[data-dismiss]",v).forEach(b=>b.onclick=()=>{ const V=vid(b.dataset.dismiss); if(V){V.reports=[];save();renderView();} });
+
+  $$("[data-cdismiss]",v).forEach(b=>b.onclick=()=>{ const [vi,ci]=b.dataset.cdismiss.split("|");
+    const V=vid(vi),cm=V&&V.comments.find(x=>x.id===ci); if(cm){cm.reports=[];save();renderView();} });
+
+  $$("[data-cmdel]",v).forEach(b=>b.onclick=()=>{ const [vi,ci]=b.dataset.cmdel.split("|"); const V=vid(vi); if(!V)return;
+    if(!confirm("Delete this comment?"))return; V.comments=V.comments.filter(x=>x.id!==ci); save(); renderView(); });
+
+  $$("[data-ban]",v).forEach(b=>b.onclick=()=>{ const u=DB.users[b.dataset.ban]; if(!u)return;
+    u.banned=!u.banned; if(u.banned) notify(u.id,"🛡️","Account suspended","Please speak to a teacher.");
+    save(); renderView(); toast(u.banned?"🚫":"✅",u.banned?"Suspended":"Restored",u.name); });
+
+  $$("[data-chedit]",v).forEach(b=>b.onclick=()=>editChannel(b.dataset.chedit));
+
+  $$("[data-chdel]",v).forEach(b=>b.onclick=()=>{ if(!confirm("Delete this channel and all its videos?"))return;
+    DB.videos=DB.videos.filter(x=>x.ch!==b.dataset.chdel); delete DB.channels[b.dataset.chdel]; save(); renderView(); });
+
+  $$("[data-adel]",v).forEach(b=>b.onclick=()=>{ DB.announcements=DB.announcements.filter(a=>a.id!==b.dataset.adel); save(); renderView(); });
+  const nc=$("#newCh",v); if(nc) nc.onclick=newChannelSheet;
+  const na=$("#newAnn",v); if(na) na.onclick=announceSheet;
+  const sm=$("#swMod",v); if(sm) sm.onclick=()=>{ DB.settings.moderation=!DB.settings.moderation; save(); renderView();
+    toast("🛡️","Moderation "+(DB.settings.moderation?"ON":"OFF"),""); };
+  const ss=$("#sSave",v); if(ss) ss.onclick=()=>{
+    DB.settings.schoolName=$("#sName",v).value.trim()||"ClassPulse";
+    DB.settings.domain=$("#sDom",v).value.trim()||DB.settings.domain;
+    DB.settings.staffCode=$("#sCode",v).value.trim()||DB.settings.staffCode;
+    applyTheme(); save(); toast("✅","Settings saved",""); };
+  const rs=$("#reset",v); if(rs) rs.onclick=()=>{ if(!confirm("Erase ALL ClassPulse data and restore the demo?"))return;
+    localStorage.removeItem(KEY); localStorage.removeItem(SKEY); location.hash=""; location.reload(); };
+  wireCards(v);
+}
+function pendRow(x){
+  return `<div class="card"><div class="row">
+      <div style="width:120px;flex:none;aspect-ratio:16/9;border-radius:9px;overflow:hidden;display:grid;place-items:center;${thumbStyle(x)}">
+        ${x.thumb?`<img src="${x.thumb}" style="width:100%;height:100%;object-fit:cover">`:`<div style="font-size:26px">${esc(x.art.em)}</div>`}</div>
+      <div style="flex:1;min-width:0"><b>${esc(x.title)}</b>
+        <div class="vsub">${esc(chan(x.ch).name)} · ${esc(x.kind)} · ${ago(x.ts)}</div>
+        <div class="vsub" style="margin-top:4px">${esc((x.desc||"").slice(0,90))}</div></div></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="btn sm" data-open="${x.id}">Preview</button>
+      <button class="btn sm ok" data-ok="${x.id}">Approve</button>
+      <button class="btn sm bad" data-no="${x.id}">Reject</button></div></div>`;
+}
+function adminVidRow(x){
+  return `<div class="card row">
+    <div style="width:104px;flex:none;aspect-ratio:16/9;border-radius:9px;overflow:hidden;display:grid;place-items:center;cursor:pointer;${thumbStyle(x)}" data-open="${x.id}">
+      ${x.thumb?`<img src="${x.thumb}" style="width:100%;height:100%;object-fit:cover">`:`<div style="font-size:23px">${esc(x.art.em)}</div>`}</div>
+    <div style="flex:1;min-width:0"><b style="font-size:14px">${esc(x.title)}</b>
+      <div class="vsub">${esc(chan(x.ch).name)} · ${nf(x.views)} views · ${ago(x.ts)}</div>
+      <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap">
+        <span class="tag ${x.status==="approved"?"g":"w"}">${x.status}</span>
+        <span class="tag">${x.kind}</span>${(x.reports||[]).length?`<span class="tag r">${x.reports.length} 🚩</span>`:""}</div></div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${x.status==="pending"?`<button class="btn sm ok" data-ok="${x.id}">✓</button>`:""}
+      <button class="btn sm bad" data-rmv="${x.id}">🗑️</button></div></div>`;
+}
+function newChannelSheet(){
+  sheet("＋ New official channel",
+    `<div class="field"><label>Channel name</label><input class="inp" id="nN" placeholder="Music Club"></div>
+     <div class="field"><label>Handle</label><input class="inp" id="nH" placeholder="@musicclub"></div>
+     <div class="field"><label>Emoji</label><input class="inp" id="nE" placeholder="🎵" maxlength="3"></div>
+     <div class="field"><label>Description</label><textarea class="inp" id="nD" rows="2"></textarea></div>
+     <div class="field"><label>Owner</label><select class="inp" id="nO">
+       ${Object.values(DB.users).map(u=>`<option value="${u.id}" ${u.id===ME.id?"selected":""}>${esc(u.name)}</option>`).join("")}</select></div>
+     <button class="btn primary block" id="nGo" style="margin-top:14px">Create channel</button>`,
+    box=>{ $("#nGo",box).onclick=()=>{
+      const n=$("#nN",box).value.trim(); if(!n) return toast("✍️","Name required","");
+      const id="c_"+uid(); const a=randArt();
+      DB.channels[id]={id,name:n,handle:($("#nH",box).value.trim()||handleize(n)).replace(/^@?/,"@"),
+        desc:$("#nD",box).value.trim(),emoji:$("#nE",box).value.trim()||a.em,grad:a.g,
+        owner:$("#nO",box).value,official:true,avatar:null,banner:null,subs:[],created:Date.now()};
+      save(); closeSheet(); toast("🏫","Channel created",n); go("channel",id); }; });
+}
+
+/* ===========================================================================
+   START
+   =========================================================================== */
+(function init(){
+  const sid=localStorage.getItem(SKEY);
+  if(sid&&DB.users[sid]&&!DB.users[sid].banned){ ME=DB.users[sid]; boot(); }
+  else { localStorage.removeItem(SKEY); $("#auth").classList.remove("hide"); }
+  if(innerWidth<=1150) document.body.classList.remove("sidehidden");
+})();
+</script>
+</body>
+</html>
 
