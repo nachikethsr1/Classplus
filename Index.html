@@ -852,6 +852,12 @@ function chAvatar(c,cls){
     ${c.avatar?`<img src="${c.avatar}">`:esc(c.emoji||initials(c.name))}</div>`;
 }
 function uAvatar(u,cls){
+  // Check if user has equipped avatar pack
+  const packId=u.selectedAvatar||"default";
+  const pack=AVATAR_PACKS.find(p=>p.id===packId);
+  if(pack&&packId!=="default"){
+    return `<div class="av ${cls||""}" style="background:linear-gradient(135deg,${pack.colors[0]},${pack.colors[1]});display:grid;place-items:center;font-size:${cls&&cls.includes("lg")?"32px":cls&&cls.includes("xl")?"48px":"16px"}">${pack.emoji}</div>`;
+  }
   return `<div class="av ${cls||""}" style="background:${colorOf(u.id)}">${u.avatar?`<img src="${u.avatar}">`:esc(initials(u.name))}</div>`;
 }
 function thumbInner(v,big){
@@ -1485,6 +1491,36 @@ function viewChannel(v,cid){
         <div class="stat"><b>${nf(views)}</b><span>Total views</span></div>
         <div class="stat"><b>${new Date(c.created).toLocaleDateString()}</b><span>Joined</span></div>
       </div>
+      ${c.owner?`
+      <div class="hr"></div>
+      <div class="grid2" style="margin-top:12px">
+        <div class="stat" style="background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 20%,transparent),transparent)">
+          <b style="color:var(--brand2)">⚡ ${nf(user(c.owner).points||0)}</b><span>Points</span>
+        </div>
+        <div class="stat" style="background:linear-gradient(135deg,color-mix(in srgb,#06b6d4 20%,transparent),transparent)">
+          <b style="color:#06b6d4">💎 ${nf(user(c.owner).diamonds||0)}</b><span>Diamonds</span>
+        </div>
+        <div class="stat">
+          <b>🔥 ${user(c.owner).streak||0}</b><span>Day Streak</span>
+        </div>
+        <div class="stat">
+          <b>${user(c.owner).achievements?.length||0}</b><span>Achievements</span>
+        </div>
+      </div>
+      
+      ${user(c.owner).achievements?.length?`
+      <div class="sect" style="margin-top:16px">🏆 Achievements</div>
+      <div class="chiprow" style="flex-wrap:wrap;overflow:visible;padding-bottom:0">
+        ${user(c.owner).achievements.map(a=>`<span class="chip" title="${esc(a.desc)}" style="cursor:help">🏆 ${esc(a.name)}</span>`).join("")}
+      </div>`:""}
+      
+      ${c.owner===ME.id?`
+      <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+        <button class="btn primary" onclick="go('shop')">🛍️ Avatar Shop</button>
+        <button class="btn" onclick="go('exchange')">💎 Exchange</button>
+        <button class="btn" onclick="go('missions')">🎯 Missions</button>
+      </div>`:""}
+      `:""}
       ${c.owner?`<div class="hr"></div><div class="row">${uAvatar(user(c.owner),"sm")}
         <div><b>${esc(user(c.owner).name)}</b><div class="vsub">${esc(user(c.owner).klass||"")} ${user(c.owner).role==="teacher"?"· Staff":""}</div></div></div>`:""}
     </div>`;
@@ -1961,6 +1997,10 @@ function viewAdmin(v){
       <div class="field"><label>Platform name</label><input class="inp" id="sName" value="${esc(s.schoolName||"ClassPulse")}"></div>
       <div class="field"><label>Allowed email domain</label><input class="inp" id="sDom" value="${esc(s.domain)}"></div>
       <div class="field"><label>Staff sign-up code</label><input class="inp" id="sCode" value="${esc(s.staffCode)}"></div>
+      <div class="field"><label>Points → Diamonds rate (default: 10)</label>
+        <input class="inp" id="sRate" type="number" value="${DB.settings.exchangeRate||10}" min="1" max="100"></div>
+      <div class="field"><label>Daily Diamond exchange limit</label>
+        <input class="inp" id="sExLimit" type="number" value="${DB.settings.dailyExchangeLimit||500}" min="10" max="10000"></div>
       <button class="btn primary" id="sSave" style="margin-top:12px">Save settings</button>
     </div>
     <div class="sect">📢 Announcements</div>
@@ -2021,6 +2061,8 @@ function viewAdmin(v){
     DB.settings.schoolName=$("#sName",v).value.trim()||"ClassPulse";
     DB.settings.domain=$("#sDom",v).value.trim()||DB.settings.domain;
     DB.settings.staffCode=$("#sCode",v).value.trim()||DB.settings.staffCode;
+    DB.settings.exchangeRate=parseInt($("#sRate",v).value)||10;
+    DB.settings.dailyExchangeLimit=parseInt($("#sExLimit",v).value)||500;
     applyTheme(); save(); toast("✅","Settings saved",""); };
   const rs=$("#reset",v); if(rs) rs.onclick=()=>{ if(!confirm("Erase ALL ClassPulse data and restore the demo?"))return;
     localStorage.removeItem(KEY); localStorage.removeItem(SKEY); location.hash=""; location.reload(); };
@@ -2795,8 +2837,186 @@ function gameAlienDefense(v){
    SHOP / EXCHANGE STUBS — Will be replaced in Phase 4
    ========================================================================== */
 
-function viewAvatarShop(v){v.innerHTML='<div class="empty"><span class="e">🛍️</span>Avatar Shop — Coming in Phase 4</div>';}
-function viewDiamondExchange(v){v.innerHTML='<div class="empty"><span class="e">💎</span>Diamond Exchange — Coming in Phase 4</div>';}
+/* ==========================================================================
+   AVATAR SHOP — Premium cosmetic packs (2D + 3D bundled)
+   ========================================================================== */
+const AVATAR_PACKS=[
+  {id:"default",name:"Default",price:0,rarity:"Common",emoji:"👤",colors:["#6c5ce7","#00d2ff"],desc:"The classic ClassPulse look"},
+  {id:"alien",name:"Alien",price:2500,rarity:"Rare",emoji:"👽",colors:["#22c55e","#84cc16"],desc:"From the far side of the galaxy"},
+  {id:"robot",name:"Robot",price:2000,rarity:"Common",emoji:"🤖",colors:["#64748b","#94a3b8"],desc:"Beep boop. Beep boop."},
+  {id:"ninja",name:"Cyber Ninja",price:5000,rarity:"Legendary",emoji:"🥷",colors:["#dc2626","#7c3aed"],desc:"Silent but deadly code"},
+  {id:"dragon",name:"Dragon",price:4000,rarity:"Epic",emoji:"🐉",colors:["#ea580c","#facc15"],desc:"Fire-breathing legend"},
+  {id:"astro",name:"Space Explorer",price:3500,rarity:"Rare",emoji:"🚀",colors:["#0ea5e9","#6366f1"],desc:"To infinity and beyond"},
+  {id:"wizard",name:"Wizard",price:3000,rarity:"Rare",emoji:"🧙",colors:["#8b5cf6","#d946ef"],desc:"Magic meets mathematics"},
+  {id:"android",name:"Futuristic Android",price:4500,rarity:"Epic",emoji:"🦾",colors:["#06b6d4","#3b82f6"],desc:"Next-gen humanoid"},
+  {id:"warrior",name:"Fantasy Warrior",price:3800,rarity:"Epic",emoji:"⚔️",colors:["#b91c1c","#f59e0b"],desc:"Battle-ready scholar"},
+  {id:"mascot",name:"School Mascot",price:1500,rarity:"Common",emoji:"🦁",colors:["#f59e0b","#eab308"],desc:"Spirit week champion"}
+];
+
+function viewAvatarShop(v){
+  checkDailyReset();
+  const u=DB.users[ME.id];
+  const owned=u.ownedAvatars||["default"];
+  const selected=u.selectedAvatar||"default";
+  
+  v.innerHTML=`<div class="sect">🛍️ Avatar Shop</div>
+    <p class="note" style="margin:-8px 0 16px">Unlock premium avatar packs with Diamonds. Each pack includes <b>BOTH 2D and 3D versions!</b></p>
+    
+    <div class="card row" style="margin-bottom:16px;background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 20%,transparent),color-mix(in srgb,var(--brand2) 20%,transparent))">
+      <div style="flex:1"><b style="font-size:16px">Your Balance</b><div class="vsub">Spend them wisely</div></div>
+      <div style="font-size:28px;font-weight:800">💎 ${nf(u.diamonds)}</div>
+    </div>
+    
+    <div class="grid2" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
+    ${AVATAR_PACKS.map(p=>{
+      const isOwned=owned.includes(p.id);
+      const isSelected=selected===p.id;
+      const canBuy=u.diamonds>=p.price;
+      const rarityColor=p.rarity==="Legendary"?"#f59e0b":p.rarity==="Epic"?"#8b5cf6":p.rarity==="Rare"?"#06b6d4":"#9ca3af";
+      return `<div class="card" style="padding:0;overflow:hidden;${isSelected?"border-color:var(--good);box-shadow:0 0 20px color-mix(in srgb,var(--good) 30%,transparent)":""}">
+        <div style="height:110px;background:linear-gradient(135deg,${p.colors[0]},${p.colors[1]});display:grid;place-items:center;font-size:52px;position:relative">
+          ${p.emoji}
+          <span class="tag" style="position:absolute;top:8px;right:8px;background:${rarityColor};color:#fff;border:0;font-weight:800">${p.rarity}</span>
+          ${isOwned?`<span class="tag g" style="position:absolute;top:8px;left:8px">✓ OWNED</span>`:""}
+          ${isSelected?`<span class="tag" style="position:absolute;bottom:8px;left:8px;background:var(--good);color:#fff;border:0">EQUIPPED</span>`:""}
+        </div>
+        <div style="padding:14px">
+          <b style="font-size:16px">${p.name}</b>
+          <div class="vsub" style="margin:6px 0 10px">${p.desc}</div>
+          <div class="between" style="margin-bottom:10px">
+            <span style="font-weight:800;color:var(--brand2);font-size:16px">${p.price===0?"FREE":"💎 "+nf(p.price)}</span>
+            <span class="tag">2D + 3D</span>
+          </div>
+          ${isOwned?`
+            <button class="btn ${isSelected?"ok":"primary"} block" data-equip="${p.id}" ${isSelected?"disabled":""}>
+              ${isSelected?"✓ EQUIPPED":"EQUIP"}
+            </button>
+          `:`<button class="btn ${canBuy?"primary":"ghost"} block" data-buy="${p.id}" ${!canBuy?"disabled":""}>
+              ${canBuy?"🔓 UNLOCK":"Need 💎 "+nf(p.price-u.diamonds)}
+            </button>`}
+        </div></div>`;
+    }).join("")}</div>
+    
+    <div class="sect" style="margin-top:24px">📦 Your Collection (${owned.length}/${AVATAR_PACKS.length})</div>
+    <div class="chiprow" style="flex-wrap:wrap;overflow:visible">
+      ${owned.map(id=>{
+        const p=AVATAR_PACKS.find(x=>x.id===id);
+        return `<span class="chip" style="background:linear-gradient(135deg,${p.colors[0]}33,${p.colors[1]}33);border-color:${p.colors[0]}">
+          ${p.emoji} ${p.name}
+        </span>`;
+      }).join("")}
+    </div>`;
+  
+  $$("[data-buy]",v).forEach(b=>b.onclick=()=>{
+    const pack=AVATAR_PACKS.find(p=>p.id===b.dataset.buy);
+    if(u.diamonds<pack.price)return toast("💎","Not enough Diamonds","");
+    u.diamonds-=pack.price;
+    u.ownedAvatars.push(pack.id);
+    u.diamondTransactions.push({id:"dt_"+uid(),amount:-pack.price,source:"Avatar: "+pack.name,ts:Date.now()});
+    if(u.ownedAvatars.length>=10)awardAchievement("collector","💎 Collector","Unlock 10 cosmetics",150);
+    save();renderView();
+    toast("🎉","Avatar Pack Unlocked!",pack.name+" (2D + 3D versions)");
+  });
+  
+  $$("[data-equip]",v).forEach(b=>b.onclick=()=>{
+    u.selectedAvatar=b.dataset.equip;
+    save();renderView();
+    toast("✅","Avatar Equipped",AVATAR_PACKS.find(p=>p.id===b.dataset.equip).name);
+  });
+}
+
+/* ==========================================================================
+   DIAMOND EXCHANGE — Convert Points to Diamonds (configurable rate)
+   ========================================================================== */
+function viewDiamondExchange(v){
+  checkDailyReset();
+  const u=DB.users[ME.id];
+  const rate=DB.settings.exchangeRate||10; // 10 points = 1 diamond
+  const dailyLimit=DB.settings.dailyExchangeLimit||500;
+  
+  // Calculate exchanged today
+  const today=new Date().toDateString();
+  const exchangedToday=u.diamondTransactions?.filter(t=>{
+    return new Date(t.ts).toDateString()===today&&t.source==="Exchange";
+  }).reduce((a,t)=>a+Math.abs(t.amount),0)||0;
+  
+  const remainingDaily=Math.max(0,dailyLimit-exchangedToday);
+  const maxExchange=Math.min(u.points,remainingDaily*rate);
+  
+  v.innerHTML=`<div class="sect">💎 Diamond Exchange</div>
+    <p class="note" style="margin:-8px 0 16px">Convert your hard-earned Points into premium Diamonds for cosmetics.</p>
+    
+    <div class="card" style="text-align:center;padding:24px;background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 15%,transparent),color-mix(in srgb,var(--brand2) 15%,transparent))">
+      <div style="font-size:52px;margin-bottom:12px">💎</div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:8px">Exchange Rate</div>
+      <div style="font-size:24px;font-weight:800;color:var(--brand2);margin-bottom:16px">
+        ${rate} Points = 1 Diamond
+      </div>
+      <div class="note">Daily limit: ${dailyLimit} Diamonds (${dailyLimit*rate} Points)</div>
+    </div>
+    
+    <div class="grid2" style="margin:16px 0">
+      <div class="stat" style="padding:20px"><b style="font-size:28px;color:var(--brand2)">⚡ ${nf(u.points)}</b><span>Your Points</span></div>
+      <div class="stat" style="padding:20px"><b style="font-size:28px">💎 ${nf(u.diamonds)}</b><span>Your Diamonds</span></div>
+    </div>
+    
+    ${remainingDaily<=0?`
+      <div class="card" style="text-align:center;padding:20px;border-color:var(--warn)">
+        <div style="font-size:32px;margin-bottom:8px">⏰</div>
+        <b>Daily Limit Reached</b>
+        <div class="note" style="margin-top:4px">You've exchanged ${dailyLimit} Diamonds today. Come back tomorrow!</div>
+      </div>
+    `:`<div class="card">
+      <div class="field">
+        <label>Points to exchange (max ${nf(maxExchange)})</label>
+        <input class="inp" id="exPts" type="number" min="${rate}" max="${maxExchange}" step="${rate}" value="${Math.min(rate*10,maxExchange)}" 
+          style="font-size:18px;text-align:center;font-weight:700">
+      </div>
+      <div style="text-align:center;margin:16px 0;font-size:20px">
+        <span style="color:var(--muted)">↓</span>
+      </div>
+      <div style="text-align:center;margin-bottom:16px">
+        <span style="font-size:24px;font-weight:800;color:var(--brand2)">💎 <span id="exGet">${Math.floor(Math.min(rate*10,maxExchange)/rate)}</span></span>
+      </div>
+      <button class="btn primary block" id="exGo" style="padding:14px;font-size:16px" ${maxExchange<rate?"disabled":""}>
+        ${maxExchange<rate?"Need more Points":"EXCHANGE NOW"}
+      </button>
+      ${exchangedToday>0?`<div class="note" style="margin-top:12px;text-align:center">Exchanged today: ${exchangedToday}/${dailyLimit} 💎</div>`:""}
+    </div>`}
+    
+    <div class="sect" style="margin-top:24px">📜 Recent Transactions</div>
+    ${u.diamondTransactions?.slice(-8).reverse().map(t=>`
+      <div class="card row" style="margin-bottom:8px">
+        <div style="font-size:24px">${t.amount>0?"📥":"📤"}</div>
+        <div style="flex:1">
+          <b style="color:${t.amount>0?"var(--good)":"var(--bad)"}">${t.amount>0?"+":""}${t.amount} Diamonds</b>
+          <div class="vsub">${esc(t.source)} • ${ago(t.ts)}</div>
+        </div>
+      </div>`).join("")||'<div class="note">No transactions yet.</div>'}`;
+  
+  const input=$("#exPts",v);
+  if(input){
+    input.oninput=()=>{
+      const pts=parseInt(input.value)||0;
+      $("#exGet",v).textContent=Math.floor(pts/rate);
+    };
+    
+    $("#exGo",v).onclick=()=>{
+      const pts=parseInt(input.value)||0;
+      if(pts<rate)return toast("⚠️","Minimum exchange",rate+" points");
+      if(pts>u.points)return toast("⚠️","Insufficient points","");
+      if(pts>maxExchange)return toast("⚠️","Daily limit exceeded","Max: "+maxExchange+" points");
+      
+      const diamonds=Math.floor(pts/rate);
+      u.points-=pts;
+      u.dailyPoints=Math.max(0,u.dailyPoints-pts); // Refund daily cap space
+      awardDiamonds(diamonds,"Exchange");
+      u.pointTransactions.push({id:"pt_"+uid(),amount:-pts,source:"Diamond Exchange",ts:Date.now()});
+      save();renderView();
+      toast("✅","Exchange Complete!",`+${diamonds} Diamonds`);
+    };
+  }
+}
 
 /* ===========================================================================
    START
