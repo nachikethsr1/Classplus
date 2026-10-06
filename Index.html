@@ -329,6 +329,35 @@ body.shortsmode #main{padding:var(--top) 0 0;margin-left:var(--side)}
   .sheet{max-height:92vh;border-radius:18px}
 }
 @media(min-width:761px){ body.drawer #scrim{opacity:0;pointer-events:none} }
+/* ================= PHASE 1: ECONOMY + GAMES NAV ================= */
+.eco-pill{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:99px;background:var(--card);border:1px solid var(--line);font-weight:800;font-size:13px;white-space:nowrap}
+.eco-pill:hover{background:var(--hover)}
+.eco-pill span{font-variant-numeric:tabular-nums}
+.game-hero{background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 85%,#000),color-mix(in srgb,var(--brand2) 60%,#000));border-radius:18px;padding:22px 20px;color:#fff;margin-bottom:16px}
+.game-hero h2{margin:0 0 6px;font-size:24px}
+.game-hero p{margin:0;opacity:.9;font-size:14px;line-height:1.5}
+.eco-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:18px}
+.ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.gcard{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;transition:.18s}
+.gcard:hover{transform:translateY(-3px);border-color:var(--brand)}
+.gthumb{height:150px;display:grid;place-items:center;font-size:56px;position:relative}
+.gthumb .pts{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;font-weight:800;padding:4px 9px;border-radius:99px}
+.gbody{padding:14px}
+.gbody h3{margin:0 0 6px;font-size:16.5px}
+.gbody p{margin:0 0 10px;font-size:13px;color:var(--muted);line-height:1.5;min-height:38px}
+.gmeta{display:flex;gap:8px;align-items:center;margin-bottom:12px;font-size:12px;color:var(--muted)}
+.lrow{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);margin-bottom:9px}
+.lrow.me{border-color:var(--brand)}
+.lrank{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:14px;background:var(--hover);flex:none}
+.lrank.gold{background:linear-gradient(135deg,#FFD700,#FFA500);color:#000}
+.lrank.silver{background:linear-gradient(135deg,#E8E8E8,#A8A8A8);color:#000}
+.lrank.bronze{background:linear-gradient(135deg,#CD7F32,#8B4513);color:#fff}
+@media(max-width:760px){
+.eco-pill{padding:6px 10px;font-size:12px}
+.game-hero h2{font-size:20px}
+.gthumb{height:130px;font-size:48px}
+.gbody p{min-height:0}
+}
 </style>
 </head>
 <body>
@@ -372,6 +401,7 @@ body.shortsmode #main{padding:var(--top) 0 0;margin-left:var(--side)}
     <div class="topright">
       <button class="ico" id="mSearchBtn" title="Search">🔍</button>
       <button class="btn" id="topCreate" style="margin-right:4px">＋ Create</button>
+      <button class="eco-pill" id="ecoPill" title="Your Points & Diamonds">⚡ <span id="ecoPoints">0</span> · 💎 <span id="ecoDiamonds">0</span></button>
       <button class="ico" id="btnTheme" title="Theme">🌙</button>
       <button class="ico" id="btnBell" title="Notifications">🔔</button>
       <button class="ico" id="btnMe" title="You"></button>
@@ -385,8 +415,8 @@ body.shortsmode #main{padding:var(--top) 0 0;margin-left:var(--side)}
   <nav id="bottom"><div class="bwrap">
     <button data-bnav="home"><i>🏠</i>Home</button>
     <button data-bnav="shorts"><i>⚡</i>Shorts</button>
-    <button data-bnav="create" class="plus"><i>＋</i>Create</button>
-    <button data-bnav="alerts"><i>🔔</i>Alerts<span class="bdot hide" id="bDot">0</span></button>
+    <button data-bnav="games"><i>🎮</i>Games</button>
+    <button data-bnav="leaderboard"><i>🏆</i>Rank</button>
     <button data-bnav="you"><i>👤</i>You</button>
   </div></nav>
 </div>
@@ -437,7 +467,11 @@ function seed(){
   const users={}, channels={}, videos=[];
 
   const mkUser=(id,name,email,role,klass,bio)=>users[id]={id,name,email,role,klass,bio,pass:"1234",
-    joined:now-60*D,banned:false,subs:[],likedVids:[],avatar:null};
+    joined:now-60*D,banned:false,subs:[],likedVids:[],avatar:null,
+    points:0,dailyPoints:0,diamonds:0,pointsToday:0,lastPointsDate:"",
+    ownedAvatars:["default"],selectedAvatar:"default",avatarMode:"2d",
+    achievements:[],gameStats:{},streak:0,lastActiveDate:"",dailyMissions:{},
+    diamondTransactions:[],pointTransactions:[]};
   mkUser("u_riv","Ms. Rivera","rivera@school.edu","teacher","Staff · Science","Science teacher & robotics lead 🔬");
   mkUser("u_ais","Aisha K.","aisha@school.edu","student","10-B","Basketball 🏀 + editing reels");
   mkUser("u_leo","Leo M.","leo@school.edu","student","11-A","Speedruns, gaming, chaos 🐍");
@@ -501,7 +535,8 @@ function seed(){
   return {users,channels,videos,
     announcements:[{id:"a_"+uid(),by:"u_riv",text:"🎉 Spirit Week starts Monday — full schedule is on the Official School channel.",ts:now-2*H}],
     notifs:{}, settings:{domain:"school.edu",staffCode:"TEACH-2026",moderation:false,theme:"dark",
-      brand:"#6c5ce7",brand2:"#00d2ff",schoolName:"ClassPulse"}};
+      brand:"#6c5ce7",brand2:"#00d2ff",schoolName:"ClassPulse",
+      exchangeRate:10,dailyExchangeLimit:500,adminAudit:[]}};
 }
 
 function load(){
@@ -511,6 +546,7 @@ function load(){
   const s=seed(); persist(s); return s;
 }
 function persist(d=DB){
+  try{ renderEcoPill(); }catch(e){}
   try{ localStorage.setItem(KEY,JSON.stringify(d)); return true; }
   catch(e){
     // shed the heaviest thumbnails and retry once
@@ -520,6 +556,266 @@ function persist(d=DB){
   }
 }
 const save=()=>{ persist(); Bus.send({t:"sync"}); };
+
+/* ==========================================================================
+   PHASE 1 — ECONOMY FOUNDATION (Points · Diamonds · Daily Caps · Streaks)
+   --------------------------------------------------------------------------
+   Built ON TOP of the Phase 4 engine below (awardPoints / awardDiamonds /
+   gameStats): ONE balance, ONE transaction log, ONE streak per user. This
+   block only adds the daily buckets, spend/claim helpers and the Phase-1 API.
+   ========================================================================== */
+
+/* richer day key — same "YYYY-MM-DD" the rest of the app expects */
+function todayKey(d){ try{ const x=d?new Date(d):new Date(); return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"); }catch(e){ return "1970-01-01"; } }
+function yesterdayKey(){ const y=new Date(); y.setDate(y.getDate()-1); return todayKey(y); }
+
+/* game ids that exist in this build: reflex · memory · lab · racer · alien */
+function defaultGameStats(){
+  const mk=()=>({plays:0,bestScore:0,best:0,wins:0,lastPlayed:0});
+  return {reflex:mk(),memory:mk(),lab:mk(),racer:mk(),alien:mk()};
+}
+
+function ensureEcoUser(u){
+  if(!u||typeof u!=="object") return u;
+  /* balances */
+  if(!Number.isFinite(u.points)) u.points=0; else u.points=Math.max(0,Math.floor(u.points));
+  if(!Number.isFinite(u.diamonds)) u.diamonds=0; else u.diamonds=Math.max(0,Math.floor(u.diamonds));
+  if(!Number.isFinite(u.dailyPoints)) u.dailyPoints=0;
+  if(!Number.isFinite(u.pointsToday)) u.pointsToday=0;
+  if(!Number.isFinite(u.dailyGamesPoints)) u.dailyGamesPoints=0;
+  if(!Number.isFinite(u.dailyWatchPoints)) u.dailyWatchPoints=0;
+  if(!Number.isFinite(u.dailyExchange)) u.dailyExchange=0;
+  if(!Number.isFinite(u.dailyGamesPlayed)) u.dailyGamesPlayed=0;
+  /* day markers — kept in sync with boot()/checkDailyReset() */
+  if(typeof u.lastPointsDate!=="string") u.lastPointsDate="";
+  if(typeof u.dailyDate!=="string"||!u.dailyDate) u.dailyDate=u.lastPointsDate||todayKey();
+  /* streak stays a NUMBER (topbar, leaderboard and checkDailyReset use it) */
+  if(!Number.isFinite(u.streak)) u.streak=0;
+  if(typeof u.lastActiveDate!=="string") u.lastActiveDate="";
+  /* transaction logs — pointTransactions/diamondTransactions are the UI ones */
+  if(!Array.isArray(u.pointTransactions)) u.pointTransactions=[];
+  if(!Array.isArray(u.diamondTransactions)) u.diamondTransactions=[];
+  if(!Array.isArray(u.pointTx)) u.pointTx=[];
+  if(!Array.isArray(u.diamondTx)) u.diamondTx=[];
+  if(!Array.isArray(u.achievements)) u.achievements=[];
+  /* cosmetics (Phase 3/4) */
+  if(!Array.isArray(u.ownedAvatars)||!u.ownedAvatars.length) u.ownedAvatars=["default"];
+  if(typeof u.selectedAvatar!=="string"||!u.selectedAvatar) u.selectedAvatar="default";
+  if(u.avatarMode!=="3d") u.avatarMode="2d";
+  /* per-game stats */
+  if(!u.gameStats||typeof u.gameStats!=="object") u.gameStats=defaultGameStats();
+  else{
+    const dg=defaultGameStats();
+    for(const k in u.gameStats){
+      const g=u.gameStats[k];
+      if(!g||typeof g!=="object"){ u.gameStats[k]=dg[k]||{plays:0,bestScore:0,best:0,wins:0,lastPlayed:0}; continue; }
+      const f=dg[k]||{plays:0,bestScore:0,best:0,wins:0,lastPlayed:0};
+      for(const fld in f){ if(!Number.isFinite(g[fld])) g[fld]=f[fld]; }
+      g.best=Math.max(g.bestScore||0,g.best||0); g.bestScore=g.best; /* keep both names aligned */
+    }
+  }
+  if(!u.dailyMissions||typeof u.dailyMissions!=="object") u.dailyMissions={};
+  if(!u.claimedRewards||typeof u.claimedRewards!=="object") u.claimedRewards={};
+  if(!Array.isArray(u.subs)) u.subs=[];
+  return u;
+}
+
+function ensureEcoSettings(){
+  DB.settings=DB.settings||{};
+  if(!DB.settings.economy||typeof DB.settings.economy!=="object") DB.settings.economy={};
+  const e=DB.settings.economy;
+  if(!Number.isFinite(e.exchangePoints)||e.exchangePoints<=0) e.exchangePoints=(DB.settings.exchangeRate||10)*100;
+  if(!Number.isFinite(e.exchangeDiamonds)||e.exchangeDiamonds<=0) e.exchangeDiamonds=100;
+  if(!Number.isFinite(e.dailyExchangeMax)||e.dailyExchangeMax<=0) e.dailyExchangeMax=3;
+  if(!Number.isFinite(e.dailyGameCap)||e.dailyGameCap<=0) e.dailyGameCap=300;
+  if(!Number.isFinite(e.dailyWatchCap)||e.dailyWatchCap<=0) e.dailyWatchCap=20;
+  if(!Array.isArray(DB.auditLog)) DB.auditLog=[];
+  return e;
+}
+
+function ensureEcoAll(){
+  if(!DB||!DB.users) return false;
+  ensureEcoSettings();
+  Object.values(DB.users).forEach(ensureEcoUser);
+  if(ME&&DB.users[ME.id]) ME=DB.users[ME.id];
+  return true;
+}
+
+function maybeResetDailyFor(u){
+  if(!u) return false;
+  const t=todayKey();
+  const fresh=(u.dailyDate===t)||(u.lastPointsDate===t);
+  u.dailyDate=t; u.lastPointsDate=t; /* keep both day markers aligned */
+  if(fresh) return false;
+  u.dailyPoints=0; u.pointsToday=0; u.dailyGamesPoints=0; u.dailyWatchPoints=0;
+  u.dailyExchange=0; u.dailyGamesPlayed=0; u.dailyMissions={};
+  return true;
+}
+
+function touchDailyActivity(){
+  if(!ME||!DB.users[ME.id]) return;
+  const u=DB.users[ME.id]; ensureEcoUser(u); maybeResetDailyFor(u);
+  const today=todayKey(), yest=yesterdayKey();
+  if(u.lastActiveDate!==today){
+    u.streak=(u.lastActiveDate===yest)?(Math.floor(u.streak)||0)+1:1;
+    u.lastActiveDate=today;
+    if(u.streak>1&&u.streak%7===0) awardAchievement("streak_"+u.streak,"🔥 "+u.streak+"-Day Streak","Maintained a "+u.streak+"-day streak",100);
+  }
+  ME=u;
+}
+
+function getPoints(){ try{ return Math.floor(DB.users[ME.id].points||0); }catch(e){ return 0; } }
+function getDiamonds(){ try{ return Math.floor(DB.users[ME.id].diamonds||0); }catch(e){ return 0; } }
+
+/* Award Points through the ONE engine, with the Phase-1 daily buckets.
+   The games call awardPoints() directly, so both paths hit the same balance
+   and the same transaction log. */
+function addPoints(amount,reason){
+  if(!ME||!DB.users[ME.id]) return {added:0,awarded:0};
+  let n=Number(amount); if(!Number.isFinite(n)) return {added:0,awarded:0};
+  n=Math.floor(n); if(n<=0) return {added:0,awarded:0};
+  n=clamp(n,0,500);
+  const eco=ensureEcoSettings();
+  const u=DB.users[ME.id]; ensureEcoUser(u); maybeResetDailyFor(u);
+  const rl=String(reason||"").toLowerCase();
+  const isWatch=rl.includes("short")||rl.includes("video")||rl.includes("watch");
+  const bucket=isWatch?"watch":"games";
+  const cap=bucket==="watch"?(eco.dailyWatchCap||20):(eco.dailyGameCap||300);
+  const used=bucket==="watch"?(u.dailyWatchPoints||0):(u.dailyGamesPoints||0);
+  const rem=Math.max(0,cap-used);
+  if(rem<=0){ ME=u; return {added:0,awarded:0,capped:true,bucket:bucket}; }
+  const want=Math.min(n,rem);
+  /* awardPoints() owns the balance + the canonical transaction log + toast.
+     The third arg lifts its generic 100/day cap so the Phase-1 bucket caps
+     (games 300 / watch 20) are the binding limits — the global 500/day
+     ceiling inside awardPoints still applies. */
+  const res=awardPoints(want,String(reason||"Points"),"phase1")||{};
+  const added=Number.isFinite(res.awarded)?res.awarded:0;
+  if(added>0){
+    if(bucket==="watch") u.dailyWatchPoints=(u.dailyWatchPoints||0)+added;
+    else u.dailyGamesPoints=(u.dailyGamesPoints||0)+added;
+    u.pointTx.unshift({id:"pt_"+uid(),amt:added,reason:String(reason||"").slice(0,90),ts:Date.now(),day:todayKey()});
+    u.pointTx=u.pointTx.slice(0,100);
+  }
+  ME=u; persist();
+  return {added:added,awarded:added,capped:(added<want)||(want<n),bucket:bucket};
+}
+
+function addDiamonds(amount,reason,kind){
+  if(!ME||!DB.users[ME.id]) return {added:0};
+  let n=Number(amount); if(!Number.isFinite(n)) return {added:0};
+  n=Math.floor(n); if(n<=0) return {added:0}; n=clamp(n,0,100000);
+  const u=DB.users[ME.id]; ensureEcoUser(u);
+  awardDiamonds(n,String(reason||"Diamonds")); /* ONE balance + ONE log + toast */
+  u.diamondTx.unshift({id:"dt_"+uid(),amt:n,reason:String(reason||"").slice(0,90),kind:kind||"earned",ts:Date.now()});
+  u.diamondTx=u.diamondTx.slice(0,100);
+  ME=u; persist(); return {added:n};
+}
+
+function spendPoints(amount,reason){
+  if(!ME||!DB.users[ME.id]) return false;
+  const n=Math.floor(Number(amount)); if(!Number.isFinite(n)||n<=0) return false;
+  const u=DB.users[ME.id]; ensureEcoUser(u);
+  if((u.points||0)<n) return false;
+  const tid="pt_"+uid(), at=Date.now();
+  const why="SPENT: "+String(reason||"").slice(0,80);
+  u.points-=n;
+  u.pointTransactions.push({id:tid,amount:-n,source:why,ts:at});
+  u.pointTx.unshift({id:tid,amt:-n,reason:why,ts:at,day:todayKey()});
+  u.pointTx=u.pointTx.slice(0,100);
+  ME=u; persist(); return true;
+}
+
+function spendDiamonds(amount,reason){
+  if(!ME||!DB.users[ME.id]) return false;
+  const n=Math.floor(Number(amount)); if(!Number.isFinite(n)||n<=0) return false;
+  const u=DB.users[ME.id]; ensureEcoUser(u);
+  if((u.diamonds||0)<n) return false;
+  const tid="dt_"+uid(), at=Date.now();
+  const why="SPENT: "+String(reason||"").slice(0,80);
+  u.diamonds-=n;
+  u.diamondTransactions.push({id:tid,amount:-n,source:why,ts:at});
+  u.diamondTx.unshift({id:tid,amt:-n,reason:why,kind:"spent",ts:at});
+  u.diamondTx=u.diamondTx.slice(0,100);
+  ME=u; persist(); return true;
+}
+
+function alreadyClaimed(rid){ if(!rid) return false; try{ return !!DB.users[ME.id].claimedRewards[rid]; }catch(e){ return false; } }
+function markClaimed(rid){
+  if(!rid||!ME||!DB.users[ME.id]) return false;
+  const u=DB.users[ME.id]; ensureEcoUser(u);
+  u.claimedRewards[rid]=Date.now();
+  const k=Object.keys(u.claimedRewards);
+  if(k.length>200) k.slice(0,k.length-200).forEach(x=>delete u.claimedRewards[x]);
+  ME=u; persist(); return true;
+}
+
+/* top-bar ⚡/💎 pill (Phase 1) */
+function renderEcoPill(){
+  const p=document.getElementById("ecoPoints"), d=document.getElementById("ecoDiamonds");
+  if(p) p.textContent=nf(getPoints());
+  if(d) d.textContent=nf(getDiamonds());
+}
+
+/* ==========================================================================
+   ECONOMY CORE — Points, Diamonds, Daily Caps, Streaks, Achievements
+   ========================================================================== */
+
+function checkDailyReset(){
+  const u=DB.users[ME.id],tk=todayKey();
+  if(u.lastPointsDate!==tk){
+    u.dailyPoints=0;u.pointsToday=0;u.dailyMissions={};u.lastPointsDate=tk;
+    /* Phase 1 daily buckets must roll over together with the Phase 4 counters */
+    u.dailyDate=tk;u.dailyGamesPoints=0;u.dailyWatchPoints=0;u.dailyExchange=0;u.dailyGamesPlayed=0;
+  }
+  if(u.lastActiveDate!==tk){
+    const y=new Date(Date.now()-864e5).toISOString().slice(0,10);
+    u.streak=(u.lastActiveDate===y)?(u.streak||0)+1:1;
+    u.lastActiveDate=tk;
+    if(u.streak>0&&u.streak%7===0)awardAchievement("streak_"+u.streak,"🔥 "+u.streak+"-Day Streak","Maintained a "+u.streak+"-day streak",100);
+  }
+  persist();
+}
+
+function awardPoints(amount,source,gameId){
+  checkDailyReset();
+  const u=DB.users[ME.id],cap=gameId?500:100;
+  if(u.dailyPoints>=cap)return{awarded:0,capped:true};
+  const actual=Math.min(amount,cap-u.dailyPoints);
+  u.points+=actual;u.dailyPoints+=actual;u.pointsToday=(u.pointsToday||0)+actual;
+  u.pointTransactions.push({id:"pt_"+uid(),amount:actual,source,ts:Date.now()});
+  if(actual>0)toast("⚡","+"+actual+" Points",source);
+  persist();return{awarded:actual,capped:actual<amount};
+}
+
+function awardDiamonds(amount,source,adminId){
+  const u=DB.users[ME.id];
+  u.diamonds=Math.max(0,(u.diamonds||0)+amount);
+  u.diamondTransactions.push({id:"dt_"+uid(),amount,source,adminId:adminId||null,ts:Date.now()});
+  persist();toast("💎",(amount>0?"+":"")+amount+" Diamonds",source);
+}
+
+function awardAchievement(id,name,desc,points){
+  const u=DB.users[ME.id];
+  if(u.achievements.find(a=>a.id===id))return;
+  u.achievements.push({id,name,desc,icon:"🏆",ts:Date.now()});
+  if(points)awardPoints(points,"Achievement: "+name);
+  toast("🏆","Achievement Unlocked!",name);
+  persist();
+}
+
+function gameStats(gameId,score,win){
+  const u=DB.users[ME.id];
+  u.gameStats[gameId]=u.gameStats[gameId]||{plays:0,bestScore:0,wins:0,lastPlayed:0};
+  const g=u.gameStats[gameId];
+  g.plays++;g.lastPlayed=Date.now();
+  u.dailyGamesPlayed=(u.dailyGamesPlayed||0)+1;
+  if(win)g.wins++;
+  if(score>g.bestScore)g.bestScore=score;
+  if(g.plays===1)awardAchievement("first_game","🎮 First Game","Played your first game",25);
+  if(g.plays>=50)awardAchievement("game_master","🎮 Game Master","Played 50 games",200);
+  persist();
+}
 
 /* Cross-tab sync (stand-in for websockets) */
 const Bus=(()=>{ let ch=null;
@@ -690,9 +986,26 @@ function boot(){
   $("#app").classList.remove("hide");
   // uploaded blobs don't survive reload
   DB.videos.forEach(v=>{ if(v.session){ v.src=null; v.session=false; } });
+  // Migrate existing users to have economy fields
+  Object.values(DB.users).forEach(u=>{
+    if(u.points===undefined){u.points=0;u.dailyPoints=0;u.diamonds=0;u.pointsToday=0;u.lastPointsDate="";}
+    if(!u.ownedAvatars)u.ownedAvatars=["default"];
+    if(!u.selectedAvatar)u.selectedAvatar="default";
+    if(!u.avatarMode)u.avatarMode="2d";
+    if(!u.achievements)u.achievements=[];
+    if(!u.gameStats)u.gameStats={};
+    if(u.streak===undefined)u.streak=0;
+    if(!u.lastActiveDate)u.lastActiveDate="";
+    if(!u.dailyMissions)u.dailyMissions={};
+    if(!u.diamondTransactions)u.diamondTransactions=[];
+    if(!u.pointTransactions)u.pointTransactions=[];
+  });
+  ensureEcoAll();
   persist();
   wireShell();
   ROUTE=parseHash();
+  checkDailyReset();
+  touchDailyActivity();
   renderAll();
 }
 function wireShell(){
@@ -726,7 +1039,8 @@ function renderAll(){
   $("#btnMe").innerHTML=`<span class="av xs" style="background:${colorOf(ME.id)}">${ME.avatar?`<img src="${ME.avatar}">`:esc(initials(ME.name))}</span>`;
   const u=unread();
   $("#btnBell").innerHTML=`🔔${u?`<span class="dot">${u>9?"9+":u}</span>`:""}`;
-  const bd=$("#bDot"); bd.textContent=u>9?"9+":u; bd.classList.toggle("hide",u===0);
+  renderEcoPill();
+  const bd=$("#bDot"); if(bd){ bd.textContent=u>9?"9+":u; bd.classList.toggle("hide",u===0); }
 
   $$("#bottom [data-bnav]").forEach(b=>b.classList.toggle("on",b.dataset.bnav===ROUTE.name));
   renderSide();
@@ -740,6 +1054,8 @@ function renderSide(){
   s.innerHTML=`
     ${item("Home","🏠","home")}
     ${item("Shorts","⚡","shorts")}
+    ${item("Games","🎮","games")}
+    ${item("Leaderboard","🏆","leaderboard")}
     ${item("Subscriptions","📺","subs")}
     <div class="sdiv"></div>
     ${item("Your channel","👤","you")}
@@ -774,6 +1090,12 @@ function chAvatar(c,cls){
     ${c.avatar?`<img src="${c.avatar}">`:esc(c.emoji||initials(c.name))}</div>`;
 }
 function uAvatar(u,cls){
+  // Check if user has equipped avatar pack
+  const packId=u.selectedAvatar||"default";
+  const pack=AVATAR_PACKS.find(p=>p.id===packId);
+  if(pack&&packId!=="default"){
+    return `<div class="av ${cls||""}" style="background:linear-gradient(135deg,${pack.colors[0]},${pack.colors[1]});display:grid;place-items:center;font-size:${cls&&cls.includes("lg")?"32px":cls&&cls.includes("xl")?"48px":"16px"}">${pack.emoji}</div>`;
+  }
   return `<div class="av ${cls||""}" style="background:${colorOf(u.id)}">${u.avatar?`<img src="${u.avatar}">`:esc(initials(u.name))}</div>`;
 }
 function thumbInner(v,big){
@@ -825,6 +1147,12 @@ function renderView(){
   const v=$("#view");
   const R=ROUTE.name;
   if(R==="home") return viewHome(v);
+  if(R==="games") return viewGames(v);
+  if(R==="leaderboard") return viewLeaderboard(v);
+  if(R==="play") return viewGamePlayer(v,ROUTE.arg);
+  if(R==="shop") return viewAvatarShop(v);
+  if(R==="exchange") return viewDiamondExchange(v);
+  if(R==="missions") return viewMissions(v);
   if(R==="trending") return viewList(v,"🔥 Trending",feedVideos().slice().sort((a,b)=>b.views-a.views));
   if(R==="cat") return viewList(v,"📁 "+ROUTE.arg,feedVideos().filter(x=>x.cat===ROUTE.arg));
   if(R==="subs") return viewSubs(v);
@@ -1215,6 +1543,152 @@ function viewShorts(v,startId){
     feed.focus({preventScroll:true});
   },40);
 }
+
+/* ==========================================================================
+   GAMES HUB
+   ========================================================================== */
+const GAMES=[
+  {id:"reflex",name:"Reflex Rush",desc:"Tap targets fast! 60-second reflex challenge.",emoji:"🎯",color:"#ef4444",points:"Up to 50"},
+  {id:"memory",name:"Memory Grid",desc:"Remember the pattern. Increasing difficulty.",emoji:"🧠",color:"#8b5cf6",points:"Up to 50"},
+  {id:"lab",name:"Lab Escape",desc:"Solve puzzles to escape the science lab!",emoji:"🔬",color:"#22c55e",points:"Up to 50"},
+  {id:"racer",name:"Neon Racer",desc:"Dodge obstacles, collect energy. Speed increases!",emoji:"🏎️",color:"#06b6d4",points:"Up to 50"},
+  {id:"alien",name:"Alien Defense",desc:"Defend the base from waves of aliens!",emoji:"👾",color:"#f59e0b",points:"Up to 50"}
+];
+
+function viewGames(v){
+  checkDailyReset();
+  const u=DB.users[ME.id];
+  v.innerHTML=`<div class="sect">🎮 ClassPulse Games</div>
+    <p class="note" style="margin:-8px 0 16px">Play games, improve your scores, earn Points, and climb the leaderboard.</p>
+    <div class="grid2" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px">
+    ${GAMES.map(g=>{
+      const stats=u.gameStats[g.id]||{plays:0,bestScore:0};
+      return `<div class="card" style="padding:0;overflow:hidden;cursor:pointer" data-play="${g.id}">
+        <div style="height:120px;background:linear-gradient(135deg,${g.color},${g.color}88);display:grid;place-items:center;font-size:52px">${g.emoji}</div>
+        <div style="padding:14px">
+          <b style="font-size:16px">${g.name}</b>
+          <div class="vsub" style="margin:6px 0 10px">${g.desc}</div>
+          <div class="between" style="margin-bottom:10px">
+            <span class="tag">Best: ${stats.bestScore||0}</span>
+            <span class="tag">${stats.plays||0} plays</span>
+          </div>
+          <div class="between">
+            <span class="tag" style="color:var(--brand2)">⚡ ${g.points}</span>
+            <button class="btn primary sm">▶ PLAY</button>
+          </div>
+        </div></div>`;
+    }).join("")}</div>
+    <div class="sect" style="margin-top:24px">⚡ Your Stats</div>
+    <div class="grid2">
+      <div class="stat"><b>${u.points||0}</b><span>Total Points</span></div>
+      <div class="stat"><b>${u.dailyPoints||0}</b><span>Points Today</span></div>
+      <div class="stat"><b>${u.diamonds||0}</b><span>Diamonds 💎</span></div>
+      <div class="stat"><b>${u.streak||0}🔥</b><span>Day Streak</span></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">
+      <button class="btn" onclick="go('leaderboard')">🏆 View Leaderboard</button>
+      <button class="btn" onclick="go('missions')">🎯 Daily Missions</button>
+      <button class="btn" onclick="go('shop')">🛍️ Avatar Shop</button>
+    </div>`;
+
+  $$("[data-play]",v).forEach(el=>el.onclick=()=>go("play",el.dataset.play));
+
+}
+
+/* ==========================================================================
+   GAME PLAYER ROUTER
+   ========================================================================== */
+function viewGamePlayer(v,gameId){
+  if(gameId==="reflex")return gameReflexRush(v);
+  if(gameId==="memory")return gameMemoryGrid(v);
+  if(gameId==="lab")return gameLabEscape(v);
+  if(gameId==="racer")return gameNeonRacer(v);
+  if(gameId==="alien")return gameAlienDefense(v);
+  go("games");
+}
+
+/* ==========================================================================
+   LEADERBOARD
+   ========================================================================== */
+function viewLeaderboard(v){
+  checkDailyReset();
+  const users=Object.values(DB.users).filter(u=>!u.banned);
+  const allTime=users.slice().sort((a,b)=>(b.points||0)-(a.points||0));
+  const daily=users.slice().sort((a,b)=>(b.pointsToday||0)-(a.pointsToday||0));
+  const myRankAll=allTime.findIndex(u=>u.id===ME.id)+1;
+  const myRankDaily=daily.findIndex(u=>u.id===ME.id)+1;
+  
+  function row(u,rank,pts,isDaily){
+    const medal=rank===1?"🥇":rank===2?"🥈":rank===3?"🥉":"#"+rank;
+    const isMe=u.id===ME.id;
+    return `<div class="card row" style="${isMe?"border-color:var(--brand);background:color-mix(in srgb,var(--brand) 10%,transparent)":""}">
+      <div style="width:36px;text-align:center;font-weight:800;font-size:16px">${medal}</div>
+      ${uAvatar(u,"sm")}
+      <div style="flex:1;min-width:0"><b>${esc(u.name)} ${isMe?'<span class="tag">YOU</span>':""}</b>
+        <div class="vsub">${isDaily?"Today: ":"Total: "}${nf(pts)} Points</div></div>
+      ${u.streak>1?`<span class="tag">🔥${u.streak}</span>`:""}
+    </div>`;
+  }
+  
+  v.innerHTML=`<div class="sect">🏆 Leaderboard</div>
+    <div class="chiprow">
+      <button class="chip on" data-lb="all">All-Time</button>
+      <button class="chip" data-lb="daily">🔥 Daily</button>
+    </div>
+    <div id="lbAll">
+      <div class="sect">All-Time Top Players</div>
+      ${allTime.slice(0,10).map((u,i)=>row(u,i+1,u.points||0,false)).join("")}
+      ${myRankAll>10?`<div class="sect">Your Position</div>${row(ME,myRankAll,ME.points||0,false)}`:""}
+    </div>
+    <div id="lbDaily" class="hide">
+      <div class="sect">🔥 Today's Top Players</div>
+      ${daily.slice(0,10).map((u,i)=>row(u,i+1,u.pointsToday||0,true)).join("")}
+      ${myRankDaily>10?`<div class="sect">Your Position Today</div>${row(ME,myRankDaily,ME.pointsToday||0,true)}`:""}
+    </div>`;
+  
+  $$("[data-lb]",v).forEach(b=>b.onclick=()=>{
+    $$("[data-lb]",v).forEach(x=>x.classList.toggle("on",x===b));
+    $("#lbAll",v).classList.toggle("hide",b.dataset.lb!=="all");
+    $("#lbDaily",v).classList.toggle("hide",b.dataset.lb!=="daily");
+  });
+}
+
+/* ==========================================================================
+   DAILY MISSIONS
+   ========================================================================== */
+function viewMissions(v){
+  checkDailyReset();
+  const u=DB.users[ME.id];
+  const totalPlays=Object.values(u.gameStats||{}).reduce((a,g)=>a+(g.plays||0),0);
+  const missions=[
+    {id:"play2",desc:"Play 2 games",reward:40,target:2,current:Math.min(2,totalPlays)},
+    {id:"score500",desc:"Score 500+ in any game",reward:25,target:1,current:Object.values(u.gameStats||{}).some(g=>g.bestScore>=500)?1:0},
+    {id:"streak3",desc:"Reach a 3-day streak",reward:30,target:3,current:Math.min(3,u.streak||0)}
+  ];
+  
+  v.innerHTML=`<div class="sect">🎯 Daily Missions</div>
+    <p class="note" style="margin:-8px 0 16px">Complete missions to earn bonus Points. Resets daily.</p>
+    ${missions.map(m=>{
+      const done=m.current>=m.target;
+      const claimed=u.dailyMissions?.[m.id];
+      return `<div class="card row" style="${done?"border-color:var(--good)":""}">
+        <div style="font-size:24px">${claimed?"✅":done?"🎁":"⬜"}</div>
+        <div style="flex:1"><b>${m.desc}</b>
+          <div class="vsub">Progress: ${m.current}/${m.target} • Reward: +${m.reward} Points</div></div>
+        ${claimed?`<span class="tag g">CLAIMED</span>`:done?`<button class="btn sm primary" data-claim="${m.id}" data-reward="${m.reward}">CLAIM</button>`:""}
+      </div>`;
+    }).join("")}
+    <div class="note" style="margin-top:12px">🔥 Current Streak: ${u.streak||0} days</div>`;
+  
+  $$("[data-claim]",v).forEach(b=>b.onclick=()=>{
+    const id=b.dataset.claim,reward=parseInt(b.dataset.reward);
+    if(u.dailyMissions[id])return;
+    u.dailyMissions[id]=true;
+    awardPoints(reward,"Mission Complete");
+    save();renderView();
+  });
+}
+
 function shortComments(id){
   const V=vid(id); if(!V)return;
   sheet(`Comments (${V.comments.length})`,
@@ -1255,6 +1729,36 @@ function viewChannel(v,cid){
         <div class="stat"><b>${nf(views)}</b><span>Total views</span></div>
         <div class="stat"><b>${new Date(c.created).toLocaleDateString()}</b><span>Joined</span></div>
       </div>
+      ${c.owner?`
+      <div class="hr"></div>
+      <div class="grid2" style="margin-top:12px">
+        <div class="stat" style="background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 20%,transparent),transparent)">
+          <b style="color:var(--brand2)">⚡ ${nf(user(c.owner).points||0)}</b><span>Points</span>
+        </div>
+        <div class="stat" style="background:linear-gradient(135deg,color-mix(in srgb,#06b6d4 20%,transparent),transparent)">
+          <b style="color:#06b6d4">💎 ${nf(user(c.owner).diamonds||0)}</b><span>Diamonds</span>
+        </div>
+        <div class="stat">
+          <b>🔥 ${user(c.owner).streak||0}</b><span>Day Streak</span>
+        </div>
+        <div class="stat">
+          <b>${user(c.owner).achievements?.length||0}</b><span>Achievements</span>
+        </div>
+      </div>
+      
+      ${user(c.owner).achievements?.length?`
+      <div class="sect" style="margin-top:16px">🏆 Achievements</div>
+      <div class="chiprow" style="flex-wrap:wrap;overflow:visible;padding-bottom:0">
+        ${user(c.owner).achievements.map(a=>`<span class="chip" title="${esc(a.desc)}" style="cursor:help">🏆 ${esc(a.name)}</span>`).join("")}
+      </div>`:""}
+      
+      ${c.owner===ME.id?`
+      <div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap">
+        <button class="btn primary" onclick="go('shop')">🛍️ Avatar Shop</button>
+        <button class="btn" onclick="go('exchange')">💎 Exchange</button>
+        <button class="btn" onclick="go('missions')">🎯 Missions</button>
+      </div>`:""}
+      `:""}
       ${c.owner?`<div class="hr"></div><div class="row">${uAvatar(user(c.owner),"sm")}
         <div><b>${esc(user(c.owner).name)}</b><div class="vsub">${esc(user(c.owner).klass||"")} ${user(c.owner).role==="teacher"?"· Staff":""}</div></div></div>`:""}
     </div>`;
@@ -1339,7 +1843,7 @@ function viewAlerts(v){
   const c=$("[data-clr]",v); if(c) c.onclick=()=>{ DB.notifs[ME.id]=[]; save(); renderAll(); };
   (DB.notifs[ME.id]||[]).forEach(n=>n.read=true); persist();
   setTimeout(()=>{ const u=unread(); $("#btnBell").innerHTML="🔔"+(u?`<span class="dot">${u}</span>`:"");
-    const bd=$("#bDot"); bd.classList.toggle("hide",u===0); },50);
+    const bd=$("#bDot"); if(bd) bd.classList.toggle("hide",u===0); },50);
 }
 
 /* ---------- SETTINGS ---------- */
@@ -1731,6 +2235,10 @@ function viewAdmin(v){
       <div class="field"><label>Platform name</label><input class="inp" id="sName" value="${esc(s.schoolName||"ClassPulse")}"></div>
       <div class="field"><label>Allowed email domain</label><input class="inp" id="sDom" value="${esc(s.domain)}"></div>
       <div class="field"><label>Staff sign-up code</label><input class="inp" id="sCode" value="${esc(s.staffCode)}"></div>
+      <div class="field"><label>Points → Diamonds rate (default: 10)</label>
+        <input class="inp" id="sRate" type="number" value="${DB.settings.exchangeRate||10}" min="1" max="100"></div>
+      <div class="field"><label>Daily Diamond exchange limit</label>
+        <input class="inp" id="sExLimit" type="number" value="${DB.settings.dailyExchangeLimit||500}" min="10" max="10000"></div>
       <button class="btn primary" id="sSave" style="margin-top:12px">Save settings</button>
     </div>
     <div class="sect">📢 Announcements</div>
@@ -1791,6 +2299,8 @@ function viewAdmin(v){
     DB.settings.schoolName=$("#sName",v).value.trim()||"ClassPulse";
     DB.settings.domain=$("#sDom",v).value.trim()||DB.settings.domain;
     DB.settings.staffCode=$("#sCode",v).value.trim()||DB.settings.staffCode;
+    DB.settings.exchangeRate=parseInt($("#sRate",v).value)||10;
+    DB.settings.dailyExchangeLimit=parseInt($("#sExLimit",v).value)||500;
     applyTheme(); save(); toast("✅","Settings saved",""); };
   const rs=$("#reset",v); if(rs) rs.onclick=()=>{ if(!confirm("Erase ALL ClassPulse data and restore the demo?"))return;
     localStorage.removeItem(KEY); localStorage.removeItem(SKEY); location.hash=""; location.reload(); };
@@ -1837,6 +2347,913 @@ function newChannelSheet(){
         desc:$("#nD",box).value.trim(),emoji:$("#nE",box).value.trim()||a.em,grad:a.g,
         owner:$("#nO",box).value,official:true,avatar:null,banner:null,subs:[],created:Date.now()};
       save(); closeSheet(); toast("🏫","Channel created",n); go("channel",id); }; });
+}
+
+/* ==========================================================================
+   GAME 1: REFLEX RUSH — 60-second target tapping
+   ========================================================================== */
+function gameReflexRush(v){
+  let score=0,combo=0,timeLeft=60,playing=false,timer=null,spawnTimer=null;
+  v.innerHTML=`<div class="sect">🎯 Reflex Rush</div>
+    <div class="between" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <span class="tag">Score: <b id="gScore">0</b></span>
+      <span class="tag">Combo: <b id="gCombo">x0</b></span>
+      <span class="tag">Time: <b id="gTime">60</b>s</span>
+      <span class="tag">Best: <b id="gBest">${(DB.users[ME.id].gameStats?.reflex?.bestScore)||0}</b></span>
+    </div>
+    <div id="gArea" style="position:relative;width:100%;height:400px;background:var(--card);border-radius:16px;border:1px solid var(--line);overflow:hidden;touch-action:none;user-select:none">
+      <div style="position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:20px" id="gStart">
+        <div><div style="font-size:52px;margin-bottom:12px">🎯</div>
+        <b style="font-size:18px">Tap the targets as fast as possible!</b>
+        <div class="note" style="margin:8px 0 16px">60 seconds • Misses reset combo • Smaller targets = more points</div>
+        <button class="btn primary" id="gGo" style="padding:12px 32px">START GAME</button></div>
+      </div>
+    </div>
+    <div id="gEnd" class="hide" style="text-align:center;padding:32px 20px">
+      <div style="font-size:56px;margin-bottom:12px">🎮</div>
+      <h2 style="margin:0 0 8px">GAME COMPLETE</h2>
+      <div style="font-size:36px;font-weight:800;margin:12px 0;color:var(--brand2)" id="gFinal">0</div>
+      <div class="note" id="gEndStats" style="font-size:14px;margin-bottom:8px"></div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap">
+        <button class="btn primary" id="gAgain">PLAY AGAIN</button>
+        <button class="btn" onclick="go('games')">BACK TO GAMES</button>
+      </div>
+    </div>`;
+
+  const area=$("#gArea",v);
+
+  function start(){
+    score=0;combo=0;timeLeft=60;playing=true;
+    $("#gStart",v).classList.add("hide");
+    $("#gEnd",v).classList.add("hide");
+    updateHUD();
+    timer=setInterval(()=>{
+      timeLeft--;
+      $("#gTime",v).textContent=timeLeft;
+      if(timeLeft<=0)end();
+    },1000);
+    spawn();
+  }
+
+  function spawn(){
+    if(!playing)return;
+    const size=Math.max(28,64-(60-timeLeft)*0.6);
+    const x=Math.random()*(area.clientWidth-size-20)+10;
+    const y=Math.random()*(area.clientHeight-size-20)+10;
+    const t=document.createElement("div");
+    t.className="target";
+    t.style.cssText=`position:absolute;left:${x}px;top:${y}px;width:${size}px;height:${size}px;border-radius:50%;
+      background:radial-gradient(circle at 30% 30%,#ff6b6b,#c92a2a);cursor:pointer;border:3px solid #fff;
+      box-shadow:0 4px 20px rgba(239,68,68,.5),inset 0 -4px 8px rgba(0,0,0,.2);transition:transform .1s`;
+    t.onpointerdown=(e)=>{
+      e.preventDefault();
+      if(!playing)return;
+      const pts=Math.round((70-size)*2*(1+combo*0.15));
+      score+=pts;combo++;
+      t.style.transform="scale(1.3)";
+      setTimeout(()=>t.remove(),50);
+      updateHUD();
+      setTimeout(spawn,100);
+    };
+    area.appendChild(t);
+    spawnTimer=setTimeout(()=>{
+      if(t.parentNode){t.remove();combo=0;updateHUD();spawn();}
+    },Math.max(700,1800-(60-timeLeft)*18));
+  }
+
+  function updateHUD(){
+    $("#gScore",v).textContent=score;
+    $("#gCombo",v).textContent="x"+combo;
+  }
+
+  function end(){
+    playing=false;clearInterval(timer);clearTimeout(spawnTimer);
+    $$(".target",area).forEach(t=>t.remove());
+    const pts=Math.min(50,Math.max(5,Math.round(score/40)));
+    const result=addPoints(pts,"Reflex Rush");
+    gameStats("reflex",score,score>800);
+    $("#gFinal",v).textContent=score;
+    $("#gEndStats",v).innerHTML=`Best: ${(DB.users[ME.id].gameStats?.reflex?.bestScore)||0} • Points earned: <b style="color:var(--brand2)">+${result.awarded}</b>${result.capped?" <span class='tag'>Daily cap reached</span>":""}`;
+    $("#gEnd",v).classList.remove("hide");
+  }
+
+  $("#gGo",v).onclick=start;
+  $("#gAgain",v).onclick=start;
+}
+
+/* ==========================================================================
+   GAME 2: MEMORY GRID — Pattern memorization
+   ========================================================================== */
+function gameMemoryGrid(v){
+  let level=1,score=0,showing=true,pattern=[],playerPattern=[],gridSize=3;
+  v.innerHTML=`<div class="sect">🧠 Memory Grid</div>
+    <div class="between" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <span class="tag">Level: <b id="mLevel">1</b></span>
+      <span class="tag">Score: <b id="mScore">0</b></span>
+      <span class="tag">Best: <b id="mBest">${(DB.users[ME.id].gameStats?.memory?.bestScore)||0}</b></span>
+    </div>
+    <div id="mMsg" style="text-align:center;margin-bottom:16px;font-weight:600;min-height:24px;font-size:15px">Watch the pattern...</div>
+    <div id="mGrid" style="display:grid;gap:10px;max-width:420px;margin:0 auto;touch-action:manipulation;user-select:none"></div>
+    <div id="mEnd" class="hide" style="text-align:center;padding:32px 20px">
+      <div style="font-size:56px;margin-bottom:12px">🧠</div>
+      <h2 style="margin:0 0 8px">GAME OVER</h2>
+      <div style="font-size:24px;margin:12px 0">Level <b id="mFinalLevel" style="color:var(--brand2)">1</b></div>
+      <div style="font-size:32px;font-weight:800;margin:8px 0" id="mFinalScore">0</div>
+      <div class="note" id="mStats" style="margin-bottom:8px"></div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap">
+        <button class="btn primary" id="mAgain">PLAY AGAIN</button>
+        <button class="btn" onclick="go('games')">BACK TO GAMES</button>
+      </div>
+    </div>`;
+
+  const grid=$("#mGrid",v);
+
+  function start(){
+    showing=true;playerPattern=[];
+    gridSize=Math.min(6,3+Math.floor((level-1)/3));
+    const count=Math.min(gridSize*gridSize-1,2+Math.floor(level/2));
+    grid.style.gridTemplateColumns=`repeat(${gridSize},1fr)`;
+    grid.innerHTML="";
+    const cells=[];
+    for(let i=0;i<gridSize*gridSize;i++){
+      const c=document.createElement("div");
+      c.style.cssText=`aspect-ratio:1;background:var(--hover);border-radius:12px;cursor:pointer;transition:all .15s;border:2px solid transparent`;
+      c.dataset.idx=i;
+      grid.appendChild(c);cells.push(c);
+    }
+    pattern=Array.from({length:count},()=>Math.floor(Math.random()*gridSize*gridSize));
+    $("#mMsg",v).textContent=`Remember the pattern... (${count} tiles)`;
+    pattern.forEach((idx,i)=>{
+      setTimeout(()=>{
+        cells[idx].style.background="var(--brand)";
+        cells[idx].style.transform="scale(1.05)";
+        setTimeout(()=>{
+          cells[idx].style.background="var(--hover)";
+          cells[idx].style.transform="scale(1)";
+        },350);
+      },600+i*450);
+    });
+    setTimeout(()=>{
+      showing=false;
+      $("#mMsg",v).textContent="Your turn! Tap the tiles in order.";
+      cells.forEach(c=>{
+        c.style.borderColor="var(--brand)";
+        c.onpointerdown=()=>clickCell(c);
+      });
+    },600+pattern.length*450+400);
+  }
+
+  function clickCell(c){
+    if(showing)return;
+    const idx=+c.dataset.idx;
+    playerPattern.push(idx);
+    c.style.background="var(--brand2)";
+    c.style.transform="scale(0.95)";
+    setTimeout(()=>{
+      c.style.background="var(--hover)";
+      c.style.transform="scale(1)";
+    },250);
+    
+    if(playerPattern[playerPattern.length-1]!==pattern[playerPattern.length-1]){
+      end();
+      return;
+    }
+    
+    if(playerPattern.length===pattern.length){
+      score+=level*15;
+      $("#mScore",v).textContent=score;
+      level++;
+      $("#mLevel",v).textContent=level;
+      $("#mMsg",v).textContent="✅ Correct! Next level...";
+      setTimeout(start,900);
+    }
+  }
+
+  function end(){
+    const pts=Math.min(50,Math.max(5,Math.round(score/30)));
+    const result=addPoints(pts,"Memory Grid");
+    gameStats("memory",score,level>5);
+    $("#mFinalLevel",v).textContent=level;
+    $("#mFinalScore",v).textContent=score;
+    $("#mStats",v).innerHTML=`Best: ${(DB.users[ME.id].gameStats?.memory?.bestScore)||0} • Points earned: <b style="color:var(--brand2)">+${result.awarded}</b>${result.capped?" <span class='tag'>Daily cap</span>":""}`;
+    $("#mEnd",v).classList.remove("hide");
+    grid.innerHTML="";
+    $("#mMsg",v).textContent="";
+  }
+
+  $("#mAgain",v).onclick=()=>{
+    level=1;score=0;
+    $("#mLevel",v).textContent="1";
+    $("#mScore",v).textContent="0";
+    $("#mEnd",v).classList.add("hide");
+    start();
+  };
+
+  start();
+}
+
+/* ==========================================================================
+   GAME 3: LAB ESCAPE — 4-room puzzle adventure
+   ========================================================================== */
+function gameLabEscape(v){
+  let room=0,score=0,startTime=Date.now(),solved=false;
+  const rooms=[
+    {title:"Chemical Mixing Station",desc:"The door is locked. Mix the chemicals in the correct order to unlock it.",q:"Which order creates the safe reaction?",opts:["Blue → Red → Green","Red → Blue → Green","Green → Blue → Red"],a:0,icon:"🧪"},
+    {title:"Storage Room",desc:"Find the key hidden among the lab equipment.",q:"Which container holds the door key?",opts:["Beaker","Thermometer","Safety Goggles Case"],a:2,icon:"🔑"},
+    {title:"Computer Terminal",desc:"Hack the security system. Solve the equation.",q:"What is 2 + 2 × 2?",opts:["6","8","4"],a:0,icon:"💻"},
+    {title:"Final Door",desc:"One last puzzle before freedom!",q:"Which tool measures temperature?",opts:["Microscope","Thermometer","Test Tube Rack"],a:1,icon:"🚪"}
+  ];
+
+  function showRoom(){
+    if(room>=rooms.length)return end();
+    const r=rooms[room];
+    v.innerHTML=`<div class="sect">🔬 Lab Escape</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center;flex-wrap:wrap">
+        <span class="tag">Room ${room+1}/4</span>
+        <span class="tag">Score: ${score}</span>
+        <span class="tag">${Math.floor((Date.now()-startTime)/1000)}s</span>
+      </div>
+      <div class="card" style="padding:24px;text-align:center;max-width:500px;margin:0 auto">
+        <div style="font-size:52px;margin-bottom:16px">${r.icon}</div>
+        <h3 style="margin:0 0 8px;font-size:20px">${r.title}</h3>
+        <p class="note" style="margin-bottom:20px;line-height:1.6">${r.desc}</p>
+        <div style="background:var(--bg);border-radius:12px;padding:16px;margin-bottom:20px;border:1px solid var(--line)">
+          <b style="font-size:15px">${r.q}</b>
+        </div>
+        <div style="display:grid;gap:10px">
+          ${r.opts.map((o,i)=>`<button class="btn block" data-opt="${i}" style="padding:14px;text-align:left;justify-content:flex-start">${o}</button>`).join("")}
+        </div>
+      </div>`;
+    $$("[data-opt]",v).forEach(b=>b.onclick=()=>{
+      if(+b.dataset.opt===r.a){
+        score+=100+Math.max(0,50-Math.floor((Date.now()-startTime)/1000));
+        room++;
+        toast("✅","Correct!","Door unlocked...");
+        setTimeout(showRoom,700);
+      }else{
+        score=Math.max(0,score-25);
+        toast("❌","Wrong!","-25 points. Try again...");
+        const btn=b;
+        btn.style.borderColor="var(--bad)";
+        setTimeout(()=>btn.style.borderColor="",1000);
+      }
+    });
+  }
+
+  function end(){
+    const time=Math.round((Date.now()-startTime)/1000);
+    const timeBonus=Math.max(0,20-Math.floor(time/10));
+    const pts=Math.min(50,35+timeBonus);
+    const result=addPoints(pts,"Lab Escape");
+    gameStats("lab",score,true);
+    v.innerHTML=`<div class="sect">🔬 Lab Escape</div>
+      <div style="text-align:center;padding:40px 20px;max-width:400px;margin:0 auto">
+        <div style="font-size:64px;margin-bottom:16px">🎉</div>
+        <h2 style="margin:0 0 8px;font-size:28px">ESCAPED!</h2>
+        <div style="font-size:20px;margin:16px 0;color:var(--brand2)">
+          ⏱️ Time: ${Math.floor(time/60)}:${String(time%60).padStart(2,"0")}
+        </div>
+        <div class="grid2" style="margin:20px 0">
+          <div class="stat"><b>4/4</b><span>Rooms</span></div>
+          <div class="stat"><b>${score}</b><span>Score</span></div>
+        </div>
+        <div class="note" style="margin-bottom:20px">Points earned: <b style="color:var(--brand2);font-size:18px">+${result.awarded}</b>${result.capped?" (daily cap)":""}</div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <button class="btn primary" onclick="renderView()">PLAY AGAIN</button>
+          <button class="btn" onclick="go('games')">BACK TO GAMES</button>
+        </div>
+      </div>`;
+  }
+
+  showRoom();
+}
+
+/* ==========================================================================
+   GAME 4: NEON RACER — Top-down arcade racing
+   ========================================================================== */
+function gameNeonRacer(v){
+  let score=0,distance=0,energy=100,speed=1,playing=false,animId,px;
+  let obstacles=[],orbs=[],keys={};
+  v.innerHTML=`<div class="sect">🏎️ Neon Racer</div>
+    <div class="between" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <span class="tag">Score: <b id="rScore">0</b></span>
+      <span class="tag">Speed: <b id="rSpeed">1.0</b>x</span>
+      <span class="tag">Energy: <b id="rEnergy">100</b>%</span>
+      <span class="tag">Best: <b id="rBest">${(DB.users[ME.id].gameStats?.racer?.bestScore)||0}</b></span>
+    </div>
+    <canvas id="rCanvas" style="width:100%;height:400px;background:#000;border-radius:16px;border:1px solid var(--line);touch-action:none;display:block"></canvas>
+    <div style="text-align:center;margin-top:12px" id="rControls">
+      <div class="note" style="margin-bottom:12px">← → Arrow keys or touch buttons to steer • Collect yellow orbs for energy</div>
+      <div style="display:flex;gap:12px;justify-content:center;align-items:center">
+        <button class="btn" id="rLeft" style="padding:16px 24px;font-size:20px">◀</button>
+        <button class="btn primary" id="rStart" style="padding:14px 32px">START RACE</button>
+        <button class="btn" id="rRight" style="padding:16px 24px;font-size:20px">▶</button>
+      </div>
+    </div>
+    <div id="rEnd" class="hide" style="text-align:center;padding:32px 20px">
+      <div style="font-size:56px;margin-bottom:12px">💥</div>
+      <h2 style="margin:0 0 8px">CRASHED</h2>
+      <div style="font-size:36px;font-weight:800;margin:12px 0;color:var(--brand2)" id="rFinal">0</div>
+      <div class="note" id="rStats" style="margin-bottom:8px"></div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap">
+        <button class="btn primary" id="rAgain">PLAY AGAIN</button>
+        <button class="btn" onclick="go('games')">BACK TO GAMES</button>
+      </div>
+    </div>`;
+
+  const cv=$("#rCanvas",v),ctx=cv.getContext("2d");
+
+  function resize(){
+    cv.width=cv.clientWidth*2;
+    cv.height=800;
+    px=cv.width/2;
+  }
+  resize();
+
+  function init(){
+    px=cv.width/2;obstacles=[];orbs=[];score=0;distance=0;energy=100;speed=1;
+    $("#rScore",v).textContent="0";
+    $("#rSpeed",v).textContent="1.0";
+    $("#rEnergy",v).textContent="100";
+  }
+
+  function loop(){
+    if(!playing)return;
+    ctx.fillStyle="#000";
+    ctx.fillRect(0,0,cv.width,cv.height);
+    
+    // Neon road lines
+    ctx.strokeStyle="#0ff";
+    ctx.lineWidth=6;
+    ctx.setLineDash([50,50]);
+    ctx.lineDashOffset=-distance*2;
+    ctx.globalAlpha=0.6;
+    ctx.beginPath();ctx.moveTo(cv.width/3,0);ctx.lineTo(cv.width/3,cv.height);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cv.width*2/3,0);ctx.lineTo(cv.width*2/3,cv.height);ctx.stroke();
+    ctx.globalAlpha=1;
+    
+    // Player car
+    ctx.fillStyle="#0ff";
+    ctx.shadowColor="#0ff";
+    ctx.shadowBlur=20;
+    ctx.fillRect(px-25,cv.height-100,50,80);
+    ctx.shadowBlur=0;
+    // Car details
+    ctx.fillStyle="#fff";
+    ctx.fillRect(px-15,cv.height-90,30,20);
+    ctx.fillRect(px-15,cv.height-60,30,15);
+    
+    // Obstacles (red)
+    if(Math.random()<0.025*speed){
+      obstacles.push({x:Math.random()*(cv.width-120)+60,y:-80});
+    }
+    ctx.fillStyle="#f00";
+    ctx.shadowColor="#f00";
+    ctx.shadowBlur=15;
+    obstacles=obstacles.filter(o=>{
+      o.y+=6*speed;
+      ctx.fillRect(o.x-30,o.y,60,60);
+      if(o.y>cv.height+80)return false;
+      if(Math.abs(o.x-px)<55&&o.y>cv.height-180&&o.y<cv.height-20){
+        playing=false;
+        end();
+        return false;
+      }
+      return true;
+    });
+    ctx.shadowBlur=0;
+    
+    // Energy orbs (yellow)
+    if(Math.random()<0.012){
+      orbs.push({x:Math.random()*(cv.width-80)+40,y:-40});
+    }
+    ctx.fillStyle="#ff0";
+    ctx.shadowColor="#ff0";
+    ctx.shadowBlur=20;
+    orbs=orbs.filter(o=>{
+      o.y+=6*speed;
+      ctx.beginPath();
+      ctx.arc(o.x,o.y,18,0,7);
+      ctx.fill();
+      if(o.y>cv.height+40)return false;
+      if(Math.abs(o.x-px)<50&&o.y>cv.height-180&&o.y<cv.height-20){
+        energy=Math.min(100,energy+15);
+        $("#rEnergy",v).textContent=Math.round(energy);
+        return false;
+      }
+      return true;
+    });
+    ctx.shadowBlur=0;
+    
+    // Movement
+    if(keys.ArrowLeft||keys.a)px=Math.max(40,px-8*speed);
+    if(keys.ArrowRight||keys.d)px=Math.min(cv.width-40,px+8*speed);
+    
+    // Update stats
+    distance+=speed;
+    score=Math.floor(distance/10);
+    if(distance%400<speed){
+      speed+=0.15;
+      $("#rSpeed",v).textContent=speed.toFixed(1);
+    }
+    energy-=0.08;
+    if(energy<=0){
+      playing=false;
+      end();
+      return;
+    }
+    $("#rScore",v).textContent=score;
+    $("#rEnergy",v).textContent=Math.round(energy);
+    
+    animId=requestAnimationFrame(loop);
+  }
+
+  function end(){
+    cancelAnimationFrame(animId);
+    const pts=Math.min(50,Math.max(5,Math.round(score/150)));
+    const result=addPoints(pts,"Neon Racer");
+    gameStats("racer",score,score>2000);
+    $("#rFinal",v).textContent=score;
+    $("#rStats",v).innerHTML=`Best: ${(DB.users[ME.id].gameStats?.racer?.bestScore)||0} • Points earned: <b style="color:var(--brand2)">+${result.awarded}</b>${result.capped?" <span class='tag'>Daily cap</span>":""}`;
+    $("#rEnd",v).classList.remove("hide");
+    $("#rControls",v).classList.add("hide");
+  }
+
+  function start(){
+    init();
+    playing=true;
+    $("#rControls",v).classList.add("hide");
+    $("#rEnd",v).classList.add("hide");
+    loop();
+  }
+
+  $("#rStart",v).onclick=start;
+  $("#rAgain",v).onclick=start;
+  
+  // Keyboard
+  const kd=e=>{keys[e.key]=true;};
+  const ku=e=>{keys[e.key]=false;};
+  document.addEventListener("keydown",kd);
+  document.addEventListener("keyup",ku);
+  cleanups.push(()=>{
+    document.removeEventListener("keydown",kd);
+    document.removeEventListener("keyup",ku);
+  });
+  
+  // Touch buttons
+  const bindBtn=(id,dir)=>{
+    const el=$(id,v);
+    el.onpointerdown=e=>{e.preventDefault();keys[dir===-1?"ArrowLeft":"ArrowRight"]=true;};
+    el.onpointerup=()=>keys[dir===-1?"ArrowLeft":"ArrowRight"]=false;
+    el.onpointerleave=()=>keys[dir===-1?"ArrowLeft":"ArrowRight"]=false;
+  };
+  bindBtn("#rLeft",-1);
+  bindBtn("#rRight",1);
+  
+  // Touch drag on canvas
+  let touchX=null;
+  cv.ontouchstart=e=>{
+    e.preventDefault();
+    touchX=e.touches[0].clientX;
+  };
+  cv.ontouchmove=e=>{
+    e.preventDefault();
+    if(touchX===null)return;
+    const r=cv.getBoundingClientRect();
+    const x=(e.touches[0].clientX-r.left)*2;
+    px=clamp(x,40,cv.width-40);
+  };
+}
+
+/* ==========================================================================
+   GAME 5: ALIEN DEFENSE — Wave survival shooter
+   ========================================================================== */
+function gameAlienDefense(v){
+  let wave=1,score=0,energy=100,playing=false,animId;
+  let px,py,aliens=[],shots=[],lastShot=0,keys={},touchPos=null;
+  v.innerHTML=`<div class="sect">👾 Alien Defense</div>
+    <div class="between" style="margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <span class="tag">Wave: <b id="aWave">1</b></span>
+      <span class="tag">Score: <b id="aScore">0</b></span>
+      <span class="tag">Energy: <b id="aEnergy">100</b>%</span>
+      <span class="tag">Best: <b id="aBest">${(DB.users[ME.id].gameStats?.alien?.bestScore)||0}</b></span>
+    </div>
+    <canvas id="aCanvas" style="width:100%;height:400px;background:#0a0a1a;border-radius:16px;border:1px solid var(--line);touch-action:none;display:block"></canvas>
+    <div style="text-align:center;margin-top:12px" id="aControls">
+      <div class="note" style="margin-bottom:12px">WASD/Arrows to move • Space to shoot • Or use touch controls</div>
+      <div style="display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <button class="btn" id="aUp" style="padding:12px 20px">▲</button>
+          <button class="btn" id="aDown" style="padding:12px 20px">▼</button>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="aLeft" style="padding:12px 20px">◀</button>
+          <button class="btn primary" id="aFire" style="padding:12px 24px">🔥 FIRE</button>
+          <button class="btn" id="aRight" style="padding:12px 20px">▶</button>
+        </div>
+        <button class="btn ok" id="aStart" style="padding:12px 24px">START</button>
+      </div>
+    </div>
+    <div id="aEnd" class="hide" style="text-align:center;padding:32px 20px">
+      <div style="font-size:56px;margin-bottom:12px">👾</div>
+      <h2 style="margin:0 0 8px">WAVE <span id="aFinalWave" style="color:var(--brand2)">1</span> COMPLETE</h2>
+      <div style="font-size:36px;font-weight:800;margin:12px 0" id="aFinalScore">0</div>
+      <div class="note" id="aStats" style="margin-bottom:8px"></div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap">
+        <button class="btn primary" id="aAgain">PLAY AGAIN</button>
+        <button class="btn" onclick="go('games')">BACK TO GAMES</button>
+      </div>
+    </div>`;
+
+  const cv=$("#aCanvas",v),ctx=cv.getContext("2d");
+
+  function resize(){
+    cv.width=cv.clientWidth*2;
+    cv.height=800;
+    px=cv.width/2;py=cv.height/2;
+  }
+  resize();
+
+  function spawnWave(){
+    const count=3+wave*2;
+    for(let i=0;i<count;i++){
+      const angle=(Math.PI*2*i)/count;
+      aliens.push({
+        x:cv.width/2+Math.cos(angle)*500,
+        y:cv.height/2+Math.sin(angle)*500,
+        hp:1+Math.floor(wave/4)
+      });
+    }
+  }
+
+  function loop(){
+    if(!playing)return;
+    ctx.fillStyle="#0a0a1a";
+    ctx.fillRect(0,0,cv.width,cv.height);
+    
+    // Grid effect
+    ctx.strokeStyle="#1a1a3a";
+    ctx.lineWidth=1;
+    for(let i=0;i<cv.width;i+=50){
+      ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,cv.height);ctx.stroke();
+    }
+    for(let i=0;i<cv.height;i+=50){
+      ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(cv.width,i);ctx.stroke();
+    }
+    
+    // Player
+    ctx.fillStyle="#0f0";
+    ctx.shadowColor="#0f0";
+    ctx.shadowBlur=20;
+    ctx.beginPath();
+    ctx.arc(px,py,22,0,7);
+    ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.fillStyle="#fff";
+    ctx.beginPath();
+    ctx.arc(px,py-8,6,0,7);
+    ctx.fill();
+    
+    // Movement
+    const sp=5;
+    if(keys.ArrowUp||keys.w)py=Math.max(30,py-sp);
+    if(keys.ArrowDown||keys.s)py=Math.min(cv.height-30,py+sp);
+    if(keys.ArrowLeft||keys.a)px=Math.max(30,px-sp);
+    if(keys.ArrowRight||keys.d)px=Math.min(cv.width-30,px+sp);
+    if(touchPos){
+      px+=(touchPos.x-px)*0.15;
+      py+=(touchPos.y-py)*0.15;
+    }
+    
+    // Aliens
+    ctx.fillStyle="#f0f";
+    ctx.shadowColor="#f0f";
+    ctx.shadowBlur=15;
+    aliens=aliens.filter(a=>{
+      const dx=px-a.x,dy=py-a.y,dist=Math.hypot(dx,dy)||1;
+      a.x+=dx/dist*1.2;
+      a.y+=dy/dist*1.2;
+      ctx.beginPath();
+      ctx.arc(a.x,a.y,20,0,7);
+      ctx.fill();
+      // Eyes
+      ctx.fillStyle="#fff";
+      ctx.beginPath();ctx.arc(a.x-6,a.y-5,4,0,7);ctx.fill();
+      ctx.beginPath();ctx.arc(a.x+6,a.y-5,4,0,7);ctx.fill();
+      ctx.fillStyle="#f0f";
+      
+      if(dist<35){
+        energy-=8;
+        $("#aEnergy",v).textContent=Math.max(0,Math.round(energy));
+        if(energy<=0){
+          playing=false;
+          end();
+          return false;
+        }
+      }
+      return true;
+    });
+    ctx.shadowBlur=0;
+    
+    // Shots
+    ctx.fillStyle="#ff0";
+    ctx.shadowColor="#ff0";
+    ctx.shadowBlur=10;
+    shots=shots.filter(s=>{
+      s.y-=12;
+      ctx.fillRect(s.x-4,s.y,8,20);
+      let hit=false;
+      aliens=aliens.filter(a=>{
+        if(Math.hypot(a.x-s.x,a.y-s.y)<28){
+          a.hp--;
+          hit=true;
+          if(a.hp<=0){
+            score+=15;
+            return false;
+          }
+        }
+        return true;
+      });
+      return s.y>0&&!hit;
+    });
+    ctx.shadowBlur=0;
+    
+    // Next wave
+    if(aliens.length===0){
+      wave++;
+      $("#aWave",v).textContent=wave;
+      score+=50;
+      spawnWave();
+      toast("🌊","Wave "+wave,"Get ready!");
+    }
+    
+    $("#aScore",v).textContent=score;
+    animId=requestAnimationFrame(loop);
+  }
+
+  function shoot(){
+    if(!playing||Date.now()-lastShot<180)return;
+    lastShot=Date.now();
+    shots.push({x:px,y:py-30});
+  }
+
+  function end(){
+    cancelAnimationFrame(animId);
+    const pts=Math.min(50,Math.max(5,Math.round(score/25)));
+    const result=addPoints(pts,"Alien Defense");
+    gameStats("alien",score,wave>5);
+    $("#aFinalWave",v).textContent=wave;
+    $("#aFinalScore",v).textContent=score;
+    $("#aStats",v).innerHTML=`Best: ${(DB.users[ME.id].gameStats?.alien?.bestScore)||0} • Points earned: <b style="color:var(--brand2)">+${result.awarded}</b>${result.capped?" <span class='tag'>Daily cap</span>":""}`;
+    $("#aEnd",v).classList.remove("hide");
+    $("#aControls",v).classList.add("hide");
+  }
+
+  function start(){
+    wave=1;score=0;energy=100;aliens=[];shots=[];
+    px=cv.width/2;py=cv.height/2;
+    $("#aWave",v).textContent="1";
+    $("#aScore",v).textContent="0";
+    $("#aEnergy",v).textContent="100";
+    playing=true;
+    $("#aControls",v).classList.add("hide");
+    $("#aEnd",v).classList.add("hide");
+    spawnWave();
+    loop();
+  }
+
+  $("#aStart",v).onclick=start;
+  $("#aAgain",v).onclick=start;
+  $("#aFire",v).onclick=shoot;
+  
+  // Keyboard
+  const kd=e=>{
+    keys[e.key]=true;
+    if(e.key===" ")shoot();
+  };
+  const ku=e=>{keys[e.key]=false;};
+  document.addEventListener("keydown",kd);
+  document.addEventListener("keyup",ku);
+  cleanups.push(()=>{
+    document.removeEventListener("keydown",kd);
+    document.removeEventListener("keyup",ku);
+  });
+  
+  // Touch buttons
+  const bindBtn=(id,key)=>{
+    const el=$(id,v);
+    el.onpointerdown=e=>{e.preventDefault();keys[key]=true;};
+    el.onpointerup=()=>keys[key]=false;
+    el.onpointerleave=()=>keys[key]=false;
+  };
+  bindBtn("#aUp","ArrowUp");
+  bindBtn("#aDown","ArrowDown");
+  bindBtn("#aLeft","ArrowLeft");
+  bindBtn("#aRight","ArrowRight");
+  
+  // Direct touch on canvas
+  cv.ontouchstart=e=>{
+    e.preventDefault();
+    const r=cv.getBoundingClientRect();
+    touchPos={
+      x:(e.touches[0].clientX-r.left)*2,
+      y:(e.touches[0].clientY-r.top)*2
+    };
+    shoot();
+  };
+  cv.ontouchmove=e=>{
+    e.preventDefault();
+    const r=cv.getBoundingClientRect();
+    touchPos={
+      x:(e.touches[0].clientX-r.left)*2,
+      y:(e.touches[0].clientY-r.top)*2
+    };
+  };
+  cv.ontouchend=()=>{touchPos=null;};
+}
+/* ==========================================================================
+   SHOP / EXCHANGE STUBS — Will be replaced in Phase 4
+   ========================================================================== */
+
+/* ==========================================================================
+   AVATAR SHOP — Premium cosmetic packs (2D + 3D bundled)
+   ========================================================================== */
+const AVATAR_PACKS=[
+  {id:"default",name:"Default",price:0,rarity:"Common",emoji:"👤",colors:["#6c5ce7","#00d2ff"],desc:"The classic ClassPulse look"},
+  {id:"alien",name:"Alien",price:2500,rarity:"Rare",emoji:"👽",colors:["#22c55e","#84cc16"],desc:"From the far side of the galaxy"},
+  {id:"robot",name:"Robot",price:2000,rarity:"Common",emoji:"🤖",colors:["#64748b","#94a3b8"],desc:"Beep boop. Beep boop."},
+  {id:"ninja",name:"Cyber Ninja",price:5000,rarity:"Legendary",emoji:"🥷",colors:["#dc2626","#7c3aed"],desc:"Silent but deadly code"},
+  {id:"dragon",name:"Dragon",price:4000,rarity:"Epic",emoji:"🐉",colors:["#ea580c","#facc15"],desc:"Fire-breathing legend"},
+  {id:"astro",name:"Space Explorer",price:3500,rarity:"Rare",emoji:"🚀",colors:["#0ea5e9","#6366f1"],desc:"To infinity and beyond"},
+  {id:"wizard",name:"Wizard",price:3000,rarity:"Rare",emoji:"🧙",colors:["#8b5cf6","#d946ef"],desc:"Magic meets mathematics"},
+  {id:"android",name:"Futuristic Android",price:4500,rarity:"Epic",emoji:"🦾",colors:["#06b6d4","#3b82f6"],desc:"Next-gen humanoid"},
+  {id:"warrior",name:"Fantasy Warrior",price:3800,rarity:"Epic",emoji:"⚔️",colors:["#b91c1c","#f59e0b"],desc:"Battle-ready scholar"},
+  {id:"mascot",name:"School Mascot",price:1500,rarity:"Common",emoji:"🦁",colors:["#f59e0b","#eab308"],desc:"Spirit week champion"}
+];
+
+function viewAvatarShop(v){
+  checkDailyReset();
+  const u=DB.users[ME.id];
+  const owned=u.ownedAvatars||["default"];
+  const selected=u.selectedAvatar||"default";
+  
+  v.innerHTML=`<div class="sect">🛍️ Avatar Shop</div>
+    <p class="note" style="margin:-8px 0 16px">Unlock premium avatar packs with Diamonds. Each pack includes <b>BOTH 2D and 3D versions!</b></p>
+    
+    <div class="card row" style="margin-bottom:16px;background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 20%,transparent),color-mix(in srgb,var(--brand2) 20%,transparent))">
+      <div style="flex:1"><b style="font-size:16px">Your Balance</b><div class="vsub">Spend them wisely</div></div>
+      <div style="font-size:28px;font-weight:800">💎 ${nf(u.diamonds)}</div>
+    </div>
+    
+    <div class="grid2" style="grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
+    ${AVATAR_PACKS.map(p=>{
+      const isOwned=owned.includes(p.id);
+      const isSelected=selected===p.id;
+      const canBuy=u.diamonds>=p.price;
+      const rarityColor=p.rarity==="Legendary"?"#f59e0b":p.rarity==="Epic"?"#8b5cf6":p.rarity==="Rare"?"#06b6d4":"#9ca3af";
+      return `<div class="card" style="padding:0;overflow:hidden;${isSelected?"border-color:var(--good);box-shadow:0 0 20px color-mix(in srgb,var(--good) 30%,transparent)":""}">
+        <div style="height:110px;background:linear-gradient(135deg,${p.colors[0]},${p.colors[1]});display:grid;place-items:center;font-size:52px;position:relative">
+          ${p.emoji}
+          <span class="tag" style="position:absolute;top:8px;right:8px;background:${rarityColor};color:#fff;border:0;font-weight:800">${p.rarity}</span>
+          ${isOwned?`<span class="tag g" style="position:absolute;top:8px;left:8px">✓ OWNED</span>`:""}
+          ${isSelected?`<span class="tag" style="position:absolute;bottom:8px;left:8px;background:var(--good);color:#fff;border:0">EQUIPPED</span>`:""}
+        </div>
+        <div style="padding:14px">
+          <b style="font-size:16px">${p.name}</b>
+          <div class="vsub" style="margin:6px 0 10px">${p.desc}</div>
+          <div class="between" style="margin-bottom:10px">
+            <span style="font-weight:800;color:var(--brand2);font-size:16px">${p.price===0?"FREE":"💎 "+nf(p.price)}</span>
+            <span class="tag">2D + 3D</span>
+          </div>
+          ${isOwned?`
+            <button class="btn ${isSelected?"ok":"primary"} block" data-equip="${p.id}" ${isSelected?"disabled":""}>
+              ${isSelected?"✓ EQUIPPED":"EQUIP"}
+            </button>
+          `:`<button class="btn ${canBuy?"primary":"ghost"} block" data-buy="${p.id}" ${!canBuy?"disabled":""}>
+              ${canBuy?"🔓 UNLOCK":"Need 💎 "+nf(p.price-u.diamonds)}
+            </button>`}
+        </div></div>`;
+    }).join("")}</div>
+    
+    <div class="sect" style="margin-top:24px">📦 Your Collection (${owned.length}/${AVATAR_PACKS.length})</div>
+    <div class="chiprow" style="flex-wrap:wrap;overflow:visible">
+      ${owned.map(id=>{
+        const p=AVATAR_PACKS.find(x=>x.id===id);
+        return `<span class="chip" style="background:linear-gradient(135deg,${p.colors[0]}33,${p.colors[1]}33);border-color:${p.colors[0]}">
+          ${p.emoji} ${p.name}
+        </span>`;
+      }).join("")}
+    </div>`;
+  
+  $$("[data-buy]",v).forEach(b=>b.onclick=()=>{
+    const pack=AVATAR_PACKS.find(p=>p.id===b.dataset.buy);
+    if(u.diamonds<pack.price)return toast("💎","Not enough Diamonds","");
+    u.diamonds-=pack.price;
+    u.ownedAvatars.push(pack.id);
+    u.diamondTransactions.push({id:"dt_"+uid(),amount:-pack.price,source:"Avatar: "+pack.name,ts:Date.now()});
+    if(u.ownedAvatars.length>=10)awardAchievement("collector","💎 Collector","Unlock 10 cosmetics",150);
+    save();renderView();
+    toast("🎉","Avatar Pack Unlocked!",pack.name+" (2D + 3D versions)");
+  });
+  
+  $$("[data-equip]",v).forEach(b=>b.onclick=()=>{
+    u.selectedAvatar=b.dataset.equip;
+    save();renderView();
+    toast("✅","Avatar Equipped",AVATAR_PACKS.find(p=>p.id===b.dataset.equip).name);
+  });
+}
+
+/* ==========================================================================
+   DIAMOND EXCHANGE — Convert Points to Diamonds (configurable rate)
+   ========================================================================== */
+function viewDiamondExchange(v){
+  checkDailyReset();
+  const u=DB.users[ME.id];
+  const rate=DB.settings.exchangeRate||10; // 10 points = 1 diamond
+  const dailyLimit=DB.settings.dailyExchangeLimit||500;
+  
+  // Calculate exchanged today
+  const today=new Date().toDateString();
+  const exchangedToday=u.diamondTransactions?.filter(t=>{
+    return new Date(t.ts).toDateString()===today&&t.source==="Exchange";
+  }).reduce((a,t)=>a+Math.abs(t.amount),0)||0;
+  
+  const remainingDaily=Math.max(0,dailyLimit-exchangedToday);
+  const maxExchange=Math.min(u.points,remainingDaily*rate);
+  
+  v.innerHTML=`<div class="sect">💎 Diamond Exchange</div>
+    <p class="note" style="margin:-8px 0 16px">Convert your hard-earned Points into premium Diamonds for cosmetics.</p>
+    
+    <div class="card" style="text-align:center;padding:24px;background:linear-gradient(135deg,color-mix(in srgb,var(--brand) 15%,transparent),color-mix(in srgb,var(--brand2) 15%,transparent))">
+      <div style="font-size:52px;margin-bottom:12px">💎</div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:8px">Exchange Rate</div>
+      <div style="font-size:24px;font-weight:800;color:var(--brand2);margin-bottom:16px">
+        ${rate} Points = 1 Diamond
+      </div>
+      <div class="note">Daily limit: ${dailyLimit} Diamonds (${dailyLimit*rate} Points)</div>
+    </div>
+    
+    <div class="grid2" style="margin:16px 0">
+      <div class="stat" style="padding:20px"><b style="font-size:28px;color:var(--brand2)">⚡ ${nf(u.points)}</b><span>Your Points</span></div>
+      <div class="stat" style="padding:20px"><b style="font-size:28px">💎 ${nf(u.diamonds)}</b><span>Your Diamonds</span></div>
+    </div>
+    
+    ${remainingDaily<=0?`
+      <div class="card" style="text-align:center;padding:20px;border-color:var(--warn)">
+        <div style="font-size:32px;margin-bottom:8px">⏰</div>
+        <b>Daily Limit Reached</b>
+        <div class="note" style="margin-top:4px">You've exchanged ${dailyLimit} Diamonds today. Come back tomorrow!</div>
+      </div>
+    `:`<div class="card">
+      <div class="field">
+        <label>Points to exchange (max ${nf(maxExchange)})</label>
+        <input class="inp" id="exPts" type="number" min="${rate}" max="${maxExchange}" step="${rate}" value="${Math.min(rate*10,maxExchange)}" 
+          style="font-size:18px;text-align:center;font-weight:700">
+      </div>
+      <div style="text-align:center;margin:16px 0;font-size:20px">
+        <span style="color:var(--muted)">↓</span>
+      </div>
+      <div style="text-align:center;margin-bottom:16px">
+        <span style="font-size:24px;font-weight:800;color:var(--brand2)">💎 <span id="exGet">${Math.floor(Math.min(rate*10,maxExchange)/rate)}</span></span>
+      </div>
+      <button class="btn primary block" id="exGo" style="padding:14px;font-size:16px" ${maxExchange<rate?"disabled":""}>
+        ${maxExchange<rate?"Need more Points":"EXCHANGE NOW"}
+      </button>
+      ${exchangedToday>0?`<div class="note" style="margin-top:12px;text-align:center">Exchanged today: ${exchangedToday}/${dailyLimit} 💎</div>`:""}
+    </div>`}
+    
+    <div class="sect" style="margin-top:24px">📜 Recent Transactions</div>
+    ${u.diamondTransactions?.slice(-8).reverse().map(t=>`
+      <div class="card row" style="margin-bottom:8px">
+        <div style="font-size:24px">${t.amount>0?"📥":"📤"}</div>
+        <div style="flex:1">
+          <b style="color:${t.amount>0?"var(--good)":"var(--bad)"}">${t.amount>0?"+":""}${t.amount} Diamonds</b>
+          <div class="vsub">${esc(t.source)} • ${ago(t.ts)}</div>
+        </div>
+      </div>`).join("")||'<div class="note">No transactions yet.</div>'}`;
+  
+  const input=$("#exPts",v);
+  if(input){
+    input.oninput=()=>{
+      const pts=parseInt(input.value)||0;
+      $("#exGet",v).textContent=Math.floor(pts/rate);
+    };
+    
+    $("#exGo",v).onclick=()=>{
+      const pts=parseInt(input.value)||0;
+      if(pts<rate)return toast("⚠️","Minimum exchange",rate+" points");
+      if(pts>u.points)return toast("⚠️","Insufficient points","");
+      if(pts>maxExchange)return toast("⚠️","Daily limit exceeded","Max: "+maxExchange+" points");
+      
+      const diamonds=Math.floor(pts/rate);
+      u.points-=pts;
+      u.dailyPoints=Math.max(0,u.dailyPoints-pts); // Refund daily cap space
+      awardDiamonds(diamonds,"Exchange");
+      u.pointTransactions.push({id:"pt_"+uid(),amount:-pts,source:"Diamond Exchange",ts:Date.now()});
+      save();renderView();
+      toast("✅","Exchange Complete!",`+${diamonds} Diamonds`);
+    };
+  }
 }
 
 /* ===========================================================================
