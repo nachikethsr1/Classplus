@@ -1123,6 +1123,9 @@ const econ=()=>ensureSettings();
 function ensureEconomy(u){
   if(!u) return u;
   u.points=safeInt(u.points,0,1e9);
+  // Lifetime Points counter. One-time backfill for saves created before it existed:
+  // seeding from the current balance means this branch runs at most once per account.
+  if(typeof u.lifetimeEarned!=="number") u.lifetimeEarned=safeInt(u.points,0,1e9);
   u.lifetimeEarned=safeInt(u.lifetimeEarned,0,1e12);
   u.diamonds=safeInt(u.diamonds,0,1e9);
   u.dailyPoints=safeInt(u.dailyPoints,0,1e6); u.pointsToday=u.dailyPoints;
@@ -1879,6 +1882,8 @@ function boot(){
   wireShell();
   ROUTE=parseHash();
   checkDailyReset();
+  // Legacy accounts: let the backfilled lifetime total unlock its achievements now.
+  if(ME&&DB.users[ME.id]) checkPointAchievements(ensureEconomy(DB.users[ME.id]));
   renderAll();
 }
 function wireShell(){
@@ -1966,21 +1971,8 @@ function renderSide(){
 /* ===========================================================================
    COMPONENTS
    =========================================================================== */
-/* ================= AVATAR-AWARE AVATAR COMPONENTS (Phase 5) ================= */
-function chAvatar(c,cls){
-  const o=personalOwner(c), p=o?activeAvatarPack(o):null;
-  if(p) return packAvatarHTML(p,cls);
-  return `<div class="av ${cls||""}" style="background:linear-gradient(135deg,${c.grad[0]},${c.grad[1]||c.grad[0]})">
-    ${c.avatar?`<img src="${c.avatar}">`:esc(c.emoji||initials(c.name))}</div>`;
-}
-function defaultUAvatar(u,cls){
-  return `<div class="av ${cls||""}" style="background:${colorOf(u.id)}">${u.avatar?`<img src="${u.avatar}">`:esc(initials(u.name))}</div>`;
-}
-function uAvatar(u,cls){
-  const p=activeAvatarPack(u);
-  if(p) return packAvatarHTML(p,cls);
-  return defaultUAvatar(u,cls);
-}
+/* Avatar-aware components (chAvatar / defaultUAvatar / uAvatar) are declared in
+   the Phase 5 avatar section further down, next to the cosmetics helpers they use. */
 function thumbInner(v,big){
   if(v.thumb) return `<img src="${v.thumb}" alt="">`;
   return `<div class="em">${esc(v.art.em)}</div>`;
