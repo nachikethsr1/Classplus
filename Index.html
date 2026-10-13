@@ -1103,6 +1103,8 @@ const safeInt=(n,min,max)=>{ n=Math.floor(Number(n)); if(!Number.isFinite(n)) n=
 const num=n=>{ n=Number(n); return Number.isFinite(n)?n:0; };
 const myUser=()=>(ME&&DB&&DB.users)?DB.users[ME.id]:null;
 const ECON={keepTx:300,keepRewardIds:600};
+const validEconomyNumber=(n,max)=>{n=Math.floor(Number(n));return Number.isFinite(n)&&n>=0&&n<=max?n:null;};
+const economyTransactionId=k=>"tx_"+String(k||"econ").replace(/[^a-z0-9]/gi,"").slice(0,10)+"_"+uid();
 
 /* ---- settings / migration ---- */
 function ensureSettings(){
@@ -1121,6 +1123,7 @@ const econ=()=>ensureSettings();
 function ensureEconomy(u){
   if(!u) return u;
   u.points=safeInt(u.points,0,1e9);
+  u.lifetimeEarned=safeInt(u.lifetimeEarned,0,1e12);
   u.diamonds=safeInt(u.diamonds,0,1e9);
   u.dailyPoints=safeInt(u.dailyPoints,0,1e6); u.pointsToday=u.dailyPoints;
   if(typeof u.lastPointsDate!=="string") u.lastPointsDate="";
@@ -1235,7 +1238,7 @@ function awardPoints(amount,source,opts){
   const used=safeInt(u.dailyCaps[bucket],0,1e9), cap=safeInt(e.caps[bucket],0,1e9);
   const actual=Math.max(0,Math.min(amount,cap-used));
   if(actual>0){
-    u.points=safeInt(u.points+actual,0,1e9);
+    u.points=safeInt(u.points+actual,0,1e9);u.lifetimeEarned=safeInt((u.lifetimeEarned||0)+actual,0,1e12);
     u.dailyPoints=safeInt(u.dailyPoints+actual,0,1e6); u.pointsToday=u.dailyPoints;
     u.dailyCaps[bucket]=used+actual;
     u.pointTransactions.push({id:"pt_"+uid(),amount:actual,source:String(source||"").slice(0,60),bucket,game:opts.game||null,ts:Date.now()});
@@ -1295,11 +1298,11 @@ function awardAchievement(id,name,desc,points){
 }
 function checkPointAchievements(u){
   if(!u) return;
-  if(u.points>=1000) awardAchievement("points_1k");
-  if(u.points>=10000) awardAchievement("points_10k");
+  if((u.lifetimeEarned||0)>=1000) awardAchievement("points_1k");
+  if((u.lifetimeEarned||0)>=10000) awardAchievement("points_10k");
 }
 
-/* ---- GAME STATS ----
+/* ---- GAME STATS ---- */
 function validateGameScore(gameId,raw){
   raw=safeInt(raw,0,1e6);
   const caps={reflex:5000,memory:10000,lab:5000,racer:30000,alien:30000};
@@ -1701,7 +1704,7 @@ const feedShorts = () => DB.videos.filter(v=>v.kind==="short"&&visible(v)).sort(
 
 /* ---------- notifications ---------- */
 function notify(userId,icon,title,body,href){
-  if(!userId||!DB.users[userId]||userId===(ME&&ME.id&&null)) return;
+  if(!userId||!DB.users[userId]) return;
   DB.notifs[userId]=DB.notifs[userId]||[];
   DB.notifs[userId].unshift({id:"n_"+uid(),icon,title,body,href:href||"",from:(ME&&ME.id!==userId?ME.id:null),ts:Date.now(),read:false});
   DB.notifs[userId]=DB.notifs[userId].slice(0,80);
@@ -2523,7 +2526,7 @@ function completeGameRun(gameId,score,win,extraStats,overridePoints){
 
   const wanted=overridePoints==null?gameRewardAmount(gameId,score,extraStats):overridePoints;
   const rewardId=`game:${todayKey()}:${gameId}:${Date.now()}:${uid()}`;
-  const result=awardPoints(wanted,source,rewardId);
+  const result=awardPoints(wanted,source,{bucket:"games",game:gameId,rewardId});
 
   return {
     awarded:result.awarded||0,
@@ -2564,7 +2567,7 @@ function fitCanvas(cv,height){
 function viewGames(v){
   checkDailyReset();
   const u=DB.users[ME.id];
-  const gameCap=(u.dailyCaps&&u.dailyCaps.game)||0;
+  const gameCap=(u.dailyCaps&&u.dailyCaps.games)||0;
 
   v.innerHTML=`
     <div class="game-hero">
@@ -3779,6 +3782,11 @@ function viewAdmin(v){
           const admin=user(a.adminId);
           const student=user(a.studentId);
 
+          if(a.type==="exchange_settings"){return `
+            <div class="admin-audit-row">
+              <b>⚙️ ${esc(a.reason||"Exchange settings updated")}</b>
+              <div class="vsub">By ${esc(admin.name)} · ${ago(a.ts)}</div>
+            </div>`}
           return `
             <div class="admin-audit-row">
               <b>💎 +${nf(a.amount)} Diamonds credited to ${esc(student.name)}</b>
@@ -5327,7 +5335,8 @@ function mountAvatar3D(el,packId,opts){
   let rotY=0, rotX=0.15, isDragging=false, lastX=0, lastY=0, autoRot=true;
 
   loadThree().then(THREE=>{
-    if(disposed||!THREE||!canvas) return;
+    if(disposed||!canvas) return;
+    if(!THREE){ if(loadingEl) loadingEl.textContent="3D unavailable"; return; }
     if(loadingEl) loadingEl.remove();
     scene=new THREE.Scene();
     if(cosmetics.background==="bg_galaxy") scene.background=new THREE.Color(0x1a1033);
