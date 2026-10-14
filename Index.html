@@ -987,7 +987,7 @@ function seed(){
   const mkUser=(id,name,email,role,klass,bio)=>users[id]={id,name,email,role,klass,bio,pass:"1234",
     joined:now-60*D,banned:false,subs:[],likedVids:[],avatar:null,
     points:0,dailyPoints:0,diamonds:0,pointsToday:0,lastPointsDate:"",
-    ownedAvatars:["default"],selectedAvatar:"default",avatarMode:"2d",
+    ownedAvatars:["default"],ownedModels:[],selectedAvatar:"default",avatarMode:"2d",
     achievements:[],gameStats:{},streak:0,lastActiveDate:"",dailyMissions:{},
     diamondTransactions:[],pointTransactions:[]};
   mkUser("u_riv","Ms. Rivera","rivera@school.edu","teacher","Staff · Science","Science teacher & robotics lead 🔬");
@@ -1144,6 +1144,7 @@ function ensureEconomy(u){
   if(u.avatarMode!=="2d"&&u.avatarMode!=="3d") u.avatarMode="2d";
   if(!u.cosmetics||typeof u.cosmetics!=="object") u.cosmetics={head:null,face:null,outfit:null,aura:null,frame:null,background:null};
   if(!Array.isArray(u.ownedCosmetics)) u.ownedCosmetics=[];
+  if(!Array.isArray(u.ownedModels)) u.ownedModels=[];
   const validCos=["head","face","outfit","aura","frame","background"];
   validCos.forEach(k=>{ if(u.cosmetics[k]!==null && typeof u.cosmetics[k]!=="string") u.cosmetics[k]=null; });
   if(!Array.isArray(u.achievements)) u.achievements=[];
@@ -1962,7 +1963,7 @@ function renderSide(){
     ${item("Events","🎪","cat","Events")}
     ${item("Announcements","📢","cat","Announcements")}
     ${item("All channels","🏫","channels")}
-    ${item("3D Models","🧊","models")}
+    ${item("Avatars","🎭","avatars")}
     ${ME.role==="teacher"?`<div class="sdiv"></div><div class="slabel">Staff</div>${item("Admin dashboard","🛡️","admin")}`:""}
     <div class="sdiv"></div>
     ${item("Settings","⚙️","settings")}
@@ -2042,7 +2043,7 @@ function renderView(){
   if(R==="channel") return viewChannel(v,ROUTE.arg);
   if(R==="you") return viewChannel(v,"c_"+ME.id);
   if(R==="studio") return viewStudio(v);
-  if(R==="models") return viewModels(v);
+  if(R==="avatars"||R==="models") return viewAvatars(v);
   if(R==="liked") return viewList(v,"👍 Liked videos",DB.videos.filter(x=>x.likes.includes(ME.id)&&visible(x)));
   if(R==="search") return viewSearch(v,ROUTE.arg);
   if(R==="channels") return viewChannels(v);
@@ -2065,11 +2066,43 @@ function renderView(){
    mount function receives the id of the empty container to build inside.
    ES modules require http(s) — they will not load from file://.            */
 const MODEL_LIBRARY=[
-  {id:"ninja",      name:"Cyber Ninja",emoji:"🥷",file:"./ninja.js",mount:"initNinja",
+  {id:"ninja",      name:"Cyber Ninja",emoji:"🥷",file:"./ninja.js",mount:"initNinja",price:650,
    desc:"Roblox-style blocky ninja rig — idle/walk animation, drag to orbit, colour swatches."},
-  {id:"millionaire",name:"Millionaire", emoji:"🤑",file:"./rich.js", mount:"initMillionaire",
+  {id:"millionaire",name:"Millionaire", emoji:"🤑",file:"./rich.js", mount:"initMillionaire",price:1000,
    desc:"Blocky millionaire in a gold suit and money hat — idle/walk animation, drag to orbit."}
 ];
+const modelById=id=>MODEL_LIBRARY.find(m=>m.id===id)||null;
+const ownsModel=(u,id)=>!!(u&&Array.isArray(u.ownedModels)&&u.ownedModels.includes(id));
+
+/* Unlock a 3D avatar with Diamonds. Same safety shape as buyAvatarPack:
+   snapshot first, mutate, and roll the whole thing back if storage fails. */
+let buyingModel=false;
+function buyModel(id){
+  if(buyingModel) return {success:false,message:"Purchase in progress."};
+  if(!ME||!DB.users[ME.id]) return {success:false,message:"Log in first."};
+  const m=modelById(id); if(!m) return {success:false,message:"Avatar not found."};
+  const u=ensureEconomy(DB.users[ME.id]);
+  if(ownsModel(u,m.id)) return {success:false,message:"You already own "+m.name+"."};
+  const price=validEconomyNumber(m.price,1e9); if(price===null||price<1) return {success:false,message:"Invalid price."};
+  if(u.diamonds<price) return {success:false,message:"Need "+fmtNum(price-u.diamonds)+" more Diamonds."};
+  buyingModel=true;
+  const snap={diamonds:u.diamonds,owned:u.ownedModels.slice(),tx:u.diamondTransactions.slice()};
+  u.diamonds=u.diamonds-price; u.ownedModels.push(m.id);
+  u.diamondTransactions.push({id:economyTransactionId("model"),amount:-price,kind:"spend",source:"3D Avatar: "+m.name,meta:{modelId:m.id},ts:Date.now()});
+  u.diamondTransactions=u.diamondTransactions.slice(-ECON.keepTx);
+  if(!persist()){ u.diamonds=snap.diamonds; u.ownedModels=snap.owned; u.diamondTransactions=snap.tx; buyingModel=false; return {success:false,message:"Storage full, could not save."}; }
+  buyingModel=false; renderEconPill(); Bus.send({t:"sync"});
+  return {success:true,model:m};
+}
+function confirmBuyModel(id){
+  const m=modelById(id); if(!m) return;
+  const u=ensureEconomy(DB.users[ME.id]);
+  if(ownsModel(u,id)){ toast("\u2705","Already owned","You own "+m.name+"."); return; }
+  if(u.diamonds<m.price){ closeSheet(); if(confirm("Need "+fmtNum(m.price-u.diamonds)+" more Diamonds for "+m.name+".\nOpen Exchange?")) go("exchange"); return; }
+  if(!confirm("Unlock "+m.name+"?\n\n\ud83d\udc8e "+fmtNum(m.price)+" Diamonds")) return;
+  const r=buyModel(id); if(!r.success){ toast("\u26a0\ufe0f","Purchase failed",r.message); return; }
+  toast("\ud83c\udf89","Avatar unlocked!",m.emoji+" "+m.name); renderAll();
+}
 
 const modelMounted=new Map();   // id -> api returned by the mount function
 let modelToken=0;               // invalidates a load that finishes after navigating away
@@ -2111,22 +2144,50 @@ async function mountModel(m){
       If you are on <code>file://</code> or offline, Three.js (unpkg.com) may be unreachable.</div>`;
   }
 }
-function viewModels(v){
-  const m=MODEL_LIBRARY.find(x=>x.id===ROUTE.arg)||MODEL_LIBRARY[0];
+function viewAvatars(v){
+  checkDailyReset();
+  const u=ensureEconomy(DB.users[ME.id]);
+  const m=modelById(ROUTE.arg)||MODEL_LIBRARY[0];
+  const owned=ownsModel(u,m.id);
+  const unlocked=MODEL_LIBRARY.filter(x=>ownsModel(u,x.id)).length;
   v.innerHTML=`
-    <div class="sect">🧊 3D Models</div>
-    <div class="note" style="margin-bottom:12px">Standalone JavaScript modules, loaded on demand. Each one is a separate file in this folder.</div>
-    ${MODEL_LIBRARY.length>1?`<div class="chiprow">${MODEL_LIBRARY.map(x=>
-      `<button class="chip ${x.id===m.id?"on":""}" data-model="${esc(x.id)}">${x.emoji} ${esc(x.name)}</button>`).join("")}</div>`:""}
-    <div class="card" style="padding:0;overflow:hidden;background:#0f1116">
-      <div id="modelHost" style="width:100%;height:min(72vh,620px)"></div>
+    <div class="economy-hero">
+      <h1>🎭 3D Avatars</h1>
+      <p>Solid 3D characters, unlocked with Diamonds. Every model keeps its own controls — idle / walk animation, drag to orbit, scroll to zoom, auto-rotate.</p>
+      <div class="economy-balances">
+        <div class="economy-balance"><div class="symbol">💎</div><strong>${fmtNum(u.diamonds)}</strong><small>Diamonds</small></div>
+        <div class="economy-balance"><div class="symbol">🎭</div><strong>${unlocked}/${MODEL_LIBRARY.length}</strong><small>Unlocked</small></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+        <button class="btn" data-go-exchange>🔄 Get Diamonds</button>
+        <button class="btn" data-go-shop>🛍️ Avatar shop</button>
+      </div>
     </div>
-    <div class="row" style="gap:10px;margin-top:12px;flex-wrap:wrap">
-      <span class="tag">${m.emoji} ${esc(m.name)}</span>
-      <span class="mut" style="font-size:13px">${esc(m.desc)}</span>
-    </div>`;
 
-  $$("[data-model]",v).forEach(b=>b.onclick=()=>go("models",b.dataset.model));
+    <div class="chiprow">${MODEL_LIBRARY.map(x=>
+      `<button class="chip ${x.id===m.id?"on":""}" data-model="${esc(x.id)}">${x.emoji} ${esc(x.name)} ${ownsModel(u,x.id)?"✓":"· 💎 "+fmtNum(x.price)}</button>`).join("")}</div>
+
+    <div class="card" style="padding:0;overflow:hidden;background:#0f1116">
+      <div id="modelHost" style="width:100%;height:min(70vh,600px)"></div>
+    </div>
+
+    <div class="between" style="margin-top:14px;gap:14px;flex-wrap:wrap;align-items:flex-start">
+      <div style="flex:1;min-width:220px">
+        <b style="font-size:17px">${m.emoji} ${esc(m.name)}</b>
+        ${owned?`<span class="tag g" style="margin-left:8px">✓ Owned</span>`:`<span class="tag" style="margin-left:8px">💎 ${fmtNum(m.price)}</span>`}
+        <div class="vsub" style="margin-top:4px">${esc(m.desc)}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${owned?`<button class="btn" disabled>✓ Unlocked</button>`
+               :`<button class="btn primary" data-model-buy="${esc(m.id)}">Unlock for 💎 ${fmtNum(m.price)}</button>`}
+      </div>
+    </div>
+    <p class="note" style="margin-top:14px">Viewing is free — unlocking adds the avatar to your collection. Diamonds come from the Diamond Exchange or from a teacher.</p>`;
+
+  $$("[data-model]",v).forEach(b=>b.onclick=()=>go("avatars",b.dataset.model));
+  const buy=$("[data-model-buy]",v); if(buy) buy.onclick=()=>confirmBuyModel(buy.dataset.modelBuy);
+  const ex=$("[data-go-exchange]",v); if(ex) ex.onclick=()=>go("exchange");
+  const sh=$("[data-go-shop]",v); if(sh) sh.onclick=()=>go("shop");
   mountModel(m);
   cleanups.push(unmountModels);
 }
