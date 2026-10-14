@@ -323,86 +323,7 @@ body.shortsmode #main{padding:var(--top) 0 0;margin-left:var(--side)}
 @keyframes drop{from{transform:translateY(-110%);opacity:0}}
 .toast b{font-size:13.5px}.toast p{margin:1px 0 0;font-size:12px;color:var(--muted)}
 
-/* ============================================================
-   CLASSPULSE PHASE 5 — AVATARS & SHOP
-   ============================================================ */
-.av svg{width:100%;height:100%;display:block}
-
-.shop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
-.pack-card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:20px;overflow:hidden;
-  display:flex;flex-direction:column;transition:transform .2s,box-shadow .2s}
-.pack-card:hover{transform:translateY(-4px)}
-.pack-card.rar-rare{border-color:rgba(59,156,255,.45)}
-.pack-card.rar-epic{border-color:rgba(178,102,255,.5)}
-.pack-card.rar-legendary{border-color:rgba(255,180,0,.65);box-shadow:0 0 28px rgba(255,180,0,.16)}
-.pack-stage{position:relative;height:196px;display:grid;place-items:center;overflow:hidden}
-.pack-stage::after{content:"";position:absolute;inset:0;pointer-events:none;
-  background:radial-gradient(circle at 50% 38%,rgba(255,255,255,.22),transparent 60%)}
-.pack-art{position:relative;z-index:1;width:140px;height:140px;filter:drop-shadow(0 10px 18px rgba(0,0,0,.5));transition:transform .25s}
-.pack-art svg{width:100%;height:100%;display:block}
-.pack-card:hover .pack-art{transform:scale(1.08) rotate(-3deg)}
-.pack-rar{position:absolute;z-index:2;top:10px;left:10px;font-size:10px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;
-  padding:3px 9px;border-radius:99px;background:rgba(0,0,0,.55);color:#fff}
-.pack-new{position:absolute;z-index:2;top:10px;right:10px;font-size:10px;font-weight:900;padding:3px 8px;border-radius:99px;
-  background:var(--good);color:#04240f}
-.pack-badges{position:absolute;z-index:2;bottom:9px;left:0;right:0;display:flex;gap:6px;justify-content:center}
-.pack-badges span{font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.2);color:#fff}
-.pack-body{padding:14px;display:flex;flex-direction:column;gap:7px;flex:1}
-.pack-price{font-size:19px;font-weight:900;letter-spacing:-.3px}
-.pack-actions{display:flex;gap:8px;margin-top:auto;padding-top:6px}
-.pack-actions .btn{flex:1;padding:9px 6px}
-
-.pv-stage{height:250px;border-radius:18px;display:grid;place-items:center;overflow:hidden}
-.pv-2d{width:175px;height:175px;filter:drop-shadow(0 12px 22px rgba(0,0,0,.55))}
-.pv-2d svg{width:100%;height:100%;display:block}
-
-/* Avatar "3D" stage (Phase 6 swaps the inside for real Three.js) */
-.av3d{position:relative;width:104px;height:104px;perspective:700px;touch-action:none}
-.av3d.xl{width:140px;height:140px}
-.av3d.big{width:200px;height:200px}
-.av3d-card{width:100%;height:100%;border-radius:28%;overflow:hidden;transform-style:preserve-3d;
-  animation:avSwing 5s ease-in-out infinite;
-  box-shadow:0 18px 40px rgba(0,0,0,.45),inset 0 0 0 2px rgba(255,255,255,.2)}
-.av3d-card svg{width:100%;height:100%;display:block}
-.av3d.drag .av3d-card{animation:none;transition:transform .08s}
-@keyframes avSwing{
-  0%,100%{transform:rotateY(-26deg) rotateX(4deg) translateY(0)}
-  50%{transform:rotateY(26deg) rotateX(-4deg) translateY(-7px)}}
-@media(prefers-reduced-motion:reduce){.av3d-card{animation:none}}
-
 .avhero{display:flex;flex-direction:column;align-items:center;gap:8px}
-.avcap{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.4px;text-align:center}
-
-.av-set-preview{display:grid;place-items:center;min-height:170px;margin:12px 0 4px}
-.as-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:9px}
-.as-tile{padding:9px 6px;border-radius:14px;border:2px solid var(--line);background:var(--card);
-  display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;font-weight:700;text-align:center}
-.as-tile.on{border-color:var(--brand);background:color-mix(in srgb,var(--brand) 16%,var(--card))}
-.as-tile .av{width:54px;height:54px}
-
-@media(max-width:600px){
-  .shop-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
-  .pack-stage{height:150px}
-  .pack-art{width:104px;height:104px}
-  .pack-body{padding:11px}
-  .pack-actions{flex-direction:column}
-}
-/* ---- Phase 6: 3D canvas & cosmetics ---- */
-.av3d canvas{width:100%;height:100%;display:block;border-radius:28%}
-.avpack{position:relative;overflow:visible}
-.avpack .aura{position:absolute;inset:-12px;border-radius:50%;pointer-events:none;z-index:0}
-.aura-lightning{background:radial-gradient(circle,rgba(255,235,59,.55),rgba(255,235,59,0) 65%);animation:auraPulse 1.4s ease-in-out infinite}
-.aura-galaxy{background:radial-gradient(circle,rgba(108,92,231,.6),rgba(0,210,255,.35),transparent 70%);animation:auraSpin 5s linear infinite}
-.cos-head{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:26px;z-index:2;filter:drop-shadow(0 3px 6px rgba(0,0,0,.6))}
-@keyframes auraPulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.12);opacity:1}}
-@keyframes auraSpin{from{transform:rotate(0deg) scale(1)}to{transform:rotate(360deg) scale(1)}}
-.frame-diamond{box-shadow:0 0 0 3px #fff,0 0 0 6px #00d2ff,0 0 22px rgba(0,210,255,.7) !important}
-.frame-gold{box-shadow:0 0 0 4px #ffb400,0 0 20px rgba(255,180,0,.6) !important}
-.frame-neon{box-shadow:0 0 0 3px #ff2e63,0 0 0 6px #00f0ff,0 0 22px rgba(255,46,99,.6) !important}
-.frame-galaxy{box-shadow:0 0 0 3px #6c5ce7,0 0 18px rgba(108,92,231,.7) !important}
-.cosmetic-card{border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--card);display:flex;gap:10px;align-items:center;margin-bottom:9px}
-.cosmetic-card .ico{font-size:26px;width:44px;height:44px;border-radius:10px;background:var(--bg2);display:grid;place-items:center;flex:none}
-
 /* ---------- GAMES / ARCADE ---------- */
 .game-hero{
   background:
@@ -987,7 +908,7 @@ function seed(){
   const mkUser=(id,name,email,role,klass,bio)=>users[id]={id,name,email,role,klass,bio,pass:"1234",
     joined:now-60*D,banned:false,subs:[],likedVids:[],avatar:null,
     points:0,dailyPoints:0,diamonds:0,pointsToday:0,lastPointsDate:"",
-    ownedAvatars:["default"],ownedModels:[],selectedAvatar:"default",avatarMode:"2d",
+    ownedModels:[],
     achievements:[],gameStats:{},streak:0,lastActiveDate:"",dailyMissions:{},
     diamondTransactions:[],pointTransactions:[]};
   mkUser("u_riv","Ms. Rivera","rivera@school.edu","teacher","Staff · Science","Science teacher & robotics lead 🔬");
@@ -1138,14 +1059,7 @@ function ensureEconomy(u){
   if(!u.dailyStats||typeof u.dailyStats!=="object") u.dailyStats={plays:0,wins:0,shorts:0,videos:0,missions:0};
   if(!u.lifetime||typeof u.lifetime!=="object") u.lifetime={shortsWatched:0,videosWatched:0,gamesPlayed:0,gamesWon:0,missionsDone:0,exchanged:0};
   if(!Array.isArray(u.rewardIds)) u.rewardIds=[];
-  if(!Array.isArray(u.ownedAvatars)||!u.ownedAvatars.length) u.ownedAvatars=["default"];
-  if(!u.selectedAvatar) u.selectedAvatar="default";
-  if(u.avatarMode!=="2d"&&u.avatarMode!=="3d") u.avatarMode="2d";
-  if(!u.cosmetics||typeof u.cosmetics!=="object") u.cosmetics={head:null,face:null,outfit:null,aura:null,frame:null,background:null};
-  if(!Array.isArray(u.ownedCosmetics)) u.ownedCosmetics=[];
   if(!Array.isArray(u.ownedModels)) u.ownedModels=[];
-  const validCos=["head","face","outfit","aura","frame","background"];
-  validCos.forEach(k=>{ if(u.cosmetics[k]!==null && typeof u.cosmetics[k]!=="string") u.cosmetics[k]=null; });
   if(!Array.isArray(u.achievements)) u.achievements=[];
   if(!u.gameStats||typeof u.gameStats!=="object") u.gameStats={};
   if(!u.dailyMissions||typeof u.dailyMissions!=="object") u.dailyMissions={};
@@ -1283,7 +1197,6 @@ const ACHIEVEMENTS={
   streak_7:        {icon:"🔥",name:"7-Day Player",    desc:"Maintain a 7-day streak.",           pts:100},
   streak_30:       {icon:"🌟",name:"Monthly Legend",  desc:"Maintain a 30-day streak.",          pts:300},
   challenge_master:{icon:"🧠",name:"Challenge Master",desc:"Complete 10 daily missions.",        pts:100},
-  collector:       {icon:"💎",name:"Collector",       desc:"Unlock 10 cosmetics.",               pts:150},
   points_1k:       {icon:"⚡",name:"Rising Star",     desc:"Earn 1,000 lifetime Points.",        pts:50},
   points_10k:      {icon:"⚡",name:"Powerhouse",      desc:"Earn 10,000 lifetime Points.",       pts:250},
   shorts_fan:      {icon:"📱",name:"Shorts Fan",      desc:"Watch 50 Shorts.",                   pts:20},
@@ -1973,8 +1886,8 @@ function renderSide(){
 /* ===========================================================================
    COMPONENTS
    =========================================================================== */
-/* Avatar-aware components (chAvatar / defaultUAvatar / uAvatar) are declared in
-   the Phase 5 avatar section further down, next to the cosmetics helpers they use. */
+/* Avatar components (chAvatar / defaultUAvatar / uAvatar) are declared in the
+   avatars section further down, next to the helpers they use. */
 function thumbInner(v,big){
   if(v.thumb) return `<img src="${v.thumb}" alt="">`;
   return `<div class="em">${esc(v.art.em)}</div>`;
@@ -2027,7 +1940,7 @@ function renderView(){
   if(R==="games") return viewGames(v);
   if(R==="leaderboard") return viewLeaderboard(v);
   if(R==="play") return viewGamePlayer(v,ROUTE.arg);
-  if(R==="shop") return viewAvatarShop(v);
+  if(R==="shop") return viewAvatars(v);
   if(R==="exchange") return viewDiamondExchange(v);
   if(R==="missions") return viewMissions(v);
   if(R==="wallet") return viewDiamondExchange(v);
@@ -2070,7 +1983,7 @@ const MODEL_LIBRARY=[
 const modelById=id=>MODEL_LIBRARY.find(m=>m.id===id)||null;
 const ownsModel=(u,id)=>!!(u&&Array.isArray(u.ownedModels)&&u.ownedModels.includes(id));
 
-/* Unlock a 3D avatar with Diamonds. Same safety shape as buyAvatarPack:
+/* Unlock a 3D avatar with Diamonds. Same safety shape as the pack buys used to be:
    snapshot first, mutate, and roll the whole thing back if storage fails. */
 let buyingModel=false;
 function buyModel(id){
@@ -2156,7 +2069,6 @@ function viewAvatars(v){
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
         <button class="btn" data-go-exchange>🔄 Get Diamonds</button>
-        <button class="btn" data-go-shop>🛍️ Avatar shop</button>
       </div>
     </div>
 
@@ -2183,7 +2095,6 @@ function viewAvatars(v){
   $$("[data-model]",v).forEach(b=>b.onclick=()=>go("avatars",b.dataset.model));
   const buy=$("[data-model-buy]",v); if(buy) buy.onclick=()=>confirmBuyModel(buy.dataset.modelBuy);
   const ex=$("[data-go-exchange]",v); if(ex) ex.onclick=()=>go("exchange");
-  const sh=$("[data-go-shop]",v); if(sh) sh.onclick=()=>go("shop");
   mountModel(m);
   cleanups.push(unmountModels);
 }
@@ -2720,7 +2631,7 @@ function viewGames(v){
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
         <button class="btn" data-games-go="leaderboard">🏆 Leaderboard</button>
         <button class="btn" data-games-go="missions">🎯 Daily Missions</button>
-        <button class="btn" data-games-go="shop">🛍️ Avatar Shop</button>
+        <button class="btn" data-games-go="avatars">🎭 3D Avatars</button>
         <button class="btn" data-games-go="exchange">💎 Diamond Exchange</button>
       </div>
     </div>
@@ -3333,11 +3244,11 @@ function viewChannel(v,cid){
                   <b style="font-size:16px">Your ClassPulse Progress</b>
                   <span class="tag">PROFILE</span>
                 </div>
-                <div class="vsub" style="margin-top:4px">Your Points, streak, achievements, and cosmetic collection.</div>
+                <div class="vsub" style="margin-top:4px">Your Points, streak, achievements, and unlocked 3D avatars.</div>
               </div>
               <div style="display:flex;gap:8px;flex-wrap:wrap">
                 <button class="btn sm" data-open-missions>🎯 Missions</button>
-                <button class="btn sm" data-open-shop>💎 Collection</button>
+                <button class="btn sm" data-open-shop>🎭 Avatars</button>
               </div>
             </div>
 
@@ -3396,7 +3307,7 @@ function viewChannel(v,cid){
   if(missionsButton) missionsButton.onclick=()=>go("missions");
 
   const shopButton=$("[data-open-shop]",v);
-  if(shopButton) shopButton.onclick=()=>go("shop","collection");
+  if(shopButton) shopButton.onclick=()=>go("avatars");
 
   mountAvatarSlots(v);
 
@@ -5319,481 +5230,40 @@ function gameAlienDefense(v){
   cleanups.push(()=>{ running=false;ended=true;cancelAnimationFrame(raf); });
 }
 /* ==========================================================================
-   SHOP / EXCHANGE STUBS — Will be replaced in Phase 4
+   AVATARS — classic 2D
+   Every account uses the built-in 2D avatar: a custom photo if one is set,
+   otherwise initials on the account colour. The 3D characters are unlocked
+   on the Avatars page and mount themselves from their own module files —
+   see MODEL_LIBRARY above.
    ========================================================================== */
 
-/* ================= AVATARS — PHASE 6 =================
-   Avatar Pack = 1 purchase = BOTH 2D + 3D.
-   Rarity cosmetic only. Prices from AVATAR_PACKS table (never from DOM).
-   SERVER NOTE: purchases/equip must be server-validated when backend exists. */
-
-const COSMETIC_LAYERS=["head","face","outfit","aura","frame","background"];
-const COSMETICS=[
-  {id:"crown_gold", type:"head", name:"Golden Crown", emoji:"👑", price:800, rarity:"rare", desc:"Shiny golden crown, premium finish."},
-  {id:"mask_cyber", type:"face", name:"Cyber Mask", emoji:"🤿", price:600, rarity:"rare", desc:"Neon cyan visor mask."},
-  {id:"suit_space", type:"outfit", name:"Space Collar", emoji:"🧑🚀", price:700, rarity:"rare", desc:"Astronaut collar detail."},
-  {id:"aura_lightning", type:"aura", name:"Lightning Aura", emoji:"⚡", price:1000, rarity:"epic", desc:"Crackling lightning aura."},
-  {id:"aura_galaxy", type:"aura", name:"Galaxy Aura", emoji:"🌌", price:1200, rarity:"legendary", desc:"Swirling galaxy aura."},
-  {id:"frame_diamond", type:"frame", name:"Diamond Frame", emoji:"💎", price:900, rarity:"epic", desc:"Diamond sparkle frame."},
-  {id:"frame_gold", type:"frame", name:"Gold Frame", emoji:"🏆", price:600, rarity:"rare", desc:"Golden frame."},
-  {id:"frame_neon", type:"frame", name:"Neon Frame", emoji:"🌈", price:750, rarity:"epic", desc:"Pink + cyan neon frame."},
-  {id:"bg_galaxy", type:"background", name:"Galaxy BG", emoji:"🌠", price:500, rarity:"rare", desc:"Starry galaxy background for hero."},
-  {id:"bg_neon", type:"background", name:"Neon BG", emoji:"💫", price:400, rarity:"common", desc:"Neon gradient background."}
-];
-
-const RARITY={
-  common:{label:"Common",color:"#9aa7b8"},
-  rare:{label:"Rare",color:"#3b9cff"},
-  epic:{label:"Epic",color:"#b266ff"},
-  legendary:{label:"Legendary",color:"#ffb400"}
-};
-
-const AVATAR_PACKS=[
-  {id:"pixel",  name:"Pixel Creature",    emoji:"👾",price:400, rarity:"common",   tags:["popular"],         bg:["#2b1055","#7b4fd8"], tagline:"Retro blocks, modern attitude.", desc:"A friendly 8-bit creature straight from the arcade."},
-  {id:"mascot", name:"School Mascot",     emoji:"🦉",price:600, rarity:"common",   tags:["new","popular"],   bg:["#101d42","#2a4d9b"], tagline:"Wise, goofy and graduation-ready.", desc:"Wise owl in graduation cap."},
-  {id:"robot",  name:"Robot",             emoji:"🤖",price:900, rarity:"rare",     tags:["popular"],         bg:["#18243a","#3d5a80"], tagline:"Beep. Boop. Looking good.", desc:"Classic steel bot with glowing eyes."},
-  {id:"space",  name:"Space Explorer",    emoji:"🚀",price:1200,rarity:"rare",     tags:["popular"],         bg:["#050a24","#3a56d4"], tagline:"Ready for launch.", desc:"Gleaming astronaut helmet."},
-  {id:"wizard", name:"Wizard",            emoji:"🧙",price:1500,rarity:"rare",     tags:["new"],             bg:["#1a0b3d","#7b2cbf"], tagline:"Ancient magic, fresh homework.", desc:"Starry hat, long white beard."},
-  {id:"ninja",  name:"Cyber Ninja",       emoji:"🥷",price:2000,rarity:"epic",     tags:["new","featured"],  bg:["#14061f","#ff2e63"], tagline:"Silent. Neon. Fast.", desc:"Shadow hood, neon headband."},
-  {id:"alien",  name:"Alien",             emoji:"👽",price:2500,rarity:"epic",     tags:["featured","popular"],bg:["#06281c","#1b998b"], tagline:"Greetings, earthlings.", desc:"Curious visitor with big eyes."},
-  {id:"android",name:"Futuristic Android",emoji:"🦾",price:3000,rarity:"epic",     tags:["new"],             bg:["#041a2b","#00d2ff"], tagline:"Almost human. Mostly stylish.", desc:"Sleek synthetic face."},
-  {id:"warrior",name:"Fantasy Warrior",   emoji:"⚔️",price:3500,rarity:"legendary",tags:["featured"],        bg:["#2b1d0e","#c9821a"], tagline:"Forged for glory.", desc:"Polished steel helm with crimson plume."},
-  {id:"dragon", name:"Dragon",            emoji:"🐉",price:5000,rarity:"legendary",tags:["featured"],        bg:["#3a0a0a","#ff8c42"], tagline:"Rarest guardian of the school.", desc:"Fierce crimson dragon."}
-];
-
-const PIXEL_ROWS=["..X....X..","...X..X...","..XXXXXX..",".XXEXXEXX.","XXXXXXXXXX","X.XXXXXX.X","X.X....X.X","...XX.XX.."];
-const PIXEL_ART=`<g shape-rendering="crispEdges">`+PIXEL_ROWS.map((row,y)=>row.split("").map((ch,x)=> ch==="."?"":`<rect x="${10+x*8}" y="${18+y*8}" width="8" height="8" fill="${ch==="E"?"#ffffff":"#ff7ad9"}"/>`).join("")).join("")+`<rect x="38" y="46" width="4" height="4" fill="#1b1b2e"/><rect x="62" y="46" width="4" height="4" fill="#1b1b2e"/></g>`;
-const AVATAR_ART={
-  pixel:PIXEL_ART,
-  mascot:`<ellipse cx="50" cy="58" rx="31" ry="30" fill="#c98b4a"/><ellipse cx="50" cy="78" rx="15" ry="9" fill="#ecc896"/><circle cx="38" cy="54" r="12.5" fill="#fff"/><circle cx="62" cy="54" r="12.5" fill="#fff"/><circle cx="39" cy="55" r="6" fill="#1b1b2e"/><circle cx="61" cy="55" r="6" fill="#1b1b2e"/><circle cx="41" cy="53" r="2" fill="#fff"/><circle cx="63" cy="53" r="2" fill="#fff"/><path d="M44 64L56 64L50 74z" fill="#f7b32b"/><path d="M17 33L50 18L83 33L50 48z" fill="#1b1b2e"/><path d="M78 35V50" stroke="#f7b32b" stroke-width="2"/><circle cx="78" cy="52" r="3" fill="#f7b32b"/>`,
-  robot:`<line x1="50" y1="12" x2="50" y2="25" stroke="#9aa7b8" stroke-width="3"/><circle cx="50" cy="10" r="4.5" fill="#ff5d5d"/><rect x="14" y="43" width="8" height="16" rx="3" fill="#6f7f95"/><rect x="78" y="43" width="8" height="16" rx="3" fill="#6f7f95"/><rect x="22" y="24" width="56" height="54" rx="13" fill="#b9c4d4"/><rect x="22" y="24" width="56" height="54" rx="13" fill="none" stroke="#6f7f95" stroke-width="2.5"/><rect x="29" y="38" width="42" height="19" rx="8" fill="#101827"/><circle cx="40" cy="47.5" r="5.5" fill="#2de2ff"/><circle cx="60" cy="47.5" r="5.5" fill="#2de2ff"/><rect x="35" y="65" width="30" height="7" rx="3" fill="#6f7f95"/>`,
-  space:`<line x1="74" y1="27" x2="82" y2="12" stroke="#b9c6d8" stroke-width="3" stroke-linecap="round"/><circle cx="83" cy="10" r="4" fill="#ff5d6c"/><circle cx="50" cy="55" r="34" fill="#eef3f9"/><circle cx="50" cy="55" r="34" fill="none" stroke="#b9c6d8" stroke-width="3"/><rect x="20" y="52" width="6" height="12" rx="3" fill="#ff9f43"/><rect x="74" y="52" width="6" height="12" rx="3" fill="#ff9f43"/><rect x="24" y="38" width="52" height="38" rx="18" fill="#141d3d"/><path d="M32 47q9-7 20-4" fill="none" stroke="#7fb0ff" stroke-width="3.2" stroke-linecap="round" opacity=".85"/><circle cx="43" cy="58" r="3.2" fill="#fff"/><circle cx="57" cy="58" r="3.2" fill="#fff"/>`,
-  wizard:`<circle cx="50" cy="60" r="17" fill="#f6d2a8"/><path d="M33 62Q50 100 67 62Q61 72 50 72Q39 72 33 62z" fill="#f4f4f6"/><path d="M50 3L77 44L23 44z" fill="#6d3fd6"/><ellipse cx="50" cy="44" rx="33" ry="7" fill="#4a2a9c"/><path d="M50 17l2.8 6.2 6.8.7-5.1 4.6 1.5 6.7-6-3.4-6 3.4 1.5-6.7-5.1-4.6 6.8-.7z" fill="#ffd93d"/><circle cx="44" cy="57" r="2.4" fill="#2a2a3a"/><circle cx="56" cy="57" r="2.4" fill="#2a2a3a"/>`,
-  ninja:`<path d="M17 54a33 33 0 0 1 66 0v8a33 33 0 0 1-66 0z" fill="#171726"/><rect x="23" y="44" width="54" height="19" rx="9" fill="#2b2b40"/><path d="M29 56L44 50L44 57z" fill="#00f0ff"/><path d="M71 56L56 50L56 57z" fill="#00f0ff"/><rect x="26" y="31" width="48" height="8" rx="3" fill="#ff2e63"/><path d="M73 34L90 28L86 36L94 41L74 39z" fill="#ff2e63"/>`,
-  alien:`<line x1="38" y1="27" x2="30" y2="11" stroke="#7df0a0" stroke-width="3" stroke-linecap="round"/><circle cx="29" cy="9" r="4.5" fill="#f7e463"/><line x1="62" y1="27" x2="70" y2="11" stroke="#7df0a0" stroke-width="3" stroke-linecap="round"/><circle cx="71" cy="9" r="4.5" fill="#f7e463"/><ellipse cx="50" cy="56" rx="29" ry="33" fill="#7df0a0"/><ellipse cx="50" cy="56" rx="29" ry="33" fill="none" stroke="#35b865" stroke-width="2.5"/><ellipse cx="37" cy="54" rx="8.5" ry="13" fill="#0b0f1a" transform="rotate(-28 37 54)"/><ellipse cx="63" cy="54" rx="8.5" ry="13" fill="#0b0f1a" transform="rotate(28 63 54)"/><circle cx="34" cy="49" r="3" fill="#fff" opacity=".9"/><circle cx="66" cy="49" r="3" fill="#fff" opacity=".9"/>`,
-  android:`<ellipse cx="50" cy="56" rx="26" ry="31" fill="#e9eef6"/><path d="M24 52Q24 22 50 22Q76 22 76 52Q72 38 50 36Q28 38 24 52z" fill="#2b3a55"/><rect x="19" y="48" width="7" height="16" rx="3.5" fill="#00d2ff"/><rect x="74" y="48" width="7" height="16" rx="3.5" fill="#00d2ff"/><ellipse cx="40" cy="56" rx="6" ry="4" fill="#00d2ff"/><ellipse cx="60" cy="56" rx="6" ry="4" fill="#00d2ff"/>`,
-  warrior:`<path d="M50 6Q64 8 66 30L34 30Q36 8 50 6z" fill="#e63946"/><path d="M21 58A29 31 0 0 1 79 58V82H21z" fill="#b4bdcb"/><path d="M21 58A29 31 0 0 1 79 58V82H21z" fill="none" stroke="#6b7688" stroke-width="2.6"/><rect x="28" y="48" width="44" height="9" rx="3" fill="#141a26"/><rect x="46" y="56" width="8" height="20" fill="#141a26"/>`,
-  dragon:`<path d="M27 34L17 9L40 25z" fill="#ffd166"/><path d="M73 34L83 9L60 25z" fill="#ffd166"/><path d="M42 26L46 15L50 25L54 15L58 26z" fill="#c1272d"/><ellipse cx="50" cy="54" rx="29" ry="30" fill="#e5484d"/><ellipse cx="50" cy="70" rx="19" ry="14" fill="#f4a261"/><ellipse cx="38" cy="46" rx="7" ry="6" fill="#ffd93d"/><ellipse cx="62" cy="46" rx="7" ry="6" fill="#ffd93d"/><rect x="36.6" y="41" width="2.8" height="10" rx="1.4" fill="#1a0a0a"/><rect x="60.6" y="41" width="2.8" height="10" rx="1.4" fill="#1a0a0a"/>`
-};
-
-var shopFilter=typeof shopFilter!=="undefined"?shopFilter:"all";
-var cosmeticFilter=typeof cosmeticFilter!=="undefined"?cosmeticFilter:"all";
 const fmtNum=n=>Number(n||0).toLocaleString();
-const avatarPackById=id=>AVATAR_PACKS.find(p=>p.id===id)||null;
-const cosmeticById=id=>COSMETICS.find(c=>c.id===id)||null;
-const avatarBg=p=>`linear-gradient(145deg,${p.bg[0]},${p.bg[1]})`;
-function avatarSVG(id){ const art=AVATAR_ART[id]; return art?`<svg viewBox="0 0 100 100" aria-hidden="true">${art}</svg>`:""; }
-function ownsPack(u,id){ return id==="default"||(!!u&&Array.isArray(u.ownedAvatars)&&u.ownedAvatars.includes(id)&&!!avatarPackById(id)); }
-function ownsCosmetic(u,id){ return !!u&&Array.isArray(u.ownedCosmetics)&&u.ownedCosmetics.includes(id); }
-function activeAvatarPack(u){ if(!u||!u.selectedAvatar||u.selectedAvatar==="default") return null; const p=avatarPackById(u.selectedAvatar); return p&&ownsPack(u,p.id)?p:null; }
 function personalOwner(c){ return (c&&c.owner&&!c.official&&c.id==="c_"+c.owner)?(DB.users[c.owner]||null):null; }
 
-function frameClassFor(id){
-  if(id==="frame_diamond") return "frame-diamond";
-  if(id==="frame_gold") return "frame-gold";
-  if(id==="frame_neon") return "frame-neon";
-  if(id==="bg_galaxy"||id==="frame_galaxy") return "frame-galaxy";
-  return "";
-}
-function auraHTMLFor(auraId){
-  if(auraId==="aura_lightning") return `<div class="aura aura-lightning"></div>`;
-  if(auraId==="aura_galaxy") return `<div class="aura aura-galaxy"></div>`;
-  return "";
-}
-function headHTMLFor(headId){
-  if(headId==="crown_gold") return `<div class="cos-head">👑</div>`;
-  if(headId==="mask_cyber") return `<div class="cos-head" style="top:8px;font-size:18px">🕶️</div>`;
-  return "";
-}
-function packAvatarHTML(p,cls,opts){
-  opts=opts||{}; const u=opts.user|| (typeof ME!=="undefined"&&ME?DB.users[ME.id]:null);
-  const cos=(u&&u.cosmetics)||{};
-  if(!p) return `<div class="av ${cls||""}" style="background:var(--card)">?</div>`;
-  return `<div class="av ${cls||""} ${frameClassFor(cos.frame)} avpack" style="background:${avatarBg(p)};position:relative" title="${esc(p.name)}">
-    ${auraHTMLFor(cos.aura)}${avatarSVG(p.id)}${headHTMLFor(cos.head)}</div>`;
-}
 function defaultUAvatar(u,cls){
-  const cos=(u&&u.cosmetics)||{};
-  return `<div class="av ${cls||""} ${frameClassFor(cos.frame)}" style="background:${colorOf(u.id)};position:relative;overflow:visible">
-    ${u.avatar?`<img src="${u.avatar}">`:esc(initials(u.name))}${headHTMLFor(cos.head)}${auraHTMLFor(cos.aura)}</div>`;
+  if(!u) return `<div class="av ${cls||""}" style="background:var(--hover)">?</div>`;
+  return `<div class="av ${cls||""}" style="background:${colorOf(u.id)}">${u.avatar?`<img src="${u.avatar}">`:esc(initials(u.name))}</div>`;
 }
 function chAvatar(c,cls){
-  const o=personalOwner(c), p=o?activeAvatarPack(o):null;
-  if(p) return packAvatarHTML(p,cls,{user:o});
+  // channel photo/emoji wins, otherwise initials over the channel gradient
   return `<div class="av ${cls||""}" style="background:linear-gradient(135deg,${c.grad[0]},${c.grad[1]||c.grad[0]})">${c.avatar?`<img src="${c.avatar}">`:esc(c.emoji||initials(c.name))}</div>`;
 }
-function uAvatar(u,cls){
-  const p=activeAvatarPack(u);
-  if(p) return packAvatarHTML(p,cls,{user:u});
-  return defaultUAvatar(u,cls);
-}
+function uAvatar(u,cls){ return defaultUAvatar(u,cls); }
 
-/* ================= THREE.JS REAL 3D ================= */
-let THREE_CACHE=null, THREE_LOADING=null;
-function loadThree(){
-  if(THREE_CACHE) return Promise.resolve(THREE_CACHE);
-  if(THREE_LOADING) return THREE_LOADING;
-  THREE_LOADING=(async()=>{
-    try{
-      const mod=await import('three');
-      THREE_CACHE=mod; return mod;
-    }catch(e){
-      console.warn("Three.js failed, using CSS fallback",e);
-      return null;
-    }
-  })();
-  return THREE_LOADING;
-}
-function isWebGLAvailable(){
-  try{ const c=document.createElement('canvas'); return !!(c.getContext('webgl')||c.getContext('experimental-webgl')); }catch(e){ return false; }
-}
-function mountAvatar3D(el,packId,opts){
-  opts=opts||{}; const user=opts.user|| (typeof ME!=="undefined"&&ME?DB.users[ME.id]:null);
-  const cosmetics=(user&&user.cosmetics)||{};
-  const p=avatarPackById(packId);
-  if(!el||!p) return null;
-
-  // fallback if no WebGL
-  if(!isWebGLAvailable()){
-    el.innerHTML=`<div class="av3d-card" style="background:${avatarBg(p)}">${avatarSVG(p.id)}</div>`;
-    const card=el.firstChild;
-    const move=e=>{ const r=el.getBoundingClientRect(); const x=(e.clientX-r.left)/r.width-.5, y=(e.clientY-r.top)/r.height-.5; el.classList.add("drag"); card.style.transform=`rotateY(${x*60}deg) rotateX(${-y*40}deg)`; };
-    const leave=()=>{ el.classList.remove("drag"); card.style.transform=""; };
-    el.addEventListener("pointermove",move); el.addEventListener("pointerleave",leave);
-    return ()=>{ el.removeEventListener("pointermove",move); el.removeEventListener("pointerleave",leave); };
-  }
-
-  el.innerHTML=`<canvas style="width:100%;height:100%;display:block;border-radius:28%"></canvas><div class="av3d-loading" style="position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:11px">Loading 3D…</div>`;
-  const canvas=el.querySelector('canvas'); const loadingEl=el.querySelector('.av3d-loading');
-  let disposed=false, renderer, scene, camera, animId, group, ro;
-  let rotY=0, rotX=0.15, isDragging=false, lastX=0, lastY=0, autoRot=true;
-
-  loadThree().then(THREE=>{
-    if(disposed||!canvas) return;
-    if(!THREE){ if(loadingEl) loadingEl.textContent="3D unavailable"; return; }
-    if(loadingEl) loadingEl.remove();
-    scene=new THREE.Scene();
-    if(cosmetics.background==="bg_galaxy") scene.background=new THREE.Color(0x1a1033);
-    else if(cosmetics.background==="bg_neon") scene.background=new THREE.Color(0x0a1a2a);
-
-    camera=new THREE.PerspectiveCamera(26,1,0.1,100);
-    camera.position.set(0,0.25,3.1);
-
-    renderer=new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.8));
-    renderer.setClearColor(0x000000,0);
-
-    const resize=()=>{
-      if(disposed) return;
-      const w=el.clientWidth||200, h=el.clientHeight||200;
-      renderer.setSize(w,h,false);
-      camera.aspect=w/h; camera.updateProjectionMatrix();
-    };
-    resize();
-    ro=new ResizeObserver(resize); ro.observe(el);
-
-    const ambient=new THREE.AmbientLight(0xffffff,0.95);
-    scene.add(ambient);
-    const dir=new THREE.DirectionalLight(0xffffff,1.1); dir.position.set(2,3,2); scene.add(dir);
-    const point=new THREE.PointLight(0x00d2ff,0.9,10); point.position.set(-2,1,2); scene.add(point);
-
-    group=new THREE.Group(); scene.add(group);
-
-    // base head
-    const headGeo=new THREE.SphereGeometry(0.9,24,24);
-    let headMat=new THREE.MeshStandardMaterial({color:new THREE.Color(p.bg[1]), roughness:0.45, metalness:0.15});
-    let headMesh;
-    if(packId==="robot"){
-      headMesh=new THREE.Mesh(new THREE.BoxGeometry(1.35,1.35,1.35), new THREE.MeshStandardMaterial({color:0xb9c4d4, metalness:0.65, roughness:0.3}));
-      const ant=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.5,8), new THREE.MeshStandardMaterial({color:0xffffff}));
-      ant.position.set(0,0.95,0); group.add(ant);
-      const bulb=new THREE.Mesh(new THREE.SphereGeometry(0.12,12,12), new THREE.MeshStandardMaterial({color:0xff4444, emissive:0xff2222, emissiveIntensity:1.2}));
-      bulb.position.set(0,1.22,0); group.add(bulb);
-    }else if(packId==="pixel"){
-      headMesh=new THREE.Mesh(new THREE.BoxGeometry(1.2,1.2,1.2), new THREE.MeshStandardMaterial({color:0x7b4fd8}));
-    }else if(packId==="dragon"){
-      headMesh=new THREE.Mesh(headGeo, new THREE.MeshStandardMaterial({color:0xe5484d, roughness:0.5}));
-      const hornGeo=new THREE.ConeGeometry(0.14,0.48,10);
-      const hornMat=new THREE.MeshStandardMaterial({color:0xffd166});
-      const h1=new THREE.Mesh(hornGeo,hornMat); h1.position.set(-0.52,0.82,0.1); h1.rotation.z=0.35; group.add(h1);
-      const h2=new THREE.Mesh(hornGeo,hornMat); h2.position.set(0.52,0.82,0.1); h2.rotation.z=-0.35; group.add(h2);
-    }else if(packId==="alien"){
-      headMesh=new THREE.Mesh(headGeo, new THREE.MeshStandardMaterial({color:0x7df0a0}));
-      const eyeGeo=new THREE.SphereGeometry(0.21,14,14);
-      const eyeMat=new THREE.MeshStandardMaterial({color:0x0b0f1a});
-      const e1=new THREE.Mesh(eyeGeo,eyeMat); e1.position.set(-0.32,0.16,0.7); e1.scale.set(1,1.35,0.55); group.add(e1);
-      const e2=new THREE.Mesh(eyeGeo,eyeMat); e2.position.set(0.32,0.16,0.7); e2.scale.set(1,1.35,0.55); group.add(e2);
-    }else if(packId==="warrior"){
-      headMesh=new THREE.Mesh(headGeo, new THREE.MeshStandardMaterial({color:0xb4bdcb, metalness:0.75, roughness:0.25}));
-      const plume=new THREE.Mesh(new THREE.BoxGeometry(0.25,0.7,0.35), new THREE.MeshStandardMaterial({color:0xe63946}));
-      plume.position.set(0,0.95,0); group.add(plume);
-    }else{
-      headMesh=new THREE.Mesh(headGeo,headMat);
-    }
-    if(headMesh) group.add(headMesh);
-
-    // cosmetics 3D
-    if(cosmetics.head==="crown_gold"){
-      const crownGeo=new THREE.TorusGeometry(0.58,0.11,10,22);
-      const crownMat=new THREE.MeshStandardMaterial({color:0xffd700, metalness:0.95, roughness:0.18});
-      const crown=new THREE.Mesh(crownGeo,crownMat); crown.position.set(0,0.88,0); crown.rotation.x=Math.PI/2; group.add(crown);
-      for(let i=0;i<5;i++){
-        const gem=new THREE.Mesh(new THREE.BoxGeometry(0.11,0.16,0.11), new THREE.MeshStandardMaterial({color:0xff2e63, emissive:0xff2e63, emissiveIntensity:0.6}));
-        const ang=(i/5)*Math.PI*2; gem.position.set(Math.cos(ang)*0.58,0.94,Math.sin(ang)*0.58); group.add(gem);
-      }
-    }
-    if(cosmetics.frame){
-      const frameGeo=new THREE.TorusGeometry(1.26,0.055,10,40);
-      let col=0x00d2ff; if(cosmetics.frame==="frame_gold") col=0xffb400; if(cosmetics.frame==="frame_neon") col=0xff2e63; if(cosmetics.frame==="frame_diamond") col=0xffffff;
-      const frameMat=new THREE.MeshStandardMaterial({color:col, emissive:col, emissiveIntensity:0.45, metalness:0.85, roughness:0.2});
-      const fMesh=new THREE.Mesh(frameGeo,frameMat); group.add(fMesh); group.userData.frameMesh=fMesh;
-    }
-    if(cosmetics.aura){
-      const auraGeo=new THREE.RingGeometry(1.42,1.72,32);
-      let acol=0xffeb3b; if(cosmetics.aura==="aura_galaxy") acol=0x6c5ce7;
-      const auraMat=new THREE.MeshBasicMaterial({color:acol, transparent:true, opacity:0.32, side:THREE.DoubleSide});
-      const auraMesh=new THREE.Mesh(auraGeo,auraMat); auraMesh.rotation.x=Math.PI/2; auraMesh.position.y=-0.92; group.add(auraMesh); group.userData.auraMesh=auraMesh;
-    }
-
-    const clock=new THREE.Clock();
-    function animate(){
-      if(disposed) return;
-      animId=requestAnimationFrame(animate);
-      const t=clock.getElapsedTime();
-      if(autoRot && !isDragging) rotY+=0.007;
-      group.rotation.y=rotY;
-      group.rotation.x=rotX + Math.sin(t*0.8)*0.07;
-      group.position.y=Math.sin(t*1.1)*0.07;
-      if(group.userData.auraMesh){ group.userData.auraMesh.rotation.z+=0.018; group.userData.auraMesh.material.opacity=0.28+Math.sin(t*2.2)*0.12; }
-      if(group.userData.frameMesh){ group.userData.frameMesh.rotation.z=Math.sin(t*0.6)*0.15; }
-      renderer.render(scene,camera);
-    }
-    animate();
-
-    const onDown=e=>{ isDragging=true; autoRot=false; lastX=e.clientX; lastY=e.clientY; canvas.setPointerCapture(e.pointerId); };
-    const onMove=e=>{ if(!isDragging) return; const dx=e.clientX-lastX, dy=e.clientY-lastY; rotY+=dx*0.01; rotX=Math.max(-0.6,Math.min(0.6,rotX+dy*0.01)); lastX=e.clientX; lastY=e.clientY; };
-    const onUp=()=>{ isDragging=false; setTimeout(()=>{ if(!isDragging) autoRot=true; },2200); };
-    canvas.addEventListener('pointerdown',onDown);
-    window.addEventListener('pointermove',onMove);
-    window.addEventListener('pointerup',onUp);
-    group.userData.cleanup=()=>{
-      if(ro) ro.disconnect();
-      canvas.removeEventListener('pointerdown',onDown);
-      window.removeEventListener('pointermove',onMove);
-      window.removeEventListener('pointerup',onUp);
-      if(renderer) renderer.dispose();
-      if(scene) scene.traverse(o=>{ if(o.geometry) o.geometry.dispose(); if(o.material){ if(Array.isArray(o.material)) o.material.forEach(m=>m.dispose()); else o.material.dispose(); } });
-    };
-  });
-
-  return ()=>{
-    disposed=true;
-    if(animId) cancelAnimationFrame(animId);
-    if(group&&group.userData.cleanup) group.userData.cleanup();
-  };
-}
 function mountAvatarSlots(root){
-  $$("[data-av3d]",root).forEach(el=>{ const d=mountAvatar3D(el,el.dataset.av3d,{user: el.dataset.user?DB.users[el.dataset.user]:null}); if(d) cleanups.push(d); });
-  $$("[data-avatar-settings]",root).forEach(b=>b.onclick=()=>openAvatarSettings());
-  $$("[data-go-shop]",root).forEach(b=>b.onclick=()=>go("shop"));
+  $$("[data-go-shop]",root).forEach(b=>b.onclick=()=>go("avatars"));
 }
 function channelHeroAvatar(c){
-  const o=personalOwner(c); if(!o) return chAvatar(c,"xl");
-  const p=activeAvatarPack(o), mine=o.id===ME.id;
-  if(!p){ return `<div class="avhero">${chAvatar(c,"xl")}${mine?`<button class="btn sm ghost" data-go-shop>🛍️ Get an avatar</button>`:""}</div>`; }
-  const is3d=o.avatarMode==="3d";
-  return `<div class="avhero">
-    ${is3d?`<div class="av3d xl" data-av3d="${p.id}" data-user="${o.id}" style="background:${avatarBg(p)};border-radius:32%;overflow:hidden"></div>`:packAvatarHTML(p,"xl",{user:o})}
-    <div class="avcap">${p.emoji} ${esc(p.name)} · ${is3d?"3D":"2D"} ${o.cosmetics?.frame?`· ${esc(o.cosmetics.frame)}`:""}</div>
-    ${mine?`<button class="btn sm ghost" data-avatar-settings>🎭 Avatar settings</button>`:""}</div>`;
+  const o=personalOwner(c), mine=!!o&&o.id===ME.id;
+  return `<div class="avhero">${chAvatar(c,"xl")}${mine?`<button class="btn sm ghost" data-go-shop>🥷 Unlock 3D avatars</button>`:""}</div>`;
 }
 function notifAvatarHTML(n){
   const from=n.from&&DB.users[n.from]?DB.users[n.from]:null;
   if(!from) return `<div class="av" style="background:var(--hover);font-size:19px">${esc(n.icon)}</div>`;
   return `<div style="position:relative;flex:none">${uAvatar(from,"")}<span style="position:absolute;right:-5px;bottom:-5px;font-size:11px;background:var(--bg2);border:1px solid var(--line);border-radius:50%;width:19px;height:19px;display:grid;place-items:center">${esc(n.icon)}</span></div>`;
 }
-let buyingPack=false;
-function buyAvatarPack(packId){
-  if(buyingPack) return {success:false,message:"Purchase in progress."};
-  if(!ME||!DB.users[ME.id]) return {success:false,message:"Log in first."};
-  const p=avatarPackById(packId); if(!p) return {success:false,message:"Pack not found."};
-  const u=ensureEconomy(DB.users[ME.id]);
-  if(ownsPack(u,p.id)) return {success:false,message:"You already own "+p.name+" Pack."};
-  const price=validEconomyNumber(p.price,1e9); if(price===null||price<1) return {success:false,message:"Invalid price."};
-  if(u.diamonds<price) return {success:false,message:"Need "+fmtNum(price-u.diamonds)+" more Diamonds."};
-  buyingPack=true;
-  const snap={diamonds:u.diamonds,owned:u.ownedAvatars.slice(),tx:u.diamondTransactions.slice()};
-  u.diamonds=u.diamonds-price; u.ownedAvatars.push(p.id);
-  u.diamondTransactions.push({id:economyTransactionId("avatar"),amount:-price,kind:"spend",source:"Avatar Pack: "+p.name,meta:{packId:p.id},ts:Date.now()});
-  u.diamondTransactions=u.diamondTransactions.slice(-300);
-  if(!persist()){ u.diamonds=snap.diamonds; u.ownedAvatars=snap.owned; u.diamondTransactions=snap.tx; buyingPack=false; return {success:false,message:"Storage full, could not save."}; }
-  buyingPack=false; renderEconPill(); Bus.send({t:"sync"});
-  if(u.ownedAvatars.filter(id=>id!=="default").length>=10) awardAchievement("collector");
-  return {success:true,pack:p};
-}
-function buyCosmetic(cosId){
-  const c=cosmeticById(cosId); if(!c) return {success:false,message:"Cosmetic not found."};
-  const u=ensureEconomy(DB.users[ME.id]);
-  if(ownsCosmetic(u,c.id)) return {success:false,message:"Already owned."};
-  const price=validEconomyNumber(c.price,1e9); if(u.diamonds<price) return {success:false,message:"Need "+fmtNum(price-u.diamonds)+" more Diamonds."};
-  const snap={d:u.diamonds,owned:u.ownedCosmetics.slice(),tx:u.diamondTransactions.slice()};
-  u.diamonds-=price; u.ownedCosmetics.push(c.id);
-  u.diamondTransactions.push({id:economyTransactionId("cos"),amount:-price,kind:"spend",source:"Cosmetic: "+c.name,meta:{cosId:c.id},ts:Date.now()});
-  if(!persist()){ u.diamonds=snap.d; u.ownedCosmetics=snap.owned; u.diamondTransactions=snap.tx; return {success:false,message:"Storage full."}; }
-  renderEconPill(); Bus.send({t:"sync"}); return {success:true,cos:c};
-}
-function equipAvatar(packId,mode){
-  const u=ensureEconomy(DB.users[ME.id]);
-  if(packId!=="default"&&!ownsPack(u,packId)) return false;
-  u.selectedAvatar=packId; if(mode==="2d"||mode==="3d") u.avatarMode=mode; save(); return true;
-}
-function equipCosmetic(type,id){
-  const u=ensureEconomy(DB.users[ME.id]);
-  if(id!==null&&!ownsCosmetic(u,id)) return false;
-  if(!COSMETIC_LAYERS.includes(type)) return false;
-  u.cosmetics[type]=id; save(); return true;
-}
-function confirmBuyPack(id){
-  const p=avatarPackById(id); if(!p) return;
-  const u=ensureEconomy(DB.users[ME.id]);
-  if(ownsPack(u,id)){ toast("✅","Already owned","You own "+p.name+" Pack."); return; }
-  if(u.diamonds<p.price){ closeSheet(); if(confirm("Need "+fmtNum(p.price-u.diamonds)+" more Diamonds for "+p.name+" Pack.\nOpen Exchange?")) go("exchange"); return; }
-  if(!confirm("Unlock "+p.name+" Pack?\n\n💎 "+fmtNum(p.price)+" Diamonds\n\nIncludes BOTH 2D + 3D.")) return;
-  const r=buyAvatarPack(id); if(!r.success){ toast("⚠️","Purchase failed",r.message); return; }
-  closeSheet(); toast("🎉","Pack unlocked!",p.name+" · 2D + 3D"); renderAll(); openAvatarSettings(id);
-}
-function confirmBuyCosmetic(id){
-  const c=cosmeticById(id); if(!c) return;
-  const u=ensureEconomy(DB.users[ME.id]);
-  if(ownsCosmetic(u,id)){ toast("✅","Already owned",c.name); return; }
-  if(u.diamonds<c.price){ closeSheet(); if(confirm("Need "+fmtNum(c.price-u.diamonds)+" more Diamonds for "+c.name+".\nOpen Exchange?")) go("exchange"); return; }
-  if(!confirm("Unlock "+c.name+"?\n💎 "+fmtNum(c.price)+"\n"+c.desc)) return;
-  const r=buyCosmetic(id); if(!r.success){ toast("⚠️","Failed",r.message); return; }
-  closeSheet(); toast("✨","Cosmetic unlocked!",c.name); renderAll();
-}
 
-function viewAvatarShop(v){
-  checkDailyReset();
-  const u=ensureEconomy(DB.users[ME.id]);
-  const tab=ROUTE.arg==="collection"?"collection":ROUTE.arg==="cosmetics"?"cosmetics":"shop";
-  const ownedPacks=AVATAR_PACKS.filter(p=>ownsPack(u,p.id));
-  const filters=[["all","All"],["featured","⭐ Featured"],["popular","🔥 Popular"],["new","🆕 New"],["rare","💠 Rare"],["legendary","👑 Legendary"]];
 
-  let body="";
-  if(tab==="shop"){
-    const list=AVATAR_PACKS.filter(p=>{ const f=shopFilter; return f==="all"||(f==="rare"?(p.rarity==="rare"||p.rarity==="epic"):f==="legendary"?p.rarity==="legendary":p.tags.includes(f)); });
-    body=`<div class="chiprow">${filters.map(f=>`<button class="chip ${shopFilter===f[0]?"on":""}" data-shopf="${f[0]}">${f[1]}</button>`).join("")}</div>
-      <div class="shop-grid">${list.map(p=>{
-        const owned=ownsPack(u,p.id), equipped=u.selectedAvatar===p.id;
-        return `<div class="pack-card rar-${p.rarity}">
-          <div class="pack-stage" style="background:${avatarBg(p)}"><span class="pack-rar" style="color:${RARITY[p.rarity].color}">${RARITY[p.rarity].label}</span>${p.tags.includes("new")?`<span class="pack-new">NEW</span>`:""}<div class="pack-art">${avatarSVG(p.id)}</div><div class="pack-badges"><span>2D</span><span>3D</span></div></div>
-          <div class="pack-body"><b>${p.emoji} ${esc(p.name)}</b><div class="vsub">${esc(p.tagline)}</div><div class="pack-price">${owned?`<span style="color:var(--good)">✓ Owned</span>`:`💎 ${fmtNum(p.price)}`}</div><div class="vsub" style="font-size:11px">2D + 3D pack</div>
-          <div class="pack-actions"><button class="btn" data-pk-preview="${p.id}">Preview</button>${owned?(equipped?`<button class="btn" disabled>✓ Equipped</button>`:`<button class="btn primary" data-pk-equip="${p.id}">Equip</button>`):`<button class="btn primary" data-pk-buy="${p.id}">UNLOCK</button>`}</div></div></div>`;
-      }).join("")||`<div class="empty">No packs in this filter.</div>`}</div>
-      <p class="note" style="margin-top:14px">Rarity is cosmetic only. No gameplay advantage.</p>`;
-  }else if(tab==="cosmetics"){
-    const typeFilters=[["all","All"],["head","👑 Head"],["aura","⚡ Aura"],["frame","💎 Frame"],["background","🌌 BG"]];
-    const list=COSMETICS.filter(c=>cosmeticFilter==="all"||c.type===cosmeticFilter);
-    body=`<div class="chiprow">${typeFilters.map(f=>`<button class="chip ${cosmeticFilter===f[0]?"on":""}" data-cosf="${f[0]}">${f[1]}</button>`).join("")}</div>
-      <div style="display:grid;gap:10px">${list.map(c=>{
-        const owned=ownsCosmetic(u,c.id), equipped=u.cosmetics[c.type]===c.id;
-        return `<div class="cosmetic-card"><div class="ico">${c.emoji}</div><div style="flex:1"><b>${esc(c.name)} <span class="tag" style="color:${RARITY[c.rarity].color}">${RARITY[c.rarity].label}</span></b><div class="vsub">${esc(c.desc)}</div><div class="vsub" style="margin-top:4px">Type: ${c.type} · 💎 ${fmtNum(c.price)}</div></div>
-          <div style="display:flex;flex-direction:column;gap:6px">${owned?(equipped?`<button class="btn sm" disabled>✓ On</button>`:`<button class="btn sm primary" data-cos-equip="${c.id}">Equip</button><button class="btn sm" data-cos-unequip="${c.type}">Off</button>`):`<button class="btn sm primary" data-cos-buy="${c.id}">Buy</button>`}</div></div>`;
-      }).join("")}</div>`;
-  }else{
-    const cur=activeAvatarPack(u), is3d=u.avatarMode==="3d";
-    const locked=AVATAR_PACKS.filter(p=>!ownsPack(u,p.id));
-    const ownedCos=COSMETICS.filter(c=>ownsCosmetic(u,c.id));
-    body=`<div class="card" style="padding:18px"><div class="row" style="gap:18px;flex-wrap:wrap"><div class="avhero">${cur?(is3d?`<div class="av3d xl" data-av3d="${cur.id}" data-user="${u.id}" style="background:${avatarBg(cur)};border-radius:32%"></div>`:packAvatarHTML(cur,"xl",{user:u})):defaultUAvatar(u,"xl")}</div>
-      <div style="flex:1;min-width:200px"><b style="font-size:17px">${cur?cur.emoji+" "+esc(cur.name)+" Pack":"Classic avatar"}</b><div class="vsub" style="margin-top:4px">Mode: ${is3d?"3D on profile, 2D elsewhere":"2D"} · Frame: ${u.cosmetics.frame||"none"} · Aura: ${u.cosmetics.aura||"none"}</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn primary" data-avatar-settings>🎭 Avatar settings</button><button class="btn" data-go-cosmetics>✨ Cosmetics</button>${cur?`<button class="btn" data-pk-equip="default">Use classic</button>`:""}</div></div></div></div>
-      <div class="sect">Owned Packs (${ownedPacks.length}/${AVATAR_PACKS.length})</div>
-      ${ownedPacks.length?`<div class="shop-grid">${ownedPacks.map(p=>{
-        const equipped=u.selectedAvatar===p.id;
-        return `<div class="pack-card rar-${p.rarity}"><div class="pack-stage" style="background:${avatarBg(p)}"><div class="pack-art">${avatarSVG(p.id)}</div></div><div class="pack-body"><b>${p.emoji} ${esc(p.name)}</b><div class="pack-actions"><button class="btn" data-pk-preview="${p.id}">Preview</button>${equipped?`<button class="btn" disabled>✓ Equipped</button>`:`<button class="btn primary" data-pk-equip="${p.id}">Equip</button>`}</div></div></div>`;
-      }).join("")}</div>`:`<div class="empty">No packs yet.</div>`}
-      <div class="sect">Owned Cosmetics (${ownedCos.length})</div>
-      ${ownedCos.length?`<div style="display:grid;gap:8px">${ownedCos.map(c=>`<div class="cosmetic-card"><div class="ico">${c.emoji}</div><div style="flex:1"><b>${esc(c.name)}</b><div class="vsub">${c.type}</div></div><span class="tag ${u.cosmetics[c.type]===c.id?"g":""}">${u.cosmetics[c.type]===c.id?"EQUIPPED":"OWNED"}</span></div>`).join("")}</div>`:`<div class="note">No cosmetics yet. Visit Cosmetics tab.</div>`}
-      ${locked.length?`<div class="sect">Locked Packs</div><div class="shop-grid">${locked.map(p=>`<div class="pack-card rar-${p.rarity}"><div class="pack-stage" style="background:${avatarBg(p)}"><div class="pack-art">${avatarSVG(p.id)}</div></div><div class="pack-body"><b>${p.emoji} ${esc(p.name)}</b><div class="pack-price">💎 ${fmtNum(p.price)}</div><div class="pack-actions"><button class="btn" data-pk-preview="${p.id}">Preview</button><button class="btn primary" data-pk-buy="${p.id}">UNLOCK</button></div></div></div>`).join("")}</div>`:""}`;
-  }
-
-  v.innerHTML=`<div class="economy-hero"><h1>🛍️ Avatar Shop</h1><p>Unlock a pack = get <b>both</b> 2D + 3D. Equip frames, auras, crowns. No pay-to-win.</p>
-    <div class="economy-balances"><div class="economy-balance"><div class="symbol">💎</div><strong>${fmtNum(u.diamonds)}</strong><small>Diamonds</small></div><div class="economy-balance"><div class="symbol">🎒</div><strong>${ownedPacks.length}/${AVATAR_PACKS.length}</strong><small>Packs</small></div></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn" data-go-exchange>🔄 Get Diamonds</button></div></div>
-    <div class="chiprow"><button class="chip ${tab==="shop"?"on":""}" data-shoptab="shop">🛍️ Packs</button><button class="chip ${tab==="cosmetics"?"on":""}" data-shoptab="cosmetics">✨ Cosmetics (${COSMETICS.length})</button><button class="chip ${tab==="collection"?"on":""}" data-shoptab="collection">💎 Collection</button></div>
-    ${body}`;
-
-  $$("[data-shoptab]",v).forEach(b=>b.onclick=()=>{ const t=b.dataset.shoptab; if(t==="shop") go("shop"); else if(t==="cosmetics") go("shop","cosmetics"); else go("shop","collection"); });
-  $$("[data-shopf]",v).forEach(b=>b.onclick=()=>{ shopFilter=b.dataset.shopf; renderView(); });
-  $$("[data-cosf]",v).forEach(b=>b.onclick=()=>{ cosmeticFilter=b.dataset.cosf; renderView(); });
-  $$("[data-pk-preview]",v).forEach(b=>b.onclick=()=>openPackPreview(b.dataset.pkPreview));
-  $$("[data-pk-buy]",v).forEach(b=>b.onclick=()=>confirmBuyPack(b.dataset.pkBuy));
-  $$("[data-pk-equip]",v).forEach(b=>b.onclick=()=>{ if(equipAvatar(b.dataset.pkEquip)) { toast("✅","Equipped",b.dataset.pkEquip); renderAll(); } });
-  $$("[data-cos-buy]",v).forEach(b=>b.onclick=()=>confirmBuyCosmetic(b.dataset.cosBuy));
-  $$("[data-cos-equip]",v).forEach(b=>{ b.onclick=()=>{ const c=cosmeticById(b.dataset.cosEquip); if(c&&equipCosmetic(c.type,c.id)){ toast("✨","Equipped",c.name); renderView(); } }; });
-  $$("[data-cos-unequip]",v).forEach(b=>{ b.onclick=()=>{ if(equipCosmetic(b.dataset.cosUnequip,null)){ renderView(); } }; });
-  const ex=$("[data-go-exchange]",v); if(ex) ex.onclick=()=>go("exchange");
-  const cos=$("[data-go-cosmetics]",v); if(cos) cos.onclick=()=>go("shop","cosmetics");
-  mountAvatarSlots(v);
-}
-
-function openPackPreview(id){
-  const p=avatarPackById(id); if(!p) return;
-  const u=ensureEconomy(DB.users[ME.id]); const owned=ownsPack(u,p.id);
-  sheet(p.emoji+" "+p.name+" Pack",`
-    <div class="pv-stage" id="pvStage" style="background:${avatarBg(p)};position:relative"></div>
-    <div class="chiprow" style="justify-content:center;margin-top:12px;padding-bottom:6px"><button class="chip on" data-pvm="2d">2D</button><button class="chip" data-pvm="3d">3D</button></div>
-    <div class="between" style="margin:6px 0 8px"><span class="tag" style="color:${RARITY[p.rarity].color}">${RARITY[p.rarity].label}</span><b style="font-size:18px">${owned?"✓ Owned":"💎 "+fmtNum(p.price)}</b></div>
-    <p class="note">${esc(p.desc)}</p>
-    <div class="card" style="margin:12px 0;background:var(--bg2)"><b style="font-size:13px">Includes</b><div class="vsub" style="margin-top:6px;line-height:1.8">${p.emoji} 2D ✓<br>${p.emoji} 3D ✓ — drag to rotate, idle animation</div></div>
-    ${owned?`<button class="btn primary block" id="pvAct">🎭 Avatar settings</button>`:`<button class="btn primary block" id="pvAct">UNLOCK FOR 💎 ${fmtNum(p.price)}</button>`}`,
-  box=>{
-    const stage=$("#pvStage",box); let dispose=null;
-    const show=m=>{
-      if(dispose){ dispose(); dispose=null; }
-      if(m==="3d"){ stage.innerHTML=`<div class="av3d big" style="width:100%;height:100%"></div>`; dispose=mountAvatar3D(stage.firstChild,p.id,{user:u}); if(dispose) cleanups.push(dispose); }
-      else stage.innerHTML=`<div class="pv-2d">${avatarSVG(p.id)}</div>`;
-      $$("[data-pvm]",box).forEach(b=>b.classList.toggle("on",b.dataset.pvm===m));
-    };
-    $$("[data-pvm]",box).forEach(b=>b.onclick=()=>show(b.dataset.pvm));
-    show("2d");
-    $("#pvAct",box).onclick=()=>{ if(owned){ closeSheet(); openAvatarSettings(p.id); } else confirmBuyPack(p.id); };
-  });
-}
-
-function openAvatarSettings(preselect){
-  const u=ensureEconomy(DB.users[ME.id]);
-  const owned=AVATAR_PACKS.filter(p=>ownsPack(u,p.id));
-  let sel=(preselect&&ownsPack(u,preselect))?preselect:(activeAvatarPack(u)?u.selectedAvatar:"default");
-  let mode=u.avatarMode==="3d"?"3d":"2d";
-  sheet("🎭 Avatar settings",`
-    <p class="note">Pack = 2D + 3D. 2D in comments/lists, 3D on profile. Cosmetics layer on top.</p>
-    <div class="av-set-preview" id="asPrev" style="position:relative"></div><div class="note" id="asName" style="text-align:center;font-weight:700;margin-bottom:8px"></div>
-    <div class="field"><label>Display mode</label><div class="radio" id="asMode"><button data-m="2d">○ 2D</button><button data-m="3d">○ 3D</button></div></div>
-    <div class="field"><label>Avatar</label><div class="as-grid" id="asGrid"><button class="as-tile" data-pack="default">${defaultUAvatar(u,"")}<span>Classic</span></button>${owned.map(p=>`<button class="as-tile" data-pack="${p.id}">${packAvatarHTML(p,"",{user:u})}<span>${esc(p.name)}</span></button>`).join("")}</div></div>
-    <div class="field"><label>Cosmetics — Frames</label><div class="chiprow" style="flex-wrap:wrap">${[["none","No Frame"],...COSMETICS.filter(c=>c.type==="frame").map(c=>[c.id,c.emoji+" "+c.name])].map(f=>`<button class="chip ${ (f[0]==="none"? !u.cosmetics.frame : u.cosmetics.frame===f[0])?"on":""}" data-cos-type="frame" data-cos-id="${f[0]}">${f[1]}</button>`).join("")}</div></div>
-    <div class="field"><label>Cosmetics — Aura</label><div class="chiprow" style="flex-wrap:wrap">${[["none","No Aura"],...COSMETICS.filter(c=>c.type==="aura").map(c=>[c.id,c.emoji+" "+c.name])].map(f=>`<button class="chip ${ (f[0]==="none"? !u.cosmetics.aura : u.cosmetics.aura===f[0])?"on":""}" data-cos-type="aura" data-cos-id="${f[0]}">${f[1]}</button>`).join("")}</div></div>
-    <div class="field"><label>Cosmetics — Head</label><div class="chiprow" style="flex-wrap:wrap">${[["none","No Head"],...COSMETICS.filter(c=>c.type==="head"||c.type==="face").map(c=>[c.id,c.emoji+" "+c.name])].map(f=>`<button class="chip ${ (f[0]==="none"? !(u.cosmetics.head||u.cosmetics.face) : (u.cosmetics.head===f[0]||u.cosmetics.face===f[0]))?"on":""}" data-cos-type="${cosmeticById(f[0])?cosmeticById(f[0]).type:"head"}" data-cos-id="${f[0]}">${f[1]}</button>`).join("")}</div></div>
-    <div class="field"><label>Background (3D stage)</label><div class="chiprow" style="flex-wrap:wrap">${[["none","Default"],...COSMETICS.filter(c=>c.type==="background").map(c=>[c.id,c.emoji+" "+c.name])].map(f=>`<button class="chip ${ (f[0]==="none"? !u.cosmetics.background : u.cosmetics.background===f[0])?"on":""}" data-cos-type="background" data-cos-id="${f[0]}">${f[1]}</button>`).join("")}</div></div>
-    <button class="btn primary block" id="asSave" style="margin-top:16px">SAVE</button>`,
-  box=>{
-    const prev=$("#asPrev",box), nameEl=$("#asName",box); let dispose=null;
-    function draw(){
-      if(dispose){ dispose(); dispose=null; }
-      const p=sel==="default"?null:avatarPackById(sel);
-      if(!p){ prev.innerHTML=`<div style="width:140px;height:140px;border-radius:50%;overflow:hidden">${defaultUAvatar(u,"xl")}</div>`; nameEl.textContent="Classic avatar"; }
-      else if(mode==="3d"){ prev.innerHTML=`<div class="av3d big" style="width:200px;height:200px"></div>`; dispose=mountAvatar3D(prev.firstChild,p.id,{user:u}); if(dispose) cleanups.push(dispose); nameEl.textContent=p.emoji+" "+p.name+" · 3D — drag to rotate"; }
-      else { prev.innerHTML=`<div class="pv-2d" style="border-radius:50%;background:${avatarBg(p)};overflow:hidden;width:160px;height:160px">${avatarSVG(p.id)}</div>`; nameEl.textContent=p.emoji+" "+p.name+" · 2D"; }
-      $$("#asMode button",box).forEach(b=>{ const on=b.dataset.m===mode; b.classList.toggle("on",on); b.textContent=(on?"● ":"○ ")+b.dataset.m.toUpperCase(); });
-      $$(".as-tile",box).forEach(t=>t.classList.toggle("on",t.dataset.pack===sel));
-    }
-    $$("#asMode button",box).forEach(b=>b.onclick=()=>{ mode=b.dataset.m; draw(); });
-    $$(".as-tile",box).forEach(t=>t.onclick=()=>{ sel=t.dataset.pack; draw(); });
-    $$("[data-cos-type]",box).forEach(b=>{ b.onclick=()=>{ const type=b.dataset.cosType, id=b.dataset.cosId==="none"?null:b.dataset.cosId; if(id&&!ownsCosmetic(u,id)){ toast("🔒","Not owned","Buy this cosmetic in Cosmetics tab."); return; } u.cosmetics[type]=id; if(type==="head"||type==="face"){ if(type==="face"&&id) u.cosmetics.head=null; if(type==="head"&&id) u.cosmetics.face=null; } save(); renderView(); closeSheet(); openAvatarSettings(sel); }; });
-    $("#asSave",box).onclick=()=>{ const me=ensureEconomy(DB.users[ME.id]); if(sel!=="default"&&!ownsPack(me,sel)){ toast("⚠️","Not owned","Unlock first."); return; } me.selectedAvatar=sel; me.avatarMode=mode; save(); closeSheet(); toast("✅","Avatar saved",sel==="default"?"Classic":(avatarPackById(sel).name+" · "+mode.toUpperCase())); renderAll(); };
-    draw();
-  });
-}
 /* ==========================================================
    DIAMOND EXCHANGE VIEW — PHASE 4
    ========================================================== */
