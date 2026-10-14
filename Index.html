@@ -2065,8 +2065,10 @@ function renderView(){
    mount function receives the id of the empty container to build inside.
    ES modules require http(s) — they will not load from file://.            */
 const MODEL_LIBRARY=[
-  {id:"ninja",name:"Cyber Ninja",emoji:"🥷",file:"./ninja.js",mount:"initNinja",
-   desc:"Roblox-style blocky ninja rig — idle/walk animation, drag to orbit, colour swatches."}
+  {id:"ninja",      name:"Cyber Ninja",emoji:"🥷",file:"./ninja.js",mount:"initNinja",
+   desc:"Roblox-style blocky ninja rig — idle/walk animation, drag to orbit, colour swatches."},
+  {id:"millionaire",name:"Millionaire", emoji:"🤑",file:"./rich.js", mount:"initMillionaire",
+   desc:"Blocky millionaire in a gold suit and money hat — idle/walk animation, drag to orbit."}
 ];
 
 const modelMounted=new Map();   // id -> api returned by the mount function
