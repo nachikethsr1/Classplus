@@ -1962,6 +1962,7 @@ function renderSide(){
     ${item("Events","🎪","cat","Events")}
     ${item("Announcements","📢","cat","Announcements")}
     ${item("All channels","🏫","channels")}
+    ${item("3D Models","🧊","models")}
     ${ME.role==="teacher"?`<div class="sdiv"></div><div class="slabel">Staff</div>${item("Admin dashboard","🛡️","admin")}`:""}
     <div class="sdiv"></div>
     ${item("Settings","⚙️","settings")}
@@ -2041,6 +2042,7 @@ function renderView(){
   if(R==="channel") return viewChannel(v,ROUTE.arg);
   if(R==="you") return viewChannel(v,"c_"+ME.id);
   if(R==="studio") return viewStudio(v);
+  if(R==="models") return viewModels(v);
   if(R==="liked") return viewList(v,"👍 Liked videos",DB.videos.filter(x=>x.likes.includes(ME.id)&&visible(x)));
   if(R==="search") return viewSearch(v,ROUTE.arg);
   if(R==="channels") return viewChannels(v);
@@ -2048,6 +2050,83 @@ function renderView(){
   if(R==="settings") return viewSettings(v);
   if(R==="admin") return viewAdmin(v);
   go("home");
+}
+
+/* ---------- 3D MODELS (drop-in ES modules) ----------
+   Every model is its own file in this folder and exports a mount function:
+
+       export function initNinja(containerId){
+         ...
+         return { dispose(){ ... } };   // optional but recommended
+       }
+
+   To add a model: drop the file in, then add one entry to MODEL_LIBRARY.
+   The file is fetched with import() only when the model is opened, and the
+   mount function receives the id of the empty container to build inside.
+   ES modules require http(s) — they will not load from file://.            */
+const MODEL_LIBRARY=[
+  {id:"ninja",name:"Cyber Ninja",emoji:"🥷",file:"./ninja.js",mount:"initNinja",
+   desc:"Roblox-style blocky ninja rig — idle/walk animation, drag to orbit, colour swatches."}
+];
+
+const modelMounted=new Map();   // id -> api returned by the mount function
+let modelToken=0;               // invalidates a load that finishes after navigating away
+
+function unmountModels(){
+  modelToken++;
+  modelMounted.forEach((api,id)=>{ try{ api&&api.dispose&&api.dispose(); }catch(_){} });
+  modelMounted.clear();
+}
+async function mountModel(m){
+  const host=$("#modelHost");
+  if(!host) return;
+  const token=++modelToken;
+  host.innerHTML=`<div class="note" style="padding:20px">Loading ${esc(m.name)}…</div>`;
+  let mod;
+  try{
+    mod=await import(m.file);
+  }catch(err){
+    host.innerHTML=`<div class="note" style="padding:20px">
+      ⚠️ Could not load <b>${esc(m.file)}</b>.<br>
+      ES modules must be served over http(s) — open this page from a web server or GitHub Pages, not <code>file://</code>.<br>
+      <span class="mut">${esc(String(err&&err.message||err))}</span></div>`;
+    return;
+  }
+  if(token!==modelToken) return;                       // user already navigated away
+  const fn=mod&&mod[m.mount];
+  if(typeof fn!=="function"){
+    host.innerHTML=`<div class="note" style="padding:20px">⚠️ <b>${esc(m.file)}</b> does not export <code>${esc(m.mount)}()</code>.</div>`;
+    return;
+  }
+  try{
+    host.innerHTML="";                                 // the module builds its own DOM in here
+    const api=fn.call(mod,host.id);
+    if(token!==modelToken){ try{ api&&api.dispose&&api.dispose(); }catch(_){} return; }
+    if(api) modelMounted.set(m.id,api);
+  }catch(err){
+    host.innerHTML=`<div class="note" style="padding:20px">⚠️ <b>${esc(m.name)}</b> failed to start.<br>
+      <span class="mut">${esc(String(err&&err.message||err))}</span><br>
+      If you are on <code>file://</code> or offline, Three.js (unpkg.com) may be unreachable.</div>`;
+  }
+}
+function viewModels(v){
+  const m=MODEL_LIBRARY.find(x=>x.id===ROUTE.arg)||MODEL_LIBRARY[0];
+  v.innerHTML=`
+    <div class="sect">🧊 3D Models</div>
+    <div class="note" style="margin-bottom:12px">Standalone JavaScript modules, loaded on demand. Each one is a separate file in this folder.</div>
+    ${MODEL_LIBRARY.length>1?`<div class="chiprow">${MODEL_LIBRARY.map(x=>
+      `<button class="chip ${x.id===m.id?"on":""}" data-model="${esc(x.id)}">${x.emoji} ${esc(x.name)}</button>`).join("")}</div>`:""}
+    <div class="card" style="padding:0;overflow:hidden;background:#0f1116">
+      <div id="modelHost" style="width:100%;height:min(72vh,620px)"></div>
+    </div>
+    <div class="row" style="gap:10px;margin-top:12px;flex-wrap:wrap">
+      <span class="tag">${m.emoji} ${esc(m.name)}</span>
+      <span class="mut" style="font-size:13px">${esc(m.desc)}</span>
+    </div>`;
+
+  $$("[data-model]",v).forEach(b=>b.onclick=()=>go("models",b.dataset.model));
+  mountModel(m);
+  cleanups.push(unmountModels);
 }
 
 /* ---------- HOME ---------- */
