@@ -166,7 +166,7 @@ body.sidehidden #main{margin-left:0}
 .vcard:hover .thumb{filter:brightness(1.06)}
 .vmeta{display:flex;gap:11px;margin-top:10px}
 .vtitle{font-size:14.5px;font-weight:700;line-height:1.35;margin:0 0 4px;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .vsub{font-size:12.5px;color:var(--muted);line-height:1.5}
 .vsub .cn{display:flex;align-items:center;gap:4px}
 .av{border-radius:50%;flex:none;display:grid;place-items:center;font-weight:800;color:#fff;width:36px;height:36px;font-size:14px;overflow:hidden}
@@ -188,7 +188,7 @@ body.sidehidden #main{margin-left:0}
 .sthumb img,.sthumb video{width:100%;height:100%;object-fit:cover}
 .sthumb .em{font-size:52px}
 .sthumb .cap{position:absolute;left:8px;right:8px;bottom:8px;color:#fff;font-size:12.5px;font-weight:700;line-height:1.35;
-  text-shadow:0 2px 10px rgba(0,0,0,.8);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  text-shadow:0 2px 10px rgba(0,0,0,.8);display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
 /* ---------- WATCH ---------- */
 .watch{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:24px;align-items:start}
@@ -218,7 +218,7 @@ body.sidehidden #main{margin-left:0}
 .desc{background:var(--card);border-radius:13px;padding:13px 15px;margin-top:15px;font-size:14px;line-height:1.6}
 .desc .st{font-weight:800;margin-bottom:6px;font-size:13.5px}
 .desc .body{white-space:pre-wrap;word-break:break-word}
-.desc .body.clip{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.desc .body.clip{display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .cmt{display:flex;gap:11px;margin-bottom:16px}
 .cmt .cbody{flex:1;min-width:0}
 .cmt .chead{font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:7px}
@@ -235,7 +235,7 @@ body.sidehidden #main{margin-left:0}
 .rel .rt .em{font-size:30px}
 .rel .rt .dur{position:absolute;right:5px;bottom:5px;background:rgba(0,0,0,.82);color:#fff;font-size:10.5px;padding:1px 4px;border-radius:4px;font-weight:700}
 .rel h4{margin:0 0 4px;font-size:13.5px;font-weight:700;line-height:1.35;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .rel p{margin:0;font-size:12px;color:var(--muted);line-height:1.45}
 
 /* ---------- SHORTS PLAYER ---------- */
@@ -987,7 +987,7 @@ function seed(){
   const mkUser=(id,name,email,role,klass,bio)=>users[id]={id,name,email,role,klass,bio,pass:"1234",
     joined:now-60*D,banned:false,subs:[],likedVids:[],avatar:null,
     points:0,dailyPoints:0,diamonds:0,pointsToday:0,lastPointsDate:"",
-    ownedAvatars:["default"],selectedAvatar:"default",avatarMode:"2d",
+    ownedAvatars:["default"],ownedModels:[],selectedAvatar:"default",avatarMode:"2d",
     achievements:[],gameStats:{},streak:0,lastActiveDate:"",dailyMissions:{},
     diamondTransactions:[],pointTransactions:[]};
   mkUser("u_riv","Ms. Rivera","rivera@school.edu","teacher","Staff · Science","Science teacher & robotics lead 🔬");
@@ -1103,6 +1103,8 @@ const safeInt=(n,min,max)=>{ n=Math.floor(Number(n)); if(!Number.isFinite(n)) n=
 const num=n=>{ n=Number(n); return Number.isFinite(n)?n:0; };
 const myUser=()=>(ME&&DB&&DB.users)?DB.users[ME.id]:null;
 const ECON={keepTx:300,keepRewardIds:600};
+const validEconomyNumber=(n,max)=>{n=Math.floor(Number(n));return Number.isFinite(n)&&n>=0&&n<=max?n:null;};
+const economyTransactionId=k=>"tx_"+String(k||"econ").replace(/[^a-z0-9]/gi,"").slice(0,10)+"_"+uid();
 
 /* ---- settings / migration ---- */
 function ensureSettings(){
@@ -1121,6 +1123,10 @@ const econ=()=>ensureSettings();
 function ensureEconomy(u){
   if(!u) return u;
   u.points=safeInt(u.points,0,1e9);
+  // Lifetime Points counter. One-time backfill for saves created before it existed:
+  // seeding from the current balance means this branch runs at most once per account.
+  if(typeof u.lifetimeEarned!=="number") u.lifetimeEarned=safeInt(u.points,0,1e9);
+  u.lifetimeEarned=safeInt(u.lifetimeEarned,0,1e12);
   u.diamonds=safeInt(u.diamonds,0,1e9);
   u.dailyPoints=safeInt(u.dailyPoints,0,1e6); u.pointsToday=u.dailyPoints;
   if(typeof u.lastPointsDate!=="string") u.lastPointsDate="";
@@ -1129,7 +1135,8 @@ function ensureEconomy(u){
   u.bestStreak=Math.max(safeInt(u.bestStreak,0,100000),u.streak);
   u.exchangedToday=safeInt(u.exchangedToday,0,1e9);
   if(!u.dailyCaps||typeof u.dailyCaps!=="object") u.dailyCaps={};
-  if(!u.dailyStats||typeof u.dailyStats!=="object") u.dailyStats={plays:0,wins:0,shorts:0,videos:0,missions:0};
+  if(!u.dailyStats||typeof u.dailyStats!=="object") u.dailyStats={plays:0,wins:0,shorts:0,videos:0,missions:0,labCompletions:0};
+  u.dailyStats.labCompletions=safeInt(u.dailyStats.labCompletions,0,1e9);
   if(!u.lifetime||typeof u.lifetime!=="object") u.lifetime={shortsWatched:0,videosWatched:0,gamesPlayed:0,gamesWon:0,missionsDone:0,exchanged:0};
   if(!Array.isArray(u.rewardIds)) u.rewardIds=[];
   if(!Array.isArray(u.ownedAvatars)||!u.ownedAvatars.length) u.ownedAvatars=["default"];
@@ -1137,6 +1144,7 @@ function ensureEconomy(u){
   if(u.avatarMode!=="2d"&&u.avatarMode!=="3d") u.avatarMode="2d";
   if(!u.cosmetics||typeof u.cosmetics!=="object") u.cosmetics={head:null,face:null,outfit:null,aura:null,frame:null,background:null};
   if(!Array.isArray(u.ownedCosmetics)) u.ownedCosmetics=[];
+  if(!Array.isArray(u.ownedModels)) u.ownedModels=[];
   const validCos=["head","face","outfit","aura","frame","background"];
   validCos.forEach(k=>{ if(u.cosmetics[k]!==null && typeof u.cosmetics[k]!=="string") u.cosmetics[k]=null; });
   if(!Array.isArray(u.achievements)) u.achievements=[];
@@ -1193,7 +1201,7 @@ function resetUserDay(u,tk){
   ensureEconomy(u);
   if(u.lastPointsDate===tk) return false;
   u.dailyPoints=0; u.pointsToday=0; u.dailyCaps={}; u.dailyMissions={}; u.exchangedToday=0;
-  u.dailyStats={plays:0,wins:0,shorts:0,videos:0,missions:0};
+  u.dailyStats={plays:0,wins:0,shorts:0,videos:0,missions:0,labCompletions:0};
   u.lastPointsDate=tk;
   return true;
 }
@@ -1235,7 +1243,7 @@ function awardPoints(amount,source,opts){
   const used=safeInt(u.dailyCaps[bucket],0,1e9), cap=safeInt(e.caps[bucket],0,1e9);
   const actual=Math.max(0,Math.min(amount,cap-used));
   if(actual>0){
-    u.points=safeInt(u.points+actual,0,1e9);
+    u.points=safeInt(u.points+actual,0,1e9);u.lifetimeEarned=safeInt((u.lifetimeEarned||0)+actual,0,1e12);
     u.dailyPoints=safeInt(u.dailyPoints+actual,0,1e6); u.pointsToday=u.dailyPoints;
     u.dailyCaps[bucket]=used+actual;
     u.pointTransactions.push({id:"pt_"+uid(),amount:actual,source:String(source||"").slice(0,60),bucket,game:opts.game||null,ts:Date.now()});
@@ -1295,11 +1303,11 @@ function awardAchievement(id,name,desc,points){
 }
 function checkPointAchievements(u){
   if(!u) return;
-  if(u.points>=1000) awardAchievement("points_1k");
-  if(u.points>=10000) awardAchievement("points_10k");
+  if((u.lifetimeEarned||0)>=1000) awardAchievement("points_1k");
+  if((u.lifetimeEarned||0)>=10000) awardAchievement("points_10k");
 }
 
-/* ---- GAME STATS ----
+/* ---- GAME STATS ---- */
 function validateGameScore(gameId,raw){
   raw=safeInt(raw,0,1e6);
   const caps={reflex:5000,memory:10000,lab:5000,racer:30000,alien:30000};
@@ -1319,7 +1327,10 @@ function gameStats(gameId,score,win,extra){
   if(Number.isFinite(extra.wave)&&extra.wave>(g.bestWave||0)) g.bestWave=safeInt(extra.wave,0,1e4);
   if(Number.isFinite(extra.distance)&&extra.distance>(g.bestDistance||0)) g.bestDistance=safeInt(extra.distance,0,1e7);
   if(Number.isFinite(extra.time)&&extra.time>0&&(!g.bestTime||extra.time<g.bestTime)) g.bestTime=safeInt(extra.time,0,1e6);
-  if(gameId==="lab"&&win) g.roomsCompleted=(g.roomsCompleted||0)+4;
+  if(gameId==="lab"&&win){
+    g.roomsCompleted=(g.roomsCompleted||0)+4;
+    u.dailyStats.labCompletions++;
+  }
   g.history=(g.history||[]).concat([{s:score,ts:Date.now()}]).slice(-10);
   u.dailyStats.plays++; if(win) u.dailyStats.wins++;
   u.lifetime.gamesPlayed++; if(win) u.lifetime.gamesWon++;
@@ -1701,7 +1712,7 @@ const feedShorts = () => DB.videos.filter(v=>v.kind==="short"&&visible(v)).sort(
 
 /* ---------- notifications ---------- */
 function notify(userId,icon,title,body,href){
-  if(!userId||!DB.users[userId]||userId===(ME&&ME.id&&null)) return;
+  if(!userId||!DB.users[userId]) return;
   DB.notifs[userId]=DB.notifs[userId]||[];
   DB.notifs[userId].unshift({id:"n_"+uid(),icon,title,body,href:href||"",from:(ME&&ME.id!==userId?ME.id:null),ts:Date.now(),read:false});
   DB.notifs[userId]=DB.notifs[userId].slice(0,80);
@@ -1876,6 +1887,8 @@ function boot(){
   wireShell();
   ROUTE=parseHash();
   checkDailyReset();
+  // Legacy accounts: let the backfilled lifetime total unlock its achievements now.
+  if(ME&&DB.users[ME.id]) checkPointAchievements(ensureEconomy(DB.users[ME.id]));
   renderAll();
 }
 function wireShell(){
@@ -1950,6 +1963,11 @@ function renderSide(){
     ${item("Events","🎪","cat","Events")}
     ${item("Announcements","📢","cat","Announcements")}
     ${item("All channels","🏫","channels")}
+    ${item("Avatars","🎭","avatars")}
+    <div class="sdiv"></div>
+    <div class="slabel">Developer demo</div>
+    ${item("Panels","🧩","panels")}
+    ${item("Owner terminal","⌨️","terminal")}
     ${ME.role==="teacher"?`<div class="sdiv"></div><div class="slabel">Staff</div>${item("Admin dashboard","🛡️","admin")}`:""}
     <div class="sdiv"></div>
     ${item("Settings","⚙️","settings")}
@@ -1963,21 +1981,8 @@ function renderSide(){
 /* ===========================================================================
    COMPONENTS
    =========================================================================== */
-/* ================= AVATAR-AWARE AVATAR COMPONENTS (Phase 5) ================= */
-function chAvatar(c,cls){
-  const o=personalOwner(c), p=o?activeAvatarPack(o):null;
-  if(p) return packAvatarHTML(p,cls);
-  return `<div class="av ${cls||""}" style="background:linear-gradient(135deg,${c.grad[0]},${c.grad[1]||c.grad[0]})">
-    ${c.avatar?`<img src="${c.avatar}">`:esc(c.emoji||initials(c.name))}</div>`;
-}
-function defaultUAvatar(u,cls){
-  return `<div class="av ${cls||""}" style="background:${colorOf(u.id)}">${u.avatar?`<img src="${u.avatar}">`:esc(initials(u.name))}</div>`;
-}
-function uAvatar(u,cls){
-  const p=activeAvatarPack(u);
-  if(p) return packAvatarHTML(p,cls);
-  return defaultUAvatar(u,cls);
-}
+/* Avatar-aware components (chAvatar / defaultUAvatar / uAvatar) are declared in
+   the Phase 5 avatar section further down, next to the cosmetics helpers they use. */
 function thumbInner(v,big){
   if(v.thumb) return `<img src="${v.thumb}" alt="">`;
   return `<div class="em">${esc(v.art.em)}</div>`;
@@ -2042,6 +2047,9 @@ function renderView(){
   if(R==="channel") return viewChannel(v,ROUTE.arg);
   if(R==="you") return viewChannel(v,"c_"+ME.id);
   if(R==="studio") return viewStudio(v);
+  if(R==="avatars"||R==="models") return viewAvatars(v);
+  if(R==="panels") return viewPanels(v);
+  if(R==="terminal") return viewTerminal(v);
   if(R==="liked") return viewList(v,"👍 Liked videos",DB.videos.filter(x=>x.likes.includes(ME.id)&&visible(x)));
   if(R==="search") return viewSearch(v,ROUTE.arg);
   if(R==="channels") return viewChannels(v);
@@ -2049,6 +2057,426 @@ function renderView(){
   if(R==="settings") return viewSettings(v);
   if(R==="admin") return viewAdmin(v);
   go("home");
+}
+
+/* ---------- 3D MODELS (drop-in ES modules) ----------
+   Every model is its own file in this folder and exports a mount function:
+
+       export function initNinja(containerId){
+         ...
+         return { dispose(){ ... } };   // optional but recommended
+       }
+
+   To add a model: drop the file in, then add one entry to MODEL_LIBRARY.
+   The file is fetched with import() only when the model is opened, and the
+   mount function receives the id of the empty container to build inside.
+   ES modules require http(s) — they will not load from file://.            */
+const MODEL_LIBRARY=[
+  {id:"ninja",      name:"Cyber Ninja",emoji:"🥷",file:"./ninja.js",mount:"initNinja",price:650,
+   desc:"Roblox-style blocky ninja rig — idle/walk animation, drag to orbit, colour swatches."},
+  {id:"millionaire",name:"Millionaire", emoji:"🤑",file:"./rich.js", mount:"initMillionaire",price:1000,
+   desc:"Blocky millionaire in a gold suit and money hat — idle/walk animation, drag to orbit."}
+];
+const modelById=id=>MODEL_LIBRARY.find(m=>m.id===id)||null;
+const ownsModel=(u,id)=>!!(u&&Array.isArray(u.ownedModels)&&u.ownedModels.includes(id));
+
+/* Unlock a 3D avatar with Diamonds. Same safety shape as buyAvatarPack:
+   snapshot first, mutate, and roll the whole thing back if storage fails. */
+let buyingModel=false;
+function buyModel(id){
+  if(buyingModel) return {success:false,message:"Purchase in progress."};
+  if(!ME||!DB.users[ME.id]) return {success:false,message:"Log in first."};
+  const m=modelById(id); if(!m) return {success:false,message:"Avatar not found."};
+  const u=ensureEconomy(DB.users[ME.id]);
+  if(ownsModel(u,m.id)) return {success:false,message:"You already own "+m.name+"."};
+  const price=validEconomyNumber(m.price,1e9); if(price===null||price<1) return {success:false,message:"Invalid price."};
+  if(u.diamonds<price) return {success:false,message:"Need "+fmtNum(price-u.diamonds)+" more Diamonds."};
+  buyingModel=true;
+  const snap={diamonds:u.diamonds,owned:u.ownedModels.slice(),tx:u.diamondTransactions.slice()};
+  u.diamonds=u.diamonds-price; u.ownedModels.push(m.id);
+  u.diamondTransactions.push({id:economyTransactionId("model"),amount:-price,kind:"spend",source:"3D Avatar: "+m.name,meta:{modelId:m.id},ts:Date.now()});
+  u.diamondTransactions=u.diamondTransactions.slice(-ECON.keepTx);
+  if(!persist()){ u.diamonds=snap.diamonds; u.ownedModels=snap.owned; u.diamondTransactions=snap.tx; buyingModel=false; return {success:false,message:"Storage full, could not save."}; }
+  buyingModel=false; renderEconPill(); Bus.send({t:"sync"});
+  return {success:true,model:m};
+}
+function confirmBuyModel(id){
+  const m=modelById(id); if(!m) return;
+  const u=ensureEconomy(DB.users[ME.id]);
+  if(ownsModel(u,id)){ toast("\u2705","Already owned","You own "+m.name+"."); return; }
+  if(u.diamonds<m.price){ closeSheet(); if(confirm("Need "+fmtNum(m.price-u.diamonds)+" more Diamonds for "+m.name+".\nOpen Exchange?")) go("exchange"); return; }
+  if(!confirm("Unlock "+m.name+"?\n\n\ud83d\udc8e "+fmtNum(m.price)+" Diamonds")) return;
+  const r=buyModel(id); if(!r.success){ toast("\u26a0\ufe0f","Purchase failed",r.message); return; }
+  toast("\ud83c\udf89","Avatar unlocked!",m.emoji+" "+m.name); renderAll();
+}
+
+const modelMounted=new Map();   // id -> api returned by the mount function
+let modelToken=0;               // invalidates a load that finishes after navigating away
+
+function unmountModels(){
+  modelToken++;
+  modelMounted.forEach((api,id)=>{ try{ api&&api.dispose&&api.dispose(); }catch(_){} });
+  modelMounted.clear();
+}
+async function mountModel(m){
+  const host=$("#modelHost");
+  if(!host) return;
+  const token=++modelToken;
+  host.innerHTML=`<div class="note" style="padding:20px">Loading ${esc(m.name)}…</div>`;
+  let mod;
+  try{
+    mod=await import(m.file);
+  }catch(err){
+    host.innerHTML=`<div class="note" style="padding:20px">
+      ⚠️ Could not load <b>${esc(m.file)}</b>.<br>
+      ES modules must be served over http(s) — open this page from a web server or GitHub Pages, not <code>file://</code>.<br>
+      <span class="mut">${esc(String(err&&err.message||err))}</span></div>`;
+    return;
+  }
+  if(token!==modelToken) return;                       // user already navigated away
+  const fn=mod&&mod[m.mount];
+  if(typeof fn!=="function"){
+    host.innerHTML=`<div class="note" style="padding:20px">⚠️ <b>${esc(m.file)}</b> does not export <code>${esc(m.mount)}()</code>.</div>`;
+    return;
+  }
+  try{
+    host.innerHTML="";                                 // the module builds its own DOM in here
+    const api=fn.call(mod,host.id);
+    if(token!==modelToken){ try{ api&&api.dispose&&api.dispose(); }catch(_){} return; }
+    if(api) modelMounted.set(m.id,api);
+  }catch(err){
+    host.innerHTML=`<div class="note" style="padding:20px">⚠️ <b>${esc(m.name)}</b> failed to start.<br>
+      <span class="mut">${esc(String(err&&err.message||err))}</span><br>
+      If you are on <code>file://</code> or offline, Three.js (unpkg.com) may be unreachable.</div>`;
+  }
+}
+function viewAvatars(v){
+  checkDailyReset();
+  const u=ensureEconomy(DB.users[ME.id]);
+  const m=modelById(ROUTE.arg)||MODEL_LIBRARY[0];
+  const owned=ownsModel(u,m.id);
+  const unlocked=MODEL_LIBRARY.filter(x=>ownsModel(u,x.id)).length;
+  v.innerHTML=`
+    <div class="economy-hero">
+      <h1>🎭 3D Avatars</h1>
+      <p>Solid 3D characters, unlocked with Diamonds. Every model keeps its own controls — idle / walk animation, drag to orbit, scroll to zoom, auto-rotate.</p>
+      <div class="economy-balances">
+        <div class="economy-balance"><div class="symbol">💎</div><strong>${fmtNum(u.diamonds)}</strong><small>Diamonds</small></div>
+        <div class="economy-balance"><div class="symbol">🎭</div><strong>${unlocked}/${MODEL_LIBRARY.length}</strong><small>Unlocked</small></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+        <button class="btn" data-go-exchange>🔄 Get Diamonds</button>
+        <button class="btn" data-go-shop>🛍️ Avatar shop</button>
+      </div>
+    </div>
+
+    <div class="chiprow">${MODEL_LIBRARY.map(x=>
+      `<button class="chip ${x.id===m.id?"on":""}" data-model="${esc(x.id)}">${x.emoji} ${esc(x.name)} ${ownsModel(u,x.id)?"✓":"· 💎 "+fmtNum(x.price)}</button>`).join("")}</div>
+
+    <div class="card" style="padding:0;overflow:hidden;background:#0f1116">
+      <div id="modelHost" style="width:100%;height:min(70vh,600px)"></div>
+    </div>
+
+    <div class="between" style="margin-top:14px;gap:14px;flex-wrap:wrap;align-items:flex-start">
+      <div style="flex:1;min-width:220px">
+        <b style="font-size:17px">${m.emoji} ${esc(m.name)}</b>
+        ${owned?`<span class="tag g" style="margin-left:8px">✓ Owned</span>`:`<span class="tag" style="margin-left:8px">💎 ${fmtNum(m.price)}</span>`}
+        <div class="vsub" style="margin-top:4px">${esc(m.desc)}</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        ${owned?`<button class="btn" disabled>✓ Unlocked</button>`
+               :`<button class="btn primary" data-model-buy="${esc(m.id)}">Unlock for 💎 ${fmtNum(m.price)}</button>`}
+      </div>
+    </div>
+    <p class="note" style="margin-top:14px">Viewing is free — unlocking adds the avatar to your collection. Diamonds come from the Diamond Exchange or from a teacher.</p>`;
+
+  $$("[data-model]",v).forEach(b=>b.onclick=()=>go("avatars",b.dataset.model));
+  const buy=$("[data-model-buy]",v); if(buy) buy.onclick=()=>confirmBuyModel(buy.dataset.modelBuy);
+  const ex=$("[data-go-exchange]",v); if(ex) ex.onclick=()=>go("exchange");
+  const sh=$("[data-go-shop]",v); if(sh) sh.onclick=()=>go("shop");
+  mountModel(m);
+  cleanups.push(unmountModels);
+}
+
+/* ==========================================================================
+   HIERARCHY — dev/demo wiring for classpulse-hierarchy.js
+   --------------------------------------------------------------------------
+   DEV ONLY. This build runs the hierarchy's "trusted" adapters in the browser
+   and snapshots them to localStorage. Anyone with devtools can grant
+   themselves Owner. A real deployment must run these adapters on a server.
+   ========================================================================== */
+const HIER_KEY="classpulse.hierarchy.v1";
+let HIER=null, HIER_ENV=null, HIER_CORE=null, HIER_BRIDGE=null, HIER_LOADING=null;
+let TERM_LOG=[];
+
+/* Seam: tests replace this with the already-imported module pair. */
+async function loadHierarchyModules(){
+  return {
+    core: await import("./classpulse-hierarchy.js"),
+    bridge: await import("./classpulse-hierarchy.browser.js")
+  };
+}
+function hierSeedUsers(){
+  return Object.values(DB.users).map(u=>({
+    id:u.id,
+    verifiedTeacher:u.role==="teacher",
+    // A verified teacher's Admin panel is granted by the trusted process, so
+    // the demo mirrors that here rather than letting the module infer it.
+    panels:u.role==="teacher"?["admin"]:[],
+    points:safeInt(u.points,0,1e9),
+    diamonds:0
+  }));
+}
+async function ensureHierarchy(){
+  if(HIER) return HIER;
+  if(HIER_LOADING) return HIER_LOADING;
+  HIER_LOADING=(async()=>{
+    const {core,bridge}=await loadHierarchyModules();
+    HIER_CORE=core;
+    HIER_BRIDGE=bridge;
+    HIER_ENV=bridge.createBrowserAdapters({storageKey:HIER_KEY,users:hierSeedUsers()});
+    HIER=new core.ClassPulseHierarchy(HIER_ENV.adapters);
+    return HIER;
+  })();
+  try{ return await HIER_LOADING; }
+  catch(err){ HIER_LOADING=null; throw err; }   // allow a retry after a failed load
+}
+function hierSync(){
+  if(!HIER_ENV||!ME) return;
+  HIER_ENV.setCurrentUser(ME.id);
+  if(HIER_BRIDGE) HIER_BRIDGE.ensureHierarchyUser(HIER_ENV.db,{
+    id:ME.id,
+    verifiedTeacher:ME.role==="teacher",
+    panels:ME.role==="teacher"?["admin"]:[],
+    points:safeInt(ME.points,0,1e9)
+  });
+}
+function hierLoadError(err){
+  return `<div class="card" style="padding:20px">
+    <b>⚠️ Could not load the hierarchy modules</b>
+    <div class="note" style="margin-top:8px">ES modules need http(s). Open this page from a web server or GitHub Pages, not <code>file://</code>.</div>
+    <div class="vsub" style="margin-top:6px">${esc(String(err&&err.message||err))}</div></div>`;
+}
+async function hierAuditHTML(){
+  const events=await HIER_ENV.adapters.store.getAuditEvents();
+  const recent=events.slice(-8).reverse();
+  if(!recent.length) return `<div class="vsub">No privileged actions recorded yet.</div>`;
+  return recent.map(e=>{
+    const at=e.at?new Date(e.at).getTime():Date.now();
+    return `<div class="vsub" style="margin-bottom:6px"><b>${esc(e.action)}</b> · ${esc(e.classification||"")} · ${esc(ago(at))}</div>`;
+  }).join("");
+}
+function viewPanels(v){
+  v.innerHTML=`<div class="note" style="padding:24px">Loading hierarchy…</div>`;
+  ensureHierarchy().then(()=>{
+    if(ROUTE.name!=="panels") return;
+    hierSync(); paintPanels(v);
+  }).catch(err=>{ if(ROUTE.name==="panels") v.innerHTML=hierLoadError(err); });
+}
+async function paintPanels(v){
+  const core=HIER_CORE, id=ME.id;
+  const panels=await HIER.getUserPanels(id);
+  const owned=new Set(panels);
+  const perms=[...await HIER.getEffectivePermissions(id)].sort();
+  const bal=await HIER_ENV.adapters.store.getBalance(id);
+  const allowance=core.effectiveWeeklyAllowance(panels,{});
+  const dayLimit=core.effectiveDailyConversionLimit(panels,{});
+  const others=Object.values(DB.users).filter(u=>u.id!==id);
+
+  v.innerHTML=`
+    <div class="economy-hero">
+      <h1>🧩 Panels &amp; Hierarchy</h1>
+      <p>Live demo of <b>classpulse-hierarchy.js</b> — panels, capability permissions, the diamond ledger and the owner terminal.</p>
+      <div class="economy-balances">
+        <div class="economy-balance"><div class="symbol">💎</div><strong>${fmtNum(bal.diamonds)}</strong><small>Diamonds</small></div>
+        <div class="economy-balance"><div class="symbol">⚡</div><strong>${fmtNum(bal.points)}</strong><small>Points</small></div>
+        <div class="economy-balance"><div class="symbol">🎫</div><strong>${owned.size}</strong><small>Panels</small></div>
+      </div>
+    </div>
+
+    <div class="card" style="border-color:var(--warn)">
+      <b>⚠️ DEV DEMO</b>
+      <div class="note" style="margin-top:6px">The hierarchy's trusted backend is running in this browser and saving to localStorage. A real deployment must run these adapters on a server — here, devtools can grant anyone Owner.</div>
+    </div>
+
+    <div class="grid2" style="margin-top:14px">
+      <div class="card">
+        <b>⚡ Convert Points → Diamonds</b>
+        <div class="note" style="margin-top:6px">${dayLimit===Infinity?"No daily limit on your panels.":"Daily limit: "+fmtNum(dayLimit)+" Diamonds."} Spends from the hierarchy ledger, which starts at your profile Points.</div>
+        <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+          <input class="inp" id="hConvert" type="number" min="1" value="50" style="flex:1;min-width:110px">
+          <button class="btn primary" id="hConvertGo">Convert</button>
+          <button class="btn" id="hSyncPoints">↻ Sync Points</button>
+        </div>
+      </div>
+      <div class="card">
+        <b>🎁 Weekly allowance</b>
+        <div class="note" style="margin-top:6px">${allowance?`Your panels grant ${fmtNum(allowance)} Diamonds per week. Claiming twice in the same week is a no-op.`:"Noob grants no weekly allowance."}</div>
+        <button class="btn ${allowance?"primary":""}" id="hClaim" style="margin-top:10px" ${allowance?"":"disabled"}>Claim this week</button>
+      </div>
+    </div>
+
+    <div class="sect">Panels (${owned.size}/${Object.keys(core.PANELS).length})</div>
+    <div class="shop-grid">
+      ${Object.values(core.PANELS).map(pan=>{
+        const has=owned.has(pan.id);
+        const limit=pan.dailyConversionLimitDiamonds==null?"inherits":fmtNum(pan.dailyConversionLimitDiamonds);
+        return `<div class="pack-card">
+          <div class="pack-body">
+            <div class="between"><b>${esc(pan.displayName)}</b>${has?`<span class="tag g">OWNED</span>`:""}</div>
+            <div class="vsub" style="margin-top:4px">${pan.permissions.map(x=>`<code>${esc(x)}</code>`).join(" ")}</div>
+            <div class="vsub" style="margin-top:6px">Weekly ${fmtNum(pan.weeklyAllowanceDiamonds)} 💎 · Daily convert ${limit}</div>
+            <div class="pack-price">${pan.purchasable?"💎 "+fmtNum(pan.priceDiamonds):"Granted only"}</div>
+            <div class="pack-actions">
+              ${has?`<button class="btn" disabled>✓ Owned</button>`
+                   :pan.purchasable?`<button class="btn primary" data-hbuy="${esc(pan.id)}">Buy</button>`
+                   :`<button class="btn" disabled>Not for sale</button>`}
+            </div>
+          </div></div>`;
+      }).join("")}
+    </div>
+
+    <div class="sect">Your permissions (${perms.length})</div>
+    <div class="card"><div class="row" style="gap:6px;flex-wrap:wrap">${perms.map(x=>`<span class="tag">${esc(x)}</span>`).join("")}</div></div>
+
+    <div class="sect">🎁 Gift Diamonds</div>
+    <div class="card">
+      <div class="note">Each gift is one atomic, idempotent ledger transfer.</div>
+      <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+        <select class="inp" id="hGiftTo" style="flex:1;min-width:150px">${others.map(u=>`<option value="${esc(u.id)}">${esc(u.name)}</option>`).join("")}</select>
+        <input class="inp" id="hGiftAmt" type="number" min="1" value="5" style="width:100px">
+        <button class="btn primary" id="hGiftGo">Send</button>
+      </div>
+    </div>
+
+    <div class="sect">Recent privileged actions</div>
+    <div class="card">${await hierAuditHTML()}</div>
+    <p class="note" style="margin-top:12px">These balances live in the hierarchy ledger and are separate from the app's own Points / Diamond shop.</p>`;
+
+  const sync=$("#hSyncPoints",v);
+  if(sync) sync.onclick=async()=>{
+    const bal2=await HIER_ENV.adapters.store.getBalance(id);
+    const delta=safeInt(ME.points,0,1e9)-safeInt(bal2.points,0,1e9);
+    if(!delta){ toast("↻","Already in sync",fmtNum(bal2.points)+" points"); return; }
+    await HIER_ENV.adapters.store.applyLedger(id,{
+      transactionId:"devsync_"+uid(), idempotencyKey:"devsync:"+uid(),
+      type:"dev.sync", srcAccount:id, dstAccount:id, amount:Math.abs(delta),
+      itemId:null, reason:"profile points sync", at:new Date(), status:"committed"
+    },{pointsDelta:delta});
+    toast("↻","Points synced",(delta>0?"+":"")+fmtNum(delta)+" points");
+    paintPanels(v);
+  };
+  const convert=$("#hConvertGo",v);
+  if(convert) convert.onclick=async()=>{
+    const amt=safeInt($("#hConvert",v).value,1,1e9);
+    try{
+      const r=await HIER.convertPointsToDiamonds({amountDiamonds:amt});
+      toast("💎","Converted",fmtNum(amt)+" Diamonds"+(r.duplicated?" (already processed)":""));
+      paintPanels(v);
+    }catch(e){ toast("⚠️","Conversion failed",e&&e.message||String(e)); }
+  };
+  const claim=$("#hClaim",v);
+  if(claim) claim.onclick=async()=>{
+    try{
+      const r=await HIER.grantWeeklyAllowance({});
+      toast("🎁",r.duplicated?"Already claimed":"Allowance granted",
+        r.duplicated?"This week was already claimed.":fmtNum(allowance)+" Diamonds");
+      paintPanels(v);
+    }catch(e){ toast("⚠️","Claim failed",e&&e.message||String(e)); }
+  };
+  $$("[data-hbuy]",v).forEach(b=>b.onclick=async()=>{
+    const pid=b.dataset.hbuy;
+    try{
+      await HIER.purchasePanel({panelId:pid});
+      toast("🎫","Panel unlocked",pid);
+      paintPanels(v);
+    }catch(e){ toast("⚠️","Purchase failed",e&&e.message||String(e)); }
+  });
+  const gift=$("#hGiftGo",v);
+  if(gift) gift.onclick=async()=>{
+    const to=$("#hGiftTo",v).value, amt=safeInt($("#hGiftAmt",v).value,1,1e9);
+    try{
+      await HIER.giftDiamonds({toUserId:to, amountDiamonds:amt});
+      toast("🎁","Sent",fmtNum(amt)+" Diamonds to "+((DB.users[to]||{}).name||to));
+      paintPanels(v);
+    }catch(e){ toast("⚠️","Gift failed",e&&e.message||String(e)); }
+  };
+}
+
+/* ---------- owner terminal ---------- */
+function viewTerminal(v){
+  v.innerHTML=`<div class="note" style="padding:24px">Loading terminal…</div>`;
+  ensureHierarchy().then(()=>{
+    if(ROUTE.name!=="terminal") return;
+    hierSync(); paintTerminal(v);
+  }).catch(err=>{ if(ROUTE.name==="terminal") v.innerHTML=hierLoadError(err); });
+}
+function termOutHTML(){
+  if(!TERM_LOG.length) return `Type a command, or pick one below. Start with "help me".`;
+  return TERM_LOG.slice(-40).map(l=>
+    `<div style="margin-bottom:10px"><div class="mut">&gt; ${esc(l.cmd)}</div>`+
+    `<div style="white-space:pre-wrap">${esc(l.out)}</div></div>`).join("");
+}
+async function paintTerminal(v){
+  const perms=await HIER.getEffectivePermissions(ME.id);
+  const canUse=perms.has("terminal.access");
+  const cmds=canUse?HIER.terminal.listFor(perms):[];
+  v.innerHTML=`
+    <div class="sect">⌨️ Owner Terminal</div>
+    <div class="card" style="border-color:var(--warn)">
+      <b>⚠️ DEV DEMO</b>
+      <div class="note" style="margin-top:6px">Commands run registered service methods only — no eval, no shell, no raw queries. Access requires the <b>Admin Command Line</b> panel.</div>
+    </div>
+    ${canUse?`
+      <div class="card" style="margin-top:12px">
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <input class="inp" id="termIn" placeholder='Try "help me"' style="flex:1;min-width:200px" autocomplete="off">
+          <button class="btn primary" id="termRun">Run</button>
+        </div>
+        <label class="row" style="gap:7px;margin-top:10px;font-size:12.5px;color:var(--muted)">
+          <input type="checkbox" id="termConfirm"> confirm data-changing commands
+        </label>
+        <div class="chiprow" style="margin-top:10px">${cmds.map(c=>`<button class="chip" data-term="${esc(c.usage||c.name)}">${esc(c.usage||c.name)}</button>`).join("")}</div>
+      </div>
+      <div class="card" id="termOut" style="margin-top:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;max-height:52vh;overflow:auto">${termOutHTML()}</div>`
+    :`<div class="card" style="margin-top:12px">
+        <b>No terminal access</b>
+        <div class="note" style="margin-top:6px">This account holds ${perms.size} permission${perms.size===1?"":"s"} but not <code>terminal.access</code>, which only the Admin Command Line panel grants.</div>
+        <button class="btn primary" id="termGrant" style="margin-top:10px">DEV: grant myself Owner</button>
+      </div>`}`;
+
+  if(!canUse){
+    const grant=$("#termGrant",v);
+    if(grant) grant.onclick=async()=>{
+      const current=await HIER.getUserPanels(ME.id);
+      await HIER_ENV.adapters.store.setUserPanels(ME.id,[...new Set([...current,"adminCommandLine"])]);
+      toast("⌨️","Owner granted (demo)","Admin Command Line panel added");
+      paintTerminal(v);
+    };
+    return;
+  }
+  const input=$("#termIn",v);
+  async function run(cmdText){
+    const cmd=String(cmdText||"").trim();
+    if(!cmd) return;
+    const confirmed=$("#termConfirm",v)&&$("#termConfirm",v).checked;
+    let out;
+    try{
+      const r=await HIER.executeTerminalCommand({command:cmd, confirmed:!!confirmed});
+      if(r.ok){ out=JSON.stringify(r.data,null,2); }
+      else if(r.requiresConfirmation){ out=(r.message||"Confirmation required.")+`\nTick "confirm data-changing commands" and run it again.`; }
+      else { out=r.message||"Command failed."; }
+    }catch(e){
+      out=(e&&e.code?e.code+": ":"")+(e&&e.message||String(e));
+    }
+    TERM_LOG.push({cmd,out:out||"(no output)"});
+    input.value="";
+    const box=$("#termOut",v);
+    if(box){ box.innerHTML=termOutHTML(); box.scrollTop=box.scrollHeight; }
+  }
+  $("#termRun",v).onclick=()=>run(input.value);
+  input.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); run(input.value); } });
+  $$("[data-term]",v).forEach(b=>b.onclick=()=>run(b.dataset.term));
 }
 
 /* ---------- HOME ---------- */
@@ -2505,7 +2933,7 @@ function completeGameRun(gameId,score,win,extraStats,overridePoints){
   score=safeScore(score);
   extraStats=extraStats||{};
 
-  gameStats(gameId,score,!!win);
+  gameStats(gameId,score,!!win,extraStats);
 
   const u=DB.users[ME.id];
   const gs=u.gameStats[gameId]=u.gameStats[gameId]||{plays:0,bestScore:0,wins:0,lastPlayed:0};
@@ -2523,7 +2951,7 @@ function completeGameRun(gameId,score,win,extraStats,overridePoints){
 
   const wanted=overridePoints==null?gameRewardAmount(gameId,score,extraStats):overridePoints;
   const rewardId=`game:${todayKey()}:${gameId}:${Date.now()}:${uid()}`;
-  const result=awardPoints(wanted,source,rewardId);
+  const result=awardPoints(wanted,source,{bucket:"games",game:gameId,rewardId});
 
   return {
     awarded:result.awarded||0,
@@ -2564,7 +2992,7 @@ function fitCanvas(cv,height){
 function viewGames(v){
   checkDailyReset();
   const u=DB.users[ME.id];
-  const gameCap=(u.dailyCaps&&u.dailyCaps.game)||0;
+  const gameCap=(u.dailyCaps&&u.dailyCaps.games)||0;
 
   v.innerHTML=`
     <div class="game-hero">
@@ -2647,7 +3075,7 @@ function getRankedUsers(type){
       return u;
     });
 
-  const value=u=>type==="daily" ? safeInt(u.pointsToday,0,1e9) : safeInt(u.points,0,1e9);
+  const value=u=>type==="daily" ? safeInt(u.pointsToday,0,1e9) : safeInt(u.lifetimeEarned,0,1e12);
 
   return users.sort((a,b)=>{
     // Highest Points first
@@ -2661,7 +3089,7 @@ function getRankedUsers(type){
 
 function leaderboardPlayerRow(u,rank,type,extraClass){
   const isMe=u.id===ME.id;
-  const points=type==="daily" ? safeInt(u.pointsToday,0,1e9) : safeInt(u.points,0,1e9);
+  const points=type==="daily" ? safeInt(u.pointsToday,0,1e9) : safeInt(u.lifetimeEarned,0,1e12);
 
   let rankLabel="#"+rank;
   if(rank===1) rankLabel="🥇";
@@ -2828,8 +3256,7 @@ function getDailyMissionDefinitions(){
   const ds=u.dailyStats||{plays:0,wins:0,shorts:0,videos:0,missions:0};
 
   // Lab Escape is treated as the “daily challenge” because it has four stages
-  const labStats=u.gameStats?.lab||{};
-  const labCompletedToday=(labStats.lastPlayed&&dateKey(new Date(labStats.lastPlayed))===todayKey()&&labStats.wins>0);
+  const labCompletedToday=safeInt(ds.labCompletions,0,1e9)>0;
 
   return [
     {
@@ -3779,6 +4206,11 @@ function viewAdmin(v){
           const admin=user(a.adminId);
           const student=user(a.studentId);
 
+          if(a.type==="exchange_settings"){return `
+            <div class="admin-audit-row">
+              <b>⚙️ ${esc(a.reason||"Exchange settings updated")}</b>
+              <div class="vsub">By ${esc(admin.name)} · ${ago(a.ts)}</div>
+            </div>`}
           return `
             <div class="admin-audit-row">
               <b>💎 +${nf(a.amount)} Diamonds credited to ${esc(student.name)}</b>
@@ -4554,7 +4986,7 @@ function gameLabEscape(v){
   function finish(){
     clearInterval(tick);
     elapsed=Math.floor((Date.now()-startTime)/1000);
-    const result=completeGameRun("lab",score,true,{time:elapsed,bestTime:Math.max(1,99999-elapsed),rooms:4});
+    const result=completeGameRun("lab",score,true,{time:elapsed,rooms:4});
 
     v.innerHTML=`
       <div class="game-layout">
@@ -5327,7 +5759,8 @@ function mountAvatar3D(el,packId,opts){
   let rotY=0, rotX=0.15, isDragging=false, lastX=0, lastY=0, autoRot=true;
 
   loadThree().then(THREE=>{
-    if(disposed||!THREE||!canvas) return;
+    if(disposed||!canvas) return;
+    if(!THREE){ if(loadingEl) loadingEl.textContent="3D unavailable"; return; }
     if(loadingEl) loadingEl.remove();
     scene=new THREE.Scene();
     if(cosmetics.background==="bg_galaxy") scene.background=new THREE.Color(0x1a1033);
