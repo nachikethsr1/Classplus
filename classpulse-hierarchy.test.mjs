@@ -449,3 +449,64 @@ test('extra. weekKey uses configured timezone week boundaries', async () => {
   const key = weekKey(d, 'Asia/Kolkata');
   assert.match(key, /^2026-W\d{2}$/);
 });
+
+/* --------------------------------------------------------------------------
+ * Regression: adapter contract completeness
+ * --------------------------------------------------------------------------
+ * The service methods this module calls must all be DECLARED by
+ * createDefaultAdapters(). Anything missing is `undefined` instead of
+ * fail-closed, so a backend that implements only the documented surface
+ * gets a raw TypeError rather than BackendUnavailableError. This caught
+ * store.getVideo / updateVideoVisibility / getLedgerSummary.
+ */
+test('regression. every adapter method the module calls is declared fail-closed', async () => {
+  const { readFileSync } = await import('node:fs');
+  const src = readFileSync(new URL('./classpulse-hierarchy.js', import.meta.url), 'utf8');
+
+  const used = new Set();
+  for (const m of src.matchAll(/deps\.([a-zA-Z]+)\.([a-zA-Z_$][\w$]*)\s*\(/g)) {
+    used.add(`${m[1]}.${m[2]}`);
+  }
+
+  const block = src.slice(src.indexOf('export function createDefaultAdapters'),
+                          src.indexOf('4. Internal helpers'));
+  const declared = new Set();
+  for (const m of block.matchAll(/failClosedAdapter\('([a-zA-Z]+)',\s*\[([^\]]*)\]/g)) {
+    for (const name of m[2].matchAll(/'([a-zA-Z_$][\w$]*)'/g)) declared.add(`${m[1]}.${name[1]}`);
+  }
+  for (const svc of ['clock', 'navigation', 'cosmetics', 'audit']) {
+    for (const m of block.matchAll(new RegExp(svc + ':\\s*\\{([^}]*)\\}', 'g'))) {
+      for (const name of m[1].matchAll(/([a-zA-Z_$][\w$]*)\s*:/g)) declared.add(`${svc}.${name[1]}`);
+    }
+  }
+
+  const missing = [...used].filter(k => !declared.has(k)).sort();
+  assert.deepEqual(missing, [], `undeclared adapter methods: ${missing.join(', ')}`);
+});
+
+/* Extra: video visibility is applied through the trusted store only */
+test('extra. setVideoVisibility enforces ownership and writes via the store', async () => {
+  seedUser(env, 'teacher', { panels: [PANEL.ADMIN] });
+  seedUser(env, 'other', { panels: [PANEL.ADMIN] });
+  seedVideo(env, { id: 'v1', ownerId: 'teacher', visibility: { mode: 'public', groupId: null } });
+
+  // An Admin who does not own the video cannot change it.
+  await assert.rejects(() => h.setVideoVisibility({
+    actorId: 'other', videoId: 'v1', mode: 'followers' }), PermissionDeniedError);
+  assert.equal(db.videos.get('v1').visibility.mode, 'public');
+
+  // The owner can, and canViewVideo then honours it.
+  const updated = await h.setVideoVisibility({
+    actorId: 'teacher', videoId: 'v1', mode: 'followers' });
+  assert.equal(updated.visibility.mode, 'followers');
+  assert.equal(await h.canViewVideo({ viewerId: 'student', video: db.videos.get('v1') }), false);
+
+  // An invalid mode is rejected and leaves the stored value untouched.
+  await assert.rejects(() => h.setVideoVisibility({
+    actorId: 'teacher', videoId: 'v1', mode: 'everyone' }), ValidationError);
+  assert.equal(db.videos.get('v1').visibility.mode, 'followers');
+
+  // Unknown video fails closed.
+  await assert.rejects(() => h.setVideoVisibility({
+    actorId: 'teacher', videoId: 'nope', mode: 'public' }), /NOT_FOUND|not found/);
+});

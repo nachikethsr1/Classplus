@@ -192,7 +192,12 @@ export function createDefaultAdapters() {
       'getBalance', 'applyLedger', 'findLedgerByIdempotencyKey', 'getConversionUsage',
       'recordConversionUsage', 'getWeeklyClaim', 'recordWeeklyClaim', 'isSuspended',
       'createSuspension', 'removeSuspension', 'getSuspensions', 'saveGame', 'getGame',
-      'listGames', 'listUsers', 'getAuditEvents', 'getPolicy']),
+      'listGames', 'listUsers', 'getAuditEvents', 'getPolicy',
+      // Used by the video-visibility and terminal-ledger paths. Omitting these
+      // from the contract made them `undefined` instead of fail-closed, so a
+      // backend that implemented only the documented surface threw a raw
+      // TypeError instead of BackendUnavailableError.
+      'getVideo', 'updateVideoVisibility', 'getLedgerSummary']),
     // Atomic transactional unit (BEGIN/COMMIT/ROLLBACK semantics).
     tx: failClosedAdapter('tx', ['run']),
     // Server clock + timezone. Default timezone Asia/Kolkata unless overridden.
