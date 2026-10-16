@@ -1964,6 +1964,10 @@ function renderSide(){
     ${item("Announcements","📢","cat","Announcements")}
     ${item("All channels","🏫","channels")}
     ${item("Avatars","🎭","avatars")}
+    <div class="sdiv"></div>
+    <div class="slabel">Developer demo</div>
+    ${item("Panels","🧩","panels")}
+    ${item("Owner terminal","⌨️","terminal")}
     ${ME.role==="teacher"?`<div class="sdiv"></div><div class="slabel">Staff</div>${item("Admin dashboard","🛡️","admin")}`:""}
     <div class="sdiv"></div>
     ${item("Settings","⚙️","settings")}
@@ -2044,6 +2048,8 @@ function renderView(){
   if(R==="you") return viewChannel(v,"c_"+ME.id);
   if(R==="studio") return viewStudio(v);
   if(R==="avatars"||R==="models") return viewAvatars(v);
+  if(R==="panels") return viewPanels(v);
+  if(R==="terminal") return viewTerminal(v);
   if(R==="liked") return viewList(v,"👍 Liked videos",DB.videos.filter(x=>x.likes.includes(ME.id)&&visible(x)));
   if(R==="search") return viewSearch(v,ROUTE.arg);
   if(R==="channels") return viewChannels(v);
@@ -2190,6 +2196,287 @@ function viewAvatars(v){
   const sh=$("[data-go-shop]",v); if(sh) sh.onclick=()=>go("shop");
   mountModel(m);
   cleanups.push(unmountModels);
+}
+
+/* ==========================================================================
+   HIERARCHY — dev/demo wiring for classpulse-hierarchy.js
+   --------------------------------------------------------------------------
+   DEV ONLY. This build runs the hierarchy's "trusted" adapters in the browser
+   and snapshots them to localStorage. Anyone with devtools can grant
+   themselves Owner. A real deployment must run these adapters on a server.
+   ========================================================================== */
+const HIER_KEY="classpulse.hierarchy.v1";
+let HIER=null, HIER_ENV=null, HIER_CORE=null, HIER_BRIDGE=null, HIER_LOADING=null;
+let TERM_LOG=[];
+
+/* Seam: tests replace this with the already-imported module pair. */
+async function loadHierarchyModules(){
+  return {
+    core: await import("./classpulse-hierarchy.js"),
+    bridge: await import("./classpulse-hierarchy.browser.js")
+  };
+}
+function hierSeedUsers(){
+  return Object.values(DB.users).map(u=>({
+    id:u.id,
+    verifiedTeacher:u.role==="teacher",
+    // A verified teacher's Admin panel is granted by the trusted process, so
+    // the demo mirrors that here rather than letting the module infer it.
+    panels:u.role==="teacher"?["admin"]:[],
+    points:safeInt(u.points,0,1e9),
+    diamonds:0
+  }));
+}
+async function ensureHierarchy(){
+  if(HIER) return HIER;
+  if(HIER_LOADING) return HIER_LOADING;
+  HIER_LOADING=(async()=>{
+    const {core,bridge}=await loadHierarchyModules();
+    HIER_CORE=core;
+    HIER_BRIDGE=bridge;
+    HIER_ENV=bridge.createBrowserAdapters({storageKey:HIER_KEY,users:hierSeedUsers()});
+    HIER=new core.ClassPulseHierarchy(HIER_ENV.adapters);
+    return HIER;
+  })();
+  try{ return await HIER_LOADING; }
+  catch(err){ HIER_LOADING=null; throw err; }   // allow a retry after a failed load
+}
+function hierSync(){
+  if(!HIER_ENV||!ME) return;
+  HIER_ENV.setCurrentUser(ME.id);
+  if(HIER_BRIDGE) HIER_BRIDGE.ensureHierarchyUser(HIER_ENV.db,{
+    id:ME.id,
+    verifiedTeacher:ME.role==="teacher",
+    panels:ME.role==="teacher"?["admin"]:[],
+    points:safeInt(ME.points,0,1e9)
+  });
+}
+function hierLoadError(err){
+  return `<div class="card" style="padding:20px">
+    <b>⚠️ Could not load the hierarchy modules</b>
+    <div class="note" style="margin-top:8px">ES modules need http(s). Open this page from a web server or GitHub Pages, not <code>file://</code>.</div>
+    <div class="vsub" style="margin-top:6px">${esc(String(err&&err.message||err))}</div></div>`;
+}
+async function hierAuditHTML(){
+  const events=await HIER_ENV.adapters.store.getAuditEvents();
+  const recent=events.slice(-8).reverse();
+  if(!recent.length) return `<div class="vsub">No privileged actions recorded yet.</div>`;
+  return recent.map(e=>{
+    const at=e.at?new Date(e.at).getTime():Date.now();
+    return `<div class="vsub" style="margin-bottom:6px"><b>${esc(e.action)}</b> · ${esc(e.classification||"")} · ${esc(ago(at))}</div>`;
+  }).join("");
+}
+function viewPanels(v){
+  v.innerHTML=`<div class="note" style="padding:24px">Loading hierarchy…</div>`;
+  ensureHierarchy().then(()=>{
+    if(ROUTE.name!=="panels") return;
+    hierSync(); paintPanels(v);
+  }).catch(err=>{ if(ROUTE.name==="panels") v.innerHTML=hierLoadError(err); });
+}
+async function paintPanels(v){
+  const core=HIER_CORE, id=ME.id;
+  const panels=await HIER.getUserPanels(id);
+  const owned=new Set(panels);
+  const perms=[...await HIER.getEffectivePermissions(id)].sort();
+  const bal=await HIER_ENV.adapters.store.getBalance(id);
+  const allowance=core.effectiveWeeklyAllowance(panels,{});
+  const dayLimit=core.effectiveDailyConversionLimit(panels,{});
+  const others=Object.values(DB.users).filter(u=>u.id!==id);
+
+  v.innerHTML=`
+    <div class="economy-hero">
+      <h1>🧩 Panels &amp; Hierarchy</h1>
+      <p>Live demo of <b>classpulse-hierarchy.js</b> — panels, capability permissions, the diamond ledger and the owner terminal.</p>
+      <div class="economy-balances">
+        <div class="economy-balance"><div class="symbol">💎</div><strong>${fmtNum(bal.diamonds)}</strong><small>Diamonds</small></div>
+        <div class="economy-balance"><div class="symbol">⚡</div><strong>${fmtNum(bal.points)}</strong><small>Points</small></div>
+        <div class="economy-balance"><div class="symbol">🎫</div><strong>${owned.size}</strong><small>Panels</small></div>
+      </div>
+    </div>
+
+    <div class="card" style="border-color:var(--warn)">
+      <b>⚠️ DEV DEMO</b>
+      <div class="note" style="margin-top:6px">The hierarchy's trusted backend is running in this browser and saving to localStorage. A real deployment must run these adapters on a server — here, devtools can grant anyone Owner.</div>
+    </div>
+
+    <div class="grid2" style="margin-top:14px">
+      <div class="card">
+        <b>⚡ Convert Points → Diamonds</b>
+        <div class="note" style="margin-top:6px">${dayLimit===Infinity?"No daily limit on your panels.":"Daily limit: "+fmtNum(dayLimit)+" Diamonds."} Spends from the hierarchy ledger, which starts at your profile Points.</div>
+        <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+          <input class="inp" id="hConvert" type="number" min="1" value="50" style="flex:1;min-width:110px">
+          <button class="btn primary" id="hConvertGo">Convert</button>
+          <button class="btn" id="hSyncPoints">↻ Sync Points</button>
+        </div>
+      </div>
+      <div class="card">
+        <b>🎁 Weekly allowance</b>
+        <div class="note" style="margin-top:6px">${allowance?`Your panels grant ${fmtNum(allowance)} Diamonds per week. Claiming twice in the same week is a no-op.`:"Noob grants no weekly allowance."}</div>
+        <button class="btn ${allowance?"primary":""}" id="hClaim" style="margin-top:10px" ${allowance?"":"disabled"}>Claim this week</button>
+      </div>
+    </div>
+
+    <div class="sect">Panels (${owned.size}/${Object.keys(core.PANELS).length})</div>
+    <div class="shop-grid">
+      ${Object.values(core.PANELS).map(pan=>{
+        const has=owned.has(pan.id);
+        const limit=pan.dailyConversionLimitDiamonds==null?"inherits":fmtNum(pan.dailyConversionLimitDiamonds);
+        return `<div class="pack-card">
+          <div class="pack-body">
+            <div class="between"><b>${esc(pan.displayName)}</b>${has?`<span class="tag g">OWNED</span>`:""}</div>
+            <div class="vsub" style="margin-top:4px">${pan.permissions.map(x=>`<code>${esc(x)}</code>`).join(" ")}</div>
+            <div class="vsub" style="margin-top:6px">Weekly ${fmtNum(pan.weeklyAllowanceDiamonds)} 💎 · Daily convert ${limit}</div>
+            <div class="pack-price">${pan.purchasable?"💎 "+fmtNum(pan.priceDiamonds):"Granted only"}</div>
+            <div class="pack-actions">
+              ${has?`<button class="btn" disabled>✓ Owned</button>`
+                   :pan.purchasable?`<button class="btn primary" data-hbuy="${esc(pan.id)}">Buy</button>`
+                   :`<button class="btn" disabled>Not for sale</button>`}
+            </div>
+          </div></div>`;
+      }).join("")}
+    </div>
+
+    <div class="sect">Your permissions (${perms.length})</div>
+    <div class="card"><div class="row" style="gap:6px;flex-wrap:wrap">${perms.map(x=>`<span class="tag">${esc(x)}</span>`).join("")}</div></div>
+
+    <div class="sect">🎁 Gift Diamonds</div>
+    <div class="card">
+      <div class="note">Each gift is one atomic, idempotent ledger transfer.</div>
+      <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+        <select class="inp" id="hGiftTo" style="flex:1;min-width:150px">${others.map(u=>`<option value="${esc(u.id)}">${esc(u.name)}</option>`).join("")}</select>
+        <input class="inp" id="hGiftAmt" type="number" min="1" value="5" style="width:100px">
+        <button class="btn primary" id="hGiftGo">Send</button>
+      </div>
+    </div>
+
+    <div class="sect">Recent privileged actions</div>
+    <div class="card">${await hierAuditHTML()}</div>
+    <p class="note" style="margin-top:12px">These balances live in the hierarchy ledger and are separate from the app's own Points / Diamond shop.</p>`;
+
+  const sync=$("#hSyncPoints",v);
+  if(sync) sync.onclick=async()=>{
+    const bal2=await HIER_ENV.adapters.store.getBalance(id);
+    const delta=safeInt(ME.points,0,1e9)-safeInt(bal2.points,0,1e9);
+    if(!delta){ toast("↻","Already in sync",fmtNum(bal2.points)+" points"); return; }
+    await HIER_ENV.adapters.store.applyLedger(id,{
+      transactionId:"devsync_"+uid(), idempotencyKey:"devsync:"+uid(),
+      type:"dev.sync", srcAccount:id, dstAccount:id, amount:Math.abs(delta),
+      itemId:null, reason:"profile points sync", at:new Date(), status:"committed"
+    },{pointsDelta:delta});
+    toast("↻","Points synced",(delta>0?"+":"")+fmtNum(delta)+" points");
+    paintPanels(v);
+  };
+  const convert=$("#hConvertGo",v);
+  if(convert) convert.onclick=async()=>{
+    const amt=safeInt($("#hConvert",v).value,1,1e9);
+    try{
+      const r=await HIER.convertPointsToDiamonds({amountDiamonds:amt});
+      toast("💎","Converted",fmtNum(amt)+" Diamonds"+(r.duplicated?" (already processed)":""));
+      paintPanels(v);
+    }catch(e){ toast("⚠️","Conversion failed",e&&e.message||String(e)); }
+  };
+  const claim=$("#hClaim",v);
+  if(claim) claim.onclick=async()=>{
+    try{
+      const r=await HIER.grantWeeklyAllowance({});
+      toast("🎁",r.duplicated?"Already claimed":"Allowance granted",
+        r.duplicated?"This week was already claimed.":fmtNum(allowance)+" Diamonds");
+      paintPanels(v);
+    }catch(e){ toast("⚠️","Claim failed",e&&e.message||String(e)); }
+  };
+  $$("[data-hbuy]",v).forEach(b=>b.onclick=async()=>{
+    const pid=b.dataset.hbuy;
+    try{
+      await HIER.purchasePanel({panelId:pid});
+      toast("🎫","Panel unlocked",pid);
+      paintPanels(v);
+    }catch(e){ toast("⚠️","Purchase failed",e&&e.message||String(e)); }
+  });
+  const gift=$("#hGiftGo",v);
+  if(gift) gift.onclick=async()=>{
+    const to=$("#hGiftTo",v).value, amt=safeInt($("#hGiftAmt",v).value,1,1e9);
+    try{
+      await HIER.giftDiamonds({toUserId:to, amountDiamonds:amt});
+      toast("🎁","Sent",fmtNum(amt)+" Diamonds to "+((DB.users[to]||{}).name||to));
+      paintPanels(v);
+    }catch(e){ toast("⚠️","Gift failed",e&&e.message||String(e)); }
+  };
+}
+
+/* ---------- owner terminal ---------- */
+function viewTerminal(v){
+  v.innerHTML=`<div class="note" style="padding:24px">Loading terminal…</div>`;
+  ensureHierarchy().then(()=>{
+    if(ROUTE.name!=="terminal") return;
+    hierSync(); paintTerminal(v);
+  }).catch(err=>{ if(ROUTE.name==="terminal") v.innerHTML=hierLoadError(err); });
+}
+function termOutHTML(){
+  if(!TERM_LOG.length) return `Type a command, or pick one below. Start with "help me".`;
+  return TERM_LOG.slice(-40).map(l=>
+    `<div style="margin-bottom:10px"><div class="mut">&gt; ${esc(l.cmd)}</div>`+
+    `<div style="white-space:pre-wrap">${esc(l.out)}</div></div>`).join("");
+}
+async function paintTerminal(v){
+  const perms=await HIER.getEffectivePermissions(ME.id);
+  const canUse=perms.has("terminal.access");
+  const cmds=canUse?HIER.terminal.listFor(perms):[];
+  v.innerHTML=`
+    <div class="sect">⌨️ Owner Terminal</div>
+    <div class="card" style="border-color:var(--warn)">
+      <b>⚠️ DEV DEMO</b>
+      <div class="note" style="margin-top:6px">Commands run registered service methods only — no eval, no shell, no raw queries. Access requires the <b>Admin Command Line</b> panel.</div>
+    </div>
+    ${canUse?`
+      <div class="card" style="margin-top:12px">
+        <div class="row" style="gap:8px;flex-wrap:wrap">
+          <input class="inp" id="termIn" placeholder='Try "help me"' style="flex:1;min-width:200px" autocomplete="off">
+          <button class="btn primary" id="termRun">Run</button>
+        </div>
+        <label class="row" style="gap:7px;margin-top:10px;font-size:12.5px;color:var(--muted)">
+          <input type="checkbox" id="termConfirm"> confirm data-changing commands
+        </label>
+        <div class="chiprow" style="margin-top:10px">${cmds.map(c=>`<button class="chip" data-term="${esc(c.usage||c.name)}">${esc(c.usage||c.name)}</button>`).join("")}</div>
+      </div>
+      <div class="card" id="termOut" style="margin-top:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;max-height:52vh;overflow:auto">${termOutHTML()}</div>`
+    :`<div class="card" style="margin-top:12px">
+        <b>No terminal access</b>
+        <div class="note" style="margin-top:6px">This account holds ${perms.size} permission${perms.size===1?"":"s"} but not <code>terminal.access</code>, which only the Admin Command Line panel grants.</div>
+        <button class="btn primary" id="termGrant" style="margin-top:10px">DEV: grant myself Owner</button>
+      </div>`}`;
+
+  if(!canUse){
+    const grant=$("#termGrant",v);
+    if(grant) grant.onclick=async()=>{
+      const current=await HIER.getUserPanels(ME.id);
+      await HIER_ENV.adapters.store.setUserPanels(ME.id,[...new Set([...current,"adminCommandLine"])]);
+      toast("⌨️","Owner granted (demo)","Admin Command Line panel added");
+      paintTerminal(v);
+    };
+    return;
+  }
+  const input=$("#termIn",v);
+  async function run(cmdText){
+    const cmd=String(cmdText||"").trim();
+    if(!cmd) return;
+    const confirmed=$("#termConfirm",v)&&$("#termConfirm",v).checked;
+    let out;
+    try{
+      const r=await HIER.executeTerminalCommand({command:cmd, confirmed:!!confirmed});
+      if(r.ok){ out=JSON.stringify(r.data,null,2); }
+      else if(r.requiresConfirmation){ out=(r.message||"Confirmation required.")+`\nTick "confirm data-changing commands" and run it again.`; }
+      else { out=r.message||"Command failed."; }
+    }catch(e){
+      out=(e&&e.code?e.code+": ":"")+(e&&e.message||String(e));
+    }
+    TERM_LOG.push({cmd,out:out||"(no output)"});
+    input.value="";
+    const box=$("#termOut",v);
+    if(box){ box.innerHTML=termOutHTML(); box.scrollTop=box.scrollHeight; }
+  }
+  $("#termRun",v).onclick=()=>run(input.value);
+  input.addEventListener("keydown",e=>{ if(e.key==="Enter"){ e.preventDefault(); run(input.value); } });
+  $$("[data-term]",v).forEach(b=>b.onclick=()=>run(b.dataset.term));
 }
 
 /* ---------- HOME ---------- */
