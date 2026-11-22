@@ -1,0 +1,31 @@
+const {test,after}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs/promises');
+const os=require('node:os');
+const path=require('node:path');
+process.env.ADMIN_PASSWORD='test-only-password';
+const dir=path.join(os.tmpdir(),'portfolio-test-'+process.pid);process.env.DATA_DIR=dir;
+const {server,validate}=require('../server');
+const ready=new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+after(async()=>{await new Promise(r=>server.close(r));await fs.rm(dir,{recursive:true,force:true});});
+const project={id:'demo-landing',title:'My project',description:'Test',category:'landing',tags:['HTML'],published:true,entryPath:'index.html',files:[{path:'index.html',data:Buffer.from('<h1>Hello</h1>').toString('base64')}]};
+test('shared publication, owner auth, edit, hide and delete',async()=>{
+ await ready; const base=`http://127.0.0.1:${server.address().port}`;
+ const call=(url,method='GET',body,cookie)=>fetch(base+url,{method,headers:{'Content-Type':'application/json',...(cookie?{cookie}:{})},...(body?{body:JSON.stringify(body)}:{})});
+ assert.equal((await call('/api/projects','PUT',project)).status,401);
+ assert.equal((await call('/api/login','POST',{password:'wrong'})).status,401);
+ const login=await call('/api/login','POST',{password:'test-only-password'});assert.equal(login.status,200);const cookie=login.headers.get('set-cookie').split(';')[0];
+ assert.equal((await call('/api/projects','PUT',project,cookie)).status,200);
+ assert.equal((await (await call('/api/projects')).json())[0].title,'My project');
+ assert.equal((await call('/api/projects','PUT',{...project,title:'Updated',published:false},cookie)).status,200);
+ assert.deepEqual(await (await call('/api/projects')).json(),[{id:'demo-landing',published:false,files:[],tags:[]}]);
+ assert.equal((await (await call('/api/projects','GET',null,cookie)).json())[0].title,'Updated');
+ assert.equal((await call('/api/projects/demo-landing','DELETE',null,cookie)).status,200);
+ assert.deepEqual(await (await call('/api/projects','GET',null,cookie)).json(),[]);
+ assert.equal((await call('/data/projects.json')).status,404);
+ assert.equal((await call('/')).status,200);
+});
+test('reject traversal and invalid entry files',()=>{
+ assert.throws(()=>validate({...project,files:[{path:'../index.html',data:''}]}));
+ assert.throws(()=>validate({...project,entryPath:'missing.html'}));
+});
