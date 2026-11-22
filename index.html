@@ -10,7 +10,7 @@
     /* ============================================================
        ITZNOTDEMO — single-file portfolio
        Edit the ABOUT / CONTACT copy near the end of the HTML.
-       Uploaded projects are stored in this browser's IndexedDB.
+       Uploaded projects are stored on the portfolio server.
        ============================================================ */
     :root {
       color-scheme: dark;
@@ -347,7 +347,7 @@
         <button class="btn btn-primary btn-small" id="openFullPreview">Open full preview ↗</button>
       </div>
       <div class="preview-frame-wrap"><div class="preview-device" id="previewDevice"><iframe id="projectFrame" title="Website project preview" sandbox="allow-scripts allow-forms allow-popups" referrerpolicy="no-referrer"></iframe></div></div>
-      <div class="preview-bottom"><p>This website runs inside a sandboxed preview. Uploaded project code is isolated from the portfolio page; some server-powered features and relative JavaScript fetches need a hosted backend.</p><div class="preview-bottom-actions"><button class="btn btn-ghost btn-small" id="previewBackBtn">Back to work</button><button class="btn btn-dark btn-small" id="nextProject">Next project →</button></div></div>
+      <div class="preview-bottom"><p>This website runs inside a sandboxed preview. Uploaded project code is isolated from the portfolio page; some server-powered features and relative JavaScript fetches need a hosted backend.</p><div class="preview-bottom-actions"><button class="btn btn-primary btn-small" id="bottomFullPreview">Full screen ↗</button><button class="btn btn-ghost btn-small" id="previewBackBtn">Done</button><button class="btn btn-dark btn-small" id="nextProject">Next project →</button></div></div>
     </div>
   </main>
 
@@ -358,11 +358,11 @@
 
   <div class="dashboard-overlay" id="dashboardOverlay" aria-modal="true" role="dialog" aria-labelledby="dashboardTitle">
     <div class="dashboard">
-      <div class="dashboard-head"><div><h2 id="dashboardTitle">Project manager</h2><p>Local owner workspace · This browser only</p></div><button class="icon-btn" id="closeDashboard" aria-label="Close dashboard">×</button></div>
+      <div class="dashboard-head"><div><h2 id="dashboardTitle">Project manager</h2><p>Owner workspace · Shared server storage</p></div><button class="icon-btn" id="closeDashboard" aria-label="Close dashboard">×</button></div>
       <div class="dashboard-body">
-        <div class="dashboard-notice"><strong>Local demo mode — not secure owner authentication.</strong> Anyone who can open this file can access this manager. Projects are saved in this browser’s IndexedDB and are not uploaded to a public server. Add server-side authentication, storage and isolated preview hosting before deploying this as a public portfolio.</div>
+        <div class="dashboard-notice"><strong>Upload once, share everywhere.</strong> Published projects are stored on the server and visible on every device. Use Edit to replace an existing example or update your own project. Leave the file empty when editing to keep its current website.</div>
         <div class="dashboard-grid">
-          <section class="dash-panel"><h3>Your uploaded projects</h3><div class="dash-project-list" id="dashProjectList"></div><div class="dash-footer">Built-in concept demos are examples and are not counted as your uploaded work. Use the form to add your own HTML or ZIP projects.</div></section>
+          <section class="dash-panel"><h3>Your uploaded projects</h3><div class="dash-project-list" id="dashProjectList"></div><div class="dash-footer">Edit any existing example to replace it with your own HTML or ZIP, or add a new project.</div></section>
           <section class="dash-panel">
             <h3 id="formHeading">Add a project</h3>
             <form id="projectForm">
@@ -381,7 +381,7 @@
             </form>
           </section>
         </div>
-        <div class="dash-footer"><strong>Production architecture:</strong> use real server-side auth (for example Supabase Auth), private upload permissions, server-validated ZIP extraction, object storage, a database for project metadata, and a separate preview origin. The iframe is sandboxed here; the static file cannot provide secure authentication or publish uploads for other visitors.</div>
+        <div class="dash-footer">Deploy this Node server with a persistent data directory. Keep your manager password private. Uploaded websites run in sandboxed previews.</div>
       </div>
     </div>
   </div>
@@ -393,8 +393,6 @@
        feel alive. They are labelled DEMO and can be replaced by
        projects uploaded through the local manager.
        ============================================================ */
-    const DB_NAME = 'itznotdemo-portfolio-v1';
-    const STORE_NAME = 'projects';
     const MAX_ZIP_BYTES = 25 * 1024 * 1024;
     const MAX_SITE_BYTES = 20 * 1024 * 1024;
     const MAX_FILE_BYTES = 8 * 1024 * 1024;
@@ -426,9 +424,6 @@
     const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
     const escapeHTML = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const cleanId = () => 'p-' + (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
-    let db = null;
-    let dbUnavailable = false;
-    let memoryProjects = [];
     let uploadedProjects = [];
     let currentProjectId = null;
     let currentPreviewMarkup = '';
@@ -450,64 +445,41 @@
     }
     function closeUploadProgress() { $('#uploadStatus').classList.remove('show'); $('#uploadProgress').style.width = '0%'; }
     function typeLabel(category) { return category === 'landing' ? 'Landing Page' : 'Full Website'; }
-    function getProject(id) { return [...DEMO_PROJECTS, ...uploadedProjects].find(p => p.id === id); }
+    function getProject(id) { return allProjects().find(p => p.id === id); }
 
     /* ============================================================
-       INDEXEDDB — projects remain in this browser, not on a server.
+       SHARED SERVER STORAGE
        ============================================================ */
-    function openDatabase() {
-      return new Promise((resolve, reject) => {
-        if (!('indexedDB' in window)) { reject(new Error('IndexedDB is unavailable in this browser.')); return; }
-        const request = indexedDB.open(DB_NAME, 1);
-        request.onupgradeneeded = () => {
-          const database = request.result;
-          if (!database.objectStoreNames.contains(STORE_NAME)) database.createObjectStore(STORE_NAME, { keyPath:'id' });
-        };
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error || new Error('Could not open browser storage.'));
-      });
-    }
-    function dbRequest(mode, action, value) {
-      return new Promise((resolve, reject) => {
-        if (!db) { reject(new Error('Browser database is not connected.')); return; }
-        const tx = db.transaction(STORE_NAME, mode);
-        const store = tx.objectStore(STORE_NAME);
-        let req;
-        try { req = action === 'getAll' ? store.getAll() : action === 'delete' ? store.delete(value) : store.put(value); }
-        catch (err) { reject(err); return; }
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error || new Error('Storage request failed.'));
-      });
+    async function api(url, options={}) {
+      const response = await fetch(url, { ...options, headers: {'Content-Type':'application/json'} });
+      const data = await response.json().catch(()=>({error:'Start the portfolio with npm start; static hosting cannot save uploads.'}));
+      if (!response.ok) throw new Error(data.error || 'Server request failed.');
+      return data;
     }
     async function loadProjects() {
       try {
-        db = await openDatabase();
-        uploadedProjects = await dbRequest('readonly','getAll') || [];
-      } catch (error) {
-        dbUnavailable = true;
-        uploadedProjects = [...memoryProjects];
-        console.warn('IndexedDB unavailable; changes will be kept in memory for this session.', error);
-      }
-      renderProjects();
-      renderDashboardList();
+        const stored = await api('/api/projects');
+        uploadedProjects = stored.map(p=>({...p, thumbnail:p.thumbnail ? dataURLBlob(p.thumbnail) : null,
+          files:p.files.map(f=>({...f,blob:new Blob([Uint8Array.from(atob(f.data),c=>c.charCodeAt(0))],{type:MIME_TYPES[getExt(f.path)]||f.type})}))}));
+      } catch(error) { showToast(error.message); }
+      renderProjects(); renderDashboardList();
+    }
+    function dataURLBlob(value) {
+      const [head,data]=value.split(',');
+      return new Blob([Uint8Array.from(atob(data),c=>c.charCodeAt(0))],{type:head.slice(5).split(';')[0]});
     }
     async function saveProjectRecord(project) {
-      if (db && !dbUnavailable) {
-        try { await dbRequest('readwrite','put',project); }
-        catch (error) { console.warn(error); throw new Error('Could not save in IndexedDB. Check browser storage permissions or available space.'); }
-      } else {
-        const index = memoryProjects.findIndex(p => p.id === project.id);
-        if (index >= 0) memoryProjects[index] = project; else memoryProjects.push(project);
-      }
-      const index = uploadedProjects.findIndex(p => p.id === project.id);
-      if (index >= 0) uploadedProjects[index] = project; else uploadedProjects.push(project);
+      const payload={...project, files:await Promise.all(project.files.map(async f=>({path:f.path,type:f.type,data:bytesToBase64(new Uint8Array(await f.blob.arrayBuffer()))}))), thumbnail:project.thumbnail ? await safeDataURL(project.thumbnail) : null};
+      await api('/api/projects',{method:'PUT',body:JSON.stringify(payload)});
+      const index=uploadedProjects.findIndex(p=>p.id===project.id);
+      if(index>=0) uploadedProjects[index]=project; else uploadedProjects.push(project);
+      const url=thumbUrls.get(project.id); if(url) URL.revokeObjectURL(url); thumbUrls.delete(project.id);
     }
     async function deleteProjectRecord(id) {
-      if (db && !dbUnavailable) await dbRequest('readwrite','delete',id);
-      memoryProjects = memoryProjects.filter(p => p.id !== id);
-      uploadedProjects = uploadedProjects.filter(p => p.id !== id);
-      const url = thumbUrls.get(id); if (url) URL.revokeObjectURL(url); thumbUrls.delete(id);
+      await api('/api/projects/'+encodeURIComponent(id),{method:'DELETE'});
+      uploadedProjects=uploadedProjects.filter(p=>p.id!==id);
     }
+    function allProjects() { return [...DEMO_PROJECTS.filter(p=>!uploadedProjects.some(u=>u.id===p.id)),...uploadedProjects]; }
 
     /* ============================================================
        PORTFOLIO PROJECT CARDS
@@ -536,7 +508,7 @@
       </article>`;
     }
     function renderProjects() {
-      const visible = [...DEMO_PROJECTS, ...uploadedProjects.filter(p => p.published !== false)];
+      const visible = allProjects().filter(p => p.published !== false);
       const landing = visible.filter(p => p.category === 'landing');
       const websites = visible.filter(p => p.category === 'website');
       $('#landingGrid').innerHTML = landing.length ? landing.map(cardMarkup).join('') : `<div class="empty-state"><strong>Your next landing page goes here.</strong><p>Upload an HTML file or ZIP from the manager to add your first project.</p><button class="btn btn-primary btn-small" data-open-manager>Upload a project ↗</button></div>`;
@@ -625,24 +597,33 @@
     }
 
     /* ============================================================
-       LOCAL PROJECT UPLOAD + EDIT / DELETE / PUBLISH
+       PROJECT UPLOAD + EDIT / DELETE / PUBLISH
        ============================================================ */
-    function showDashboard() { $('#dashboardOverlay').classList.add('open'); document.body.classList.add('locked'); renderDashboardList(); }
+    async function showDashboard() {
+      try {
+        const session=await api('/api/session');
+        if(!session.authenticated) {
+          const password=prompt('Enter your manager password'); if(password===null) return;
+          await api('/api/login',{method:'POST',body:JSON.stringify({password})});
+        }
+        await loadProjects();
+      } catch(error) { showToast(error.message); return; }
+      $('#navLinks').classList.remove('open'); $('#menuToggle').setAttribute('aria-expanded','false'); $('#dashboardOverlay').classList.add('open'); document.body.classList.add('locked'); renderDashboardList(); }
     function hideDashboard() { $('#dashboardOverlay').classList.remove('open'); document.body.classList.remove('locked'); }
     function resetProjectForm() {
       $('#projectForm').reset(); $('#editProjectId').value=''; $('#formHeading').textContent='Add a project'; $('#saveProject').textContent='Save project'; $('#cancelEdit').hidden=true; $('#websiteFiles').required=true; closeUploadProgress();
     }
     function renderDashboardList() {
       const list=$('#dashProjectList');
-      if (!uploadedProjects.length) { list.innerHTML='<div style="font-size:10px;color:#9994a3;line-height:1.6;padding:9px 2px">No uploaded projects yet. Add your first website using the form.</div>'; return; }
-      list.innerHTML=uploadedProjects.map(project=>`<div class="dash-project"><div class="dash-project-thumb"></div><div class="dash-project-text"><strong>${escapeHTML(project.title)}</strong><span>${typeLabel(project.category)} · ${project.published===false?'Unpublished':'Published'}</span></div><div class="dash-actions"><button class="mini-btn" data-manage-action="edit" data-id="${escapeHTML(project.id)}">Edit</button><button class="mini-btn" data-manage-action="toggle" data-id="${escapeHTML(project.id)}">${project.published===false?'Publish':'Hide'}</button><button class="mini-btn danger" data-manage-action="delete" data-id="${escapeHTML(project.id)}">Delete</button></div></div>`).join('');
+      if (!allProjects().length) { list.innerHTML='<div style="font-size:10px;color:#9994a3;line-height:1.6;padding:9px 2px">No uploaded projects yet. Add your first website using the form.</div>'; return; }
+      list.innerHTML=allProjects().map(project=>`<div class="dash-project"><div class="dash-project-thumb"></div><div class="dash-project-text"><strong>${escapeHTML(project.title)}</strong><span>${typeLabel(project.category)} · ${project.published===false?'Unpublished':'Published'}</span></div><div class="dash-actions"><button class="mini-btn" data-manage-action="edit" data-id="${escapeHTML(project.id)}">Edit</button><button class="mini-btn" data-manage-action="toggle" data-id="${escapeHTML(project.id)}">${project.published===false?'Publish':'Hide'}</button><button class="mini-btn danger" data-manage-action="delete" data-id="${escapeHTML(project.id)}">Delete</button></div></div>`).join('');
     }
     async function handleProjectSubmit(event) {
       event.preventDefault(); if (isSaving) return;
       const id=$('#editProjectId').value;
-      const existing=id?uploadedProjects.find(p=>p.id===id):null;
+      const existing=id?getProject(id):null;
       const file=$('#websiteFiles').files[0];
-      if (!existing && !file) { showToast('Choose an HTML file or ZIP to continue.'); return; }
+      if ((!existing || existing.isDemo) && !file) { showToast('Choose an HTML file or ZIP to continue.'); return; }
       if (file && file.size > (file.name.toLowerCase().endsWith('.zip')?MAX_ZIP_BYTES:MAX_FILE_BYTES)) { showToast('The selected website file is too large.'); return; }
       const title=$('#projectName').value.trim();
       if (!title) { showToast('Add a project title first.'); return; }
@@ -671,30 +652,32 @@
           thumbnail:thumbnailFile || existing?.thumbnail || null,
           createdAt:existing?.createdAt || Date.now(), updatedAt:Date.now(), isDemo:false
         };
-        setUploadProgress(91,'Saving project','Writing project files to this browser…');
+        setUploadProgress(91,'Saving project','Uploading project files to the server…');
         await saveProjectRecord(project);
-        setUploadProgress(100,'Saved successfully',dbUnavailable?'Session-only mode: browser storage was unavailable.':'Saved in IndexedDB on this device.');
+        setUploadProgress(100,'Saved successfully','Published to shared server storage.');
         renderProjects(); renderDashboardList(); resetProjectForm();
-        showToast(dbUnavailable?'Saved for this session only.':'Project saved in this browser.');
+        showToast('Project saved. Visitors on every device can see published projects.');
       } catch(error) {
         console.error(error); setUploadProgress(0,'Could not save project',error.message || 'Please try again.'); showToast(error.message || 'Upload failed.');
       } finally { isSaving=false; $('#saveProject').disabled=false; $('#saveProject').textContent='Save project'; }
     }
     function editProject(id) {
-      const p=uploadedProjects.find(item=>item.id===id); if (!p) return;
+      const p=getProject(id); if (!p) return;
       $('#editProjectId').value=p.id; $('#projectName').value=p.title; $('#projectDescription').value=p.description||'';
       $('#projectCategory').value=p.category; $('#projectTags').value=(p.tags||[]).join(', '); $('#projectPublished').checked=p.published!==false;
-      $('#websiteFiles').required=false; $('#formHeading').textContent='Edit project'; $('#saveProject').textContent='Update project'; $('#cancelEdit').hidden=false;
+      $('#websiteFiles').required=!!p.isDemo; $('#formHeading').textContent='Edit project'; $('#saveProject').textContent='Update project'; $('#cancelEdit').hidden=false;
       $('#websiteFiles').value=''; $('#projectThumbnail').value=''; $('#projectName').focus();
     }
     async function handleManagerAction(action,id) {
-      const p=uploadedProjects.find(item=>item.id===id); if (!p) return;
+      const p=getProject(id); if (!p) return;
       if (action==='edit') { editProject(id); return; }
       if (action==='toggle') {
+        if(p.isDemo) { showToast('Upload your HTML or ZIP using Edit first.'); editProject(id); return; }
         p.published=p.published===false; p.updatedAt=Date.now(); await saveProjectRecord(p); renderProjects(); renderDashboardList(); showToast(p.published?'Project published.':'Project hidden from the portfolio.'); return;
       }
       if (action==='delete') {
-        if (!confirm(`Delete “${p.title}” and its saved website files from this browser?`)) return;
+        if(p.isDemo) { showToast('Replace this example with your own files using Edit first.'); return; }
+        if (!confirm(`Delete “${p.title}” and its saved website files from the server?`)) return;
         try { await deleteProjectRecord(id); renderProjects(); renderDashboardList(); resetProjectForm(); showToast('Project deleted.'); }
         catch(error) { showToast(error.message || 'Could not delete project.'); }
       }
@@ -870,7 +853,7 @@
       const hash=decodeURIComponent(location.hash.slice(1));
       if(hash.startsWith('project/')) {
         const id=hash.slice(8); const project=getProject(id);
-        if(project && project.published!==false || (project && project.isDemo)) { activatePreview(project); return; }
+        if(project && project.published!==false) { activatePreview(project); return; }
       }
       $('#previewView').classList.remove('active'); $('#homeView').classList.remove('hidden');
       if(hash==='work' || hash==='about' || hash==='contact') setTimeout(()=>document.getElementById(hash)?.scrollIntoView({behavior:'smooth'}),40);
@@ -908,6 +891,7 @@
     $('#backToWork').addEventListener('click',backToWork);
     $('#previewBackBtn').addEventListener('click',backToWork);
     $('#openFullPreview').addEventListener('click',openFullPreview);
+    $('#bottomFullPreview').addEventListener('click',openFullPreview);
     $('#closeFullPreview').addEventListener('click',closeFullPreview);
     $('#fullPreview').addEventListener('click',event=>{ if(event.target===$('#fullPreview')) closeFullPreview(); });
     $$('.mode-btn').forEach(button=>button.addEventListener('click',()=>{
@@ -915,7 +899,7 @@
       $('#previewDevice').classList.toggle('mobile',button.dataset.mode==='mobile');
     }));
     $('#nextProject').addEventListener('click',()=>{
-      const visible=[...DEMO_PROJECTS,...uploadedProjects.filter(p=>p.published!==false)];
+      const visible=allProjects().filter(p=>p.published!==false);
       const index=visible.findIndex(p=>p.id===currentProjectId); const next=visible[(index+1)%visible.length]; if(next) openProject(next.id);
     });
     $('#menuToggle').addEventListener('click',()=>{
