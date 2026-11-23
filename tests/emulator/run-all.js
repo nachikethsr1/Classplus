@@ -27,6 +27,7 @@ const SUITES = [
   ['08-app-against-emulator', "index.html's own loaders and submit chain against the real rules"],
   ['09-cert-numbering', 'certificate numbering, including provisional numbers'],
   ['10-config-consistency', 'the admin allowlist in config + both rules files'],
+  ['11-cert-design', 'certificate design + background upload, including failure'],
 ];
 
 async function main() {
