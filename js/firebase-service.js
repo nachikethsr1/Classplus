@@ -82,6 +82,29 @@ const FB = {
 const authListeners = [];
 const readyListeners = [];
 
+/* ------------------------------------------------------------
+   Module-ready handshake.
+
+   index.html is a classic script and therefore runs BEFORE this
+   module (module scripts are deferred by the browser). Rather than
+   guessing with a timeout, the host page leaves a callback on
+   window.__firebaseServiceReady and this module invokes it the
+   moment it has finished initialising.
+
+   If the module happened to load first, the flag below is set and
+   the host page can call window.FirebaseService.onReady()
+   immediately.
+   ------------------------------------------------------------ */
+function announceReady() {
+  window.__firebaseServiceLoaded = true;
+  const cb = window.__firebaseServiceReady;
+  if (typeof cb === 'function') {
+    window.__firebaseServiceReady = null;   /* fire once */
+    try { cb(window.FirebaseService); }
+    catch (e) { console.error('[fb] ready callback failed', e); }
+  }
+}
+
 function emitAuth(user) {
   FB.user = user;
   authListeners.forEach(function (fn) {
@@ -112,6 +135,7 @@ function init() {
     );
     FB.ready = true;
     emitReady();
+    announceReady();
     return;
   }
 
@@ -124,6 +148,7 @@ function init() {
     console.error('[fb] initializeApp failed', e);
     FB.ready = true;
     emitReady();
+    announceReady();
     return;
   }
 
@@ -178,6 +203,7 @@ function init() {
 
   FB.ready = true;
   emitReady();
+  announceReady();
 }
 
 /* ------------------------------------------------------------
@@ -268,5 +294,6 @@ window.FirebaseService = {
   }
 };
 
-/* start as soon as the module is parsed */
+/* Publish the API first, then initialise. announceReady() is called at
+   the end of init() on every code path. */
 init();

@@ -1055,6 +1055,7 @@ function syncAuthIntoDB(){
 /* ---- gate state machine ---- */
 function computeGate(){
   const svc = FS();
+  /* the module has not initialised yet — that is not a configuration error */
   if(!svc || !svc.state.ready) return 'loading';
   if(!svc.state.configured) return 'config';
   if(!svc.isSignedIn) return 'signedout';
@@ -1265,20 +1266,42 @@ function setStudentStatus(uid, status){
   return svc.updateDoc(svc.doc('students/' + uid), payload);
 }
 
-/* ---- boot the auth layer once FirebaseService reports for duty ---- */
+/* ------------------------------------------------------------
+   Boot the auth layer.
+
+   index.html is a classic script, so it runs BEFORE the deferred
+   Firebase ES module. We must therefore wait for a real signal
+   rather than assume the service exists.
+
+   Two cases, both handled without a timeout:
+     a) the module already finished  -> __firebaseServiceLoaded is true
+     b) it has not finished yet      -> we register a one-shot callback
+   ------------------------------------------------------------ */
+let authBooted = false;
+
 function bootAuth(){
+  if(authBooted) return;
   const svc = FS();
-  if(!svc){
-    AUTH.gate = 'config';
-    render();
+  if(svc){
+    authBooted = true;
+    svc.onReady(function(){
+      AUTH.gate = computeGate();
+      render();
+    });
+    svc.onAuth(onAuthChanged);
     return;
   }
-  svc.onReady(function(){
-    AUTH.gate = computeGate();
-    render();
-  });
-  svc.onAuth(onAuthChanged);
+
+  /* the module is still loading: leave a callback for it to fire */
+  AUTH.gate = 'loading';
+  return;
 }
+
+/* Called by js/firebase-service.js once the module is initialised. */
+window.__firebaseServiceReady = function(){
+  if(authBooted) return;
+  bootAuth();
+};
 
 let DB = null;
 
@@ -1935,8 +1958,12 @@ function renderSetupBanner(){
   if(!el) return;
   const svc = FS();
   const setup = window.FIREBASE_SETUP || {};
+  /* stay quiet until the module has actually reported in, otherwise the
+     banner flashes on every load before the module executes */
+  const moduleSettled = !!(svc && svc.state.ready);
   const show = setup.showSetupBanner !== false &&
-               (!svc || !svc.state.configured || !svc.state.authReady);
+               moduleSettled &&
+               (!svc.state.configured || !svc.state.authReady);
   if(!show){ el.innerHTML = ''; return; }
   el.innerHTML = '<div class="setup-banner">' +
     '<b>ಸಂರಚನೆ ಬಾಕಿ:</b> Firebase ಇನ್ನೂ ಸಂಪರ್ಕಗೊಂಡಿಲ್ಲ. ' +
@@ -5153,8 +5180,12 @@ document.addEventListener('change', function(e){
 /* ---------- Init ---------- */
 function init(){
   loadDB();            /* local cache only: draft + offline tolerance */
-  render();            /* shows the gate until Firebase reports in */
-  bootAuth();          /* wires FirebaseService auth -> onAuthChanged */
+
+  /* If the service module already ran (e.g. a fast cached load), the
+     flag is set and bootAuth() succeeds immediately. Otherwise we are
+     in the 'loading' state and the module's callback takes over. */
+  bootAuth();
+  render();
 }
 init();
 
