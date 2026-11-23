@@ -121,6 +121,21 @@ module.exports = async function run() {
   await h.allow('C25', 'admin issues a certificate for a student (admin path)', () =>
     setDoc(doc(boss.db, 'certificates/cert_admin_issued'), certDoc({ number: 'DTI-BNG-2026-0008' }))
   );
+  await h.deny('C27', 'admin issues a certificate with marks the submission does not support', () =>
+    setDoc(doc(boss.db, 'certificates/cert_admin_bad'), certDoc({ number: 'DTI-BNG-2026-0009', marks: 10 }))
+  );
+  await h.deny('C28', 'admin issues a certificate for a FAILED submission', () =>
+    setDoc(
+      doc(boss.db, 'certificates/cert_admin_fail'),
+      certDoc({ number: 'DTI-BNG-2026-0010', submissionId: 'sub_mine_fail', marks: 3, total: 10, pct: 30 })
+    )
+  );
+  await h.deny('C29', 'admin issues a certificate naming a student who did not sit that submission', () =>
+    setDoc(
+      doc(boss.db, 'certificates/cert_admin_wrong_owner'),
+      certDoc({ number: 'DTI-BNG-2026-0011', studentUid: USERS.other.uid })
+    )
+  );
   await h.gap(
     'C26',
     'student issues a certificate whose number duplicates an existing one',
