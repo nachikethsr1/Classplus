@@ -1,5 +1,22 @@
 # Phase 1 verification notes
 
+> **Superseded in part by Phase 4 — read `PHASE4_EMULATOR_REPORT.md` first.**
+>
+> Everything below was verified with `.verify/`, a hand-written JavaScript
+> re-implementation of the security rules. Phase 4 re-ran the same ground
+> against the **real rules engine** in the Firebase Emulator Suite:
+>
+> - §1 module-loading race — **confirmed fixed**;
+> - §2 `certificates` rules — **confirmed fixed** (and one real gap found:
+>   the admin had no create branch at all, so an administrator could not
+>   issue a certificate);
+> - §3 query/rule incompatibility — **NOT fixed. The claim below is wrong.**
+>   The real engine refused the student trainings query outright and every
+>   student saw an empty portal. See §3 and the Phase 4 report.
+>
+> A double can only test the rules its author re-implemented. Do not quote
+> `.verify/` counts as evidence about `firestore.rules`.
+
 Scope: the three critical Firebase fixes. Nothing here has been deployed.
 Nothing here has been tested against a real Firebase project — there is no
 configured project in this environment, so every result below is a
@@ -96,6 +113,15 @@ carries the constraint its rule needs:
 
 `archived` is still filtered client-side: the published-only rule stays a single
 indexable clause, and an archived training that was published remains readable.
+
+> **This fix was incomplete, and the harness could not see it.** The table
+> above describes the rule the `.verify/` double implemented, not the rule
+> that was committed. `firestore.rules` actually required
+> `resource.data.published == true && resource.data.archived != true`, and
+> `where('published','==',true)` cannot prove the second clause — so the
+> **entire query was refused** with `permission-denied` and the student
+> portal loaded nothing at all. Found by the emulator (`02-trainings.js`
+> T08) and fixed in Phase 4, commit `2cec533`.
 
 Admin loaders are deliberately left unconstrained — `isAdmin()` is unconditional in the
 rules, so no constraint is needed — with a comment saying so. The admin-only scans
