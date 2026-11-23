@@ -1,0 +1,2854 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#14243A">
+<title>ಜಿಲ್ಲಾ ತರಬೇತಿ ಸಂಸ್ಥೆ, ಬೆಂಗಳೂರು ನಗರ | District Training Institute</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   1. DESIGN TOKENS
+   ============================================================ */
+:root{
+  --navy:#14243A;
+  --darkblue:#1D3557;
+  --ivory:#F7F5EF;
+  --white:#FFFFFF;
+  --gold:#C5A46D;
+  --grey:#64748B;
+  --lightblue:#EAF0F7;
+  --green:#21845B;
+  --red:#C24141;
+
+  --ink:#1B2534;
+  --line:#E3E0D6;
+  --line-soft:#EDEAE1;
+  --line-cool:#DCE3EC;
+
+  --radius:14px;
+  --radius-sm:10px;
+  --shadow:0 1px 2px rgba(20,36,58,.05), 0 10px 28px rgba(20,36,58,.06);
+  --shadow-sm:0 1px 2px rgba(20,36,58,.06);
+
+  --font:'Noto Sans Kannada','Noto Sans Kannada UI',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Nirmala UI','Tunga',Tahoma,sans-serif;
+
+  --sp-1:6px; --sp-2:10px; --sp-3:14px; --sp-4:20px; --sp-5:28px; --sp-6:38px;
+}
+
+/* ============================================================
+   2. RESET / BASE
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  margin:0;
+  font-family:var(--font);
+  background:var(--ivory);
+  color:var(--ink);
+  font-size:15.5px;
+  line-height:1.75;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+h1,h2,h3,h4{margin:0 0 .55em;line-height:1.4;font-weight:600;}
+h1{font-size:26px;}
+h2{font-size:21px;}
+h3{font-size:17px;}
+h4{font-size:15.5px;}
+p{margin:0 0 .9em;}
+p:last-child{margin-bottom:0;}
+a{color:var(--darkblue);}
+img,svg{max-width:100%;}
+button{font-family:inherit;}
+input,select,textarea{font-family:inherit;font-size:15px;color:var(--ink);}
+::selection{background:rgba(197,164,109,.35);}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+.muted{color:var(--grey);}
+.small{font-size:13.5px;}
+.tiny{font-size:12.5px;}
+.strong{font-weight:600;}
+.center{text-align:center;}
+.nowrap{white-space:nowrap;}
+.hidden{display:none !important;}
+
+/* ============================================================
+   3. BUTTONS
+   ============================================================ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 20px;border-radius:var(--radius-sm);border:1px solid transparent;
+  background:#fff;font-size:15px;font-weight:600;cursor:pointer;
+  transition:background .18s,border-color .18s,color .18s,transform .12s,box-shadow .18s;
+  text-decoration:none;line-height:1.4;white-space:nowrap;
+}
+.btn:active{transform:translateY(1px);}
+.btn-primary{background:var(--navy);color:#fff;border-color:var(--navy);box-shadow:0 4px 12px rgba(20,36,58,.16);}
+.btn-primary:hover{background:var(--darkblue);border-color:var(--darkblue);}
+.btn-gold{background:var(--gold);color:#241f13;border-color:var(--gold);}
+.btn-gold:hover{filter:brightness(1.05);}
+.btn-ghost{background:#fff;border-color:var(--line-cool);color:var(--darkblue);}
+.btn-ghost:hover{background:var(--lightblue);border-color:#c7d4e4;}
+.btn-danger{background:#fff;color:var(--red);border-color:#EBCFCF;}
+.btn-danger:hover{background:#FDF2F2;}
+.btn-block{width:100%;}
+.btn-sm{padding:7px 14px;font-size:13.5px;border-radius:8px;}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;}
+.icon-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:40px;height:40px;border-radius:10px;border:1px solid var(--line-cool);
+  background:#fff;cursor:pointer;color:var(--darkblue);transition:.18s;
+}
+.icon-btn:hover{background:var(--lightblue);}
+
+/* ============================================================
+   4. CARDS / LAYOUT PRIMITIVES
+   ============================================================ */
+.card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+  padding:22px;box-shadow:var(--shadow);
+}
+.card-soft{
+  background:#fff;border:1px solid var(--line-soft);border-radius:12px;padding:16px;
+}
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+.card-head h2,.card-head h3{margin:0;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+.span-2{grid-column:1 / -1;}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+.row-end{justify-content:flex-end;}
+.spacer{flex:1;}
+.stack>*+*{margin-top:18px;}
+
+/* ============================================================
+   5. FORM FIELDS
+   ============================================================ */
+.field{display:block;margin-bottom:16px;}
+.field>span{display:block;font-size:14px;font-weight:600;color:var(--darkblue);margin-bottom:7px;}
+.field input[type=text],.field input[type=email],.field input[type=password],
+.field input[type=number],.field input[type=date],.field select,.field textarea{
+  width:100%;padding:11px 13px;border:1px solid var(--line-cool);border-radius:var(--radius-sm);
+  background:#fff;transition:border-color .16s,box-shadow .16s;outline:none;
+}
+.field textarea{resize:vertical;min-height:92px;line-height:1.8;}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--darkblue);box-shadow:0 0 0 3px rgba(29,53,87,.10);
+}
+.field input[type=color]{width:64px;height:42px;padding:3px;border:1px solid var(--line-cool);border-radius:8px;background:#fff;cursor:pointer;}
+.field input:disabled{background:#F4F5F7;color:var(--grey);}
+.field-hint{font-size:12.5px;color:var(--grey);margin-top:5px;}
+.form-msg{
+  display:none;padding:11px 14px;border-radius:10px;font-size:14px;margin-bottom:14px;
+  border:1px solid transparent;
+}
+.form-msg.show{display:block;}
+.form-msg.error{background:#FDF2F2;color:var(--red);border-color:#F0D3D3;}
+.form-msg.ok{background:#EFF8F3;color:var(--green);border-color:#CFE9DC;}
+.pw-wrap{position:relative;}
+.pw-wrap input{padding-right:48px;}
+.pw-toggle{
+  position:absolute;right:6px;top:50%;transform:translateY(-50%);
+  background:transparent;border:0;cursor:pointer;color:var(--grey);
+  width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;
+}
+.pw-toggle:hover{background:var(--lightblue);color:var(--darkblue);}
+
+/* ============================================================
+   6. LOGIN PAGE
+   ============================================================ */
+.login-page{min-height:100vh;display:grid;grid-template-columns:1.02fr .98fr;}
+.login-brand{
+  position:relative;overflow:hidden;color:#fff;padding:56px 44px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--navy);
+  background-image:radial-gradient(circle at 78% 12%, rgba(197,164,109,.18), transparent 46%),
+                   radial-gradient(circle at 8% 92%, rgba(197,164,109,.12), transparent 46%);
+}
+.login-brand::after{
+  content:"";position:absolute;right:-140px;bottom:-180px;width:430px;height:430px;
+  border-radius:50%;border:1px solid rgba(197,164,109,.28);
+}
+.login-brand::before{
+  content:"";position:absolute;right:-90px;bottom:-130px;width:300px;height:300px;
+  border-radius:50%;border:1px solid rgba(197,164,109,.16);
+}
+.brand-inner{max-width:430px;position:relative;z-index:1;text-align:center;}
+.emblem{display:inline-block;margin-bottom:20px;filter:drop-shadow(0 6px 18px rgba(0,0,0,.25));}
+.brand-kn{font-size:29px;font-weight:700;letter-spacing:.2px;margin:0 0 4px;color:#fff;}
+.brand-city{font-size:19px;color:var(--gold);font-weight:600;letter-spacing:.4px;margin-bottom:10px;}
+.brand-en{font-size:12.5px;letter-spacing:1.6px;text-transform:uppercase;color:#9FB0C6;}
+.brand-rule{width:74px;height:2px;background:var(--gold);margin:22px auto;opacity:.85;}
+.brand-tag{font-size:14.5px;color:#C3CEE0;line-height:1.85;}
+.brand-points{list-style:none;margin:26px 0 0;padding:0;display:grid;gap:10px;text-align:left;}
+.brand-points li{display:flex;gap:10px;align-items:flex-start;font-size:13.8px;color:#C9D4E3;}
+.brand-points svg{flex:none;margin-top:3px;}
+.login-panel{display:flex;align-items:center;justify-content:center;padding:44px 24px;background:var(--ivory);}
+.login-card{
+  width:100%;max-width:430px;background:#fff;border:1px solid var(--line);
+  border-radius:18px;padding:34px 32px;box-shadow:0 22px 60px rgba(20,36,58,.10);
+}
+.login-card h2{font-size:24px;margin-bottom:4px;color:var(--navy);}
+.login-card .sub{color:var(--grey);font-size:14px;margin-bottom:24px;}
+.demo-panel{margin-top:22px;border:1px dashed #D6D2C4;border-radius:12px;background:#FCFBF7;padding:0 14px;}
+.demo-panel summary{
+  cursor:pointer;font-size:13.5px;font-weight:600;color:var(--darkblue);
+  padding:12px 0;list-style:none;display:flex;align-items:center;gap:8px;
+}
+.demo-panel summary::-webkit-details-marker{display:none;}
+.demo-panel summary::after{content:"›";margin-left:auto;font-size:18px;transition:transform .2s;color:var(--gold);}
+.demo-panel[open] summary::after{transform:rotate(90deg);}
+.demo-list{display:grid;gap:8px;padding-bottom:14px;}
+.demo-item{
+  display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line-soft);
+  border-radius:9px;padding:8px 11px;font-size:13px;cursor:pointer;transition:.16s;text-align:left;width:100%;
+}
+.demo-item:hover{border-color:var(--gold);background:#FFFDF8;}
+.demo-item .di-name{font-weight:600;color:var(--navy);}
+.demo-item .di-cred{color:var(--grey);font-size:12px;font-family:ui-monospace,Menlo,Consolas,monospace;}
+.demo-item .di-role{margin-left:auto;font-size:11px;padding:2px 8px;border-radius:20px;background:var(--lightblue);color:var(--darkblue);font-weight:600;}
+.demo-item .di-role.admin{background:#F6EEDD;color:#8A6D2F;}
+.login-note{font-size:12px;color:var(--grey);margin-top:14px;line-height:1.7;}
+
+/* ============================================================
+   7. APP SHELL
+   ============================================================ */
+.app-shell{display:grid;grid-template-columns:264px minmax(0,1fr);min-height:100vh;}
+.sidebar{
+  background:var(--navy);color:#E8EDF4;display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto;z-index:100;
+  border-right:1px solid rgba(255,255,255,.06);
+}
+.sidebar .sb-brand{display:flex;gap:12px;align-items:center;padding:20px 18px 18px;border-bottom:1px solid rgba(255,255,255,.09);}
+.sb-brand .sb-text{min-width:0;}
+.sb-brand .sb-kn{font-size:14.5px;font-weight:700;color:#fff;line-height:1.35;}
+.sb-brand .sb-en{font-size:10.5px;letter-spacing:.9px;text-transform:uppercase;color:#8FA2BA;line-height:1.4;margin-top:3px;}
+.sb-nav{display:flex;flex-direction:column;gap:3px;padding:16px 12px;flex:1;}
+.sb-label{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:#7186A0;padding:10px 12px 6px;font-weight:600;}
+.nav-item{
+  display:flex;gap:11px;align-items:center;padding:10px 13px;border-radius:9px;
+  color:#BDC9DA;font-size:14.5px;font-weight:500;cursor:pointer;border:0;background:transparent;
+  text-align:left;width:100%;transition:background .16s,color .16s;line-height:1.5;
+}
+.nav-item svg{flex:none;opacity:.9;}
+.nav-item:hover{background:rgba(255,255,255,.07);color:#fff;}
+.nav-item.active{background:rgba(197,164,109,.16);color:#fff;box-shadow:inset 3px 0 0 var(--gold);}
+.nav-item.active svg{opacity:1;color:var(--gold);}
+.sb-user{
+  margin:0 12px 12px;padding:13px;border-radius:11px;background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.08);
+}
+.sb-user .su-name{font-weight:600;color:#fff;font-size:14.5px;line-height:1.4;}
+.sb-user .su-role{font-size:12px;color:#9FB0C6;margin-top:2px;}
+.sb-logout{
+  margin:0 12px 18px;display:flex;align-items:center;gap:10px;justify-content:center;
+  padding:10px;border-radius:9px;border:1px solid rgba(255,255,255,.14);background:transparent;
+  color:#C3CEE0;font-size:14px;font-weight:600;cursor:pointer;transition:.16s;
+}
+.sb-logout:hover{background:rgba(194,65,65,.18);border-color:rgba(194,65,65,.45);color:#fff;}
+
+.main-col{display:flex;flex-direction:column;min-width:0;}
+.topbar{
+  height:66px;display:flex;align-items:center;gap:14px;padding:0 24px;
+  background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:40;
+}
+.topbar h1{font-size:17px;margin:0;color:var(--navy);font-weight:600;}
+.topbar .tb-sub{font-size:12px;color:var(--grey);line-height:1.3;}
+.user-chip{display:flex;align-items:center;gap:10px;padding:6px 12px 6px 6px;border-radius:30px;background:var(--ivory);border:1px solid var(--line);}
+.avatar{
+  width:34px;height:34px;border-radius:50%;background:var(--darkblue);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex:none;
+}
+.avatar.admin{background:var(--gold);color:#2A2416;}
+.user-chip .uc-name{font-size:13.5px;font-weight:600;line-height:1.25;color:var(--navy);}
+.user-chip .uc-role{font-size:11px;color:var(--grey);line-height:1.25;}
+.main{padding:26px 24px 70px;width:100%;max-width:1200px;margin:0 auto;}
+.page-head{margin-bottom:22px;}
+.page-head h2{font-size:23px;margin-bottom:4px;color:var(--navy);}
+.page-head .ph-sub{color:var(--grey);font-size:14px;}
+.only-mobile{display:none;}
+.sidebar-overlay{display:none;}
+
+/* ============================================================
+   8. STAT CARDS
+   ============================================================ */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.stat{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 18px 16px;
+  box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
+}
+.stat::after{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--lightblue);}
+.stat.gold::after{background:var(--gold);}
+.stat.green::after{background:var(--green);}
+.stat.navy::after{background:var(--darkblue);}
+.stat .st-label{font-size:12.5px;color:var(--grey);font-weight:600;letter-spacing:.2px;margin-bottom:8px;}
+.stat .st-value{font-size:24px;font-weight:700;color:var(--navy);line-height:1.2;}
+.stat .st-hint{font-size:12px;color:var(--grey);margin-top:5px;}
+
+/* ============================================================
+   9. BADGES / PILLS
+   ============================================================ */
+.badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;line-height:1.6;white-space:nowrap;}
+.badge.green{background:#EAF6F0;color:var(--green);}
+.badge.red{background:#FBEDED;color:var(--red);}
+.badge.blue{background:var(--lightblue);color:var(--darkblue);}
+.badge.gold{background:#F8F1E3;color:#8A6D2F;}
+.badge.grey{background:#F1F2F4;color:var(--grey);}
+
+/* ============================================================
+   10. TRAINING CARD
+   ============================================================ */
+.training-card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;
+}
+.training-card .tc-top{padding:22px 22px 0;}
+.tc-eyebrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.tc-title{font-size:19px;font-weight:600;color:var(--navy);margin-bottom:8px;line-height:1.5;}
+.tc-topic{font-size:14.5px;color:#3A4658;line-height:1.85;margin-bottom:16px;}
+.tc-meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px 20px;padding:16px 0;border-top:1px solid var(--line-soft);}
+.tc-meta .m-label{font-size:11.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--grey);font-weight:600;}
+.tc-meta .m-value{font-size:14px;color:var(--navy);font-weight:500;line-height:1.6;}
+.tc-foot{
+  padding:16px 22px;background:#FCFBF7;border-top:1px solid var(--line-soft);
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+}
+.training-list{display:grid;gap:18px;}
+
+/* ============================================================
+   11. WORKFLOW STEPS
+   ============================================================ */
+.steps{
+  display:flex;align-items:flex-start;gap:0;background:#fff;border:1px solid var(--line);
+  border-radius:var(--radius);padding:18px 14px;margin-bottom:24px;box-shadow:var(--shadow-sm);
+  overflow-x:auto;
+}
+.step{flex:1;min-width:104px;display:flex;flex-direction:column;align-items:center;gap:7px;position:relative;padding:0 4px;cursor:default;}
+.step:not(:last-child)::after{
+  content:"";position:absolute;top:17px;left:calc(50% + 22px);right:calc(-50% + 22px);
+  height:2px;background:var(--line-cool);border-radius:2px;
+}
+.step.done:not(:last-child)::after{background:var(--gold);}
+.step .s-dot{
+  width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:#fff;border:2px solid var(--line-cool);color:var(--grey);font-weight:700;font-size:13.5px;
+  transition:.2s;position:relative;z-index:1;flex:none;
+}
+.step .s-label{font-size:12.5px;text-align:center;color:var(--grey);font-weight:600;line-height:1.45;}
+.step.active .s-dot{background:var(--navy);border-color:var(--navy);color:#fff;box-shadow:0 0 0 4px rgba(20,36,58,.09);}
+.step.active .s-label{color:var(--navy);}
+.step.done .s-dot{background:var(--gold);border-color:var(--gold);color:#2A2416;}
+.step.done .s-label{color:var(--darkblue);}
+.step.clickable{cursor:pointer;}
+.step.clickable:hover .s-dot{border-color:var(--gold);}
+
+/* ============================================================
+   12. SESSION / RATING BLOCKS (FEEDBACK)
+   ============================================================ */
+.section-head{
+  display:flex;align-items:center;gap:14px;margin:0 0 18px;padding-bottom:12px;
+  border-bottom:1px solid var(--line-soft);
+}
+.section-head .sh-badge{
+  background:var(--navy);color:#fff;font-weight:700;font-size:12.5px;padding:5px 13px;border-radius:6px;letter-spacing:.4px;
+}
+.section-head .sh-title{font-size:16.5px;font-weight:600;color:var(--navy);}
+.session-block{
+  border:1px solid var(--line-cool);border-radius:12px;padding:18px;margin-bottom:18px;background:#FCFCFD;
+}
+.session-block .ss-head{font-size:15px;font-weight:700;color:var(--darkblue);margin-bottom:8px;}
+.session-block .ss-topic{font-size:14px;line-height:1.9;color:#33404F;margin-bottom:8px;}
+.session-block .ss-lect{font-size:13.5px;color:var(--grey);margin-bottom:14px;}
+.rating-label{font-size:13px;font-weight:600;color:var(--darkblue);margin-bottom:9px;}
+.rating-row{display:flex;gap:9px;flex-wrap:wrap;}
+.pill{position:relative;display:inline-flex;}
+.pill input{position:absolute;opacity:0;width:0;height:0;}
+.pill span{
+  display:inline-block;padding:9px 16px;border-radius:24px;border:1px solid var(--line-cool);
+  background:#fff;font-size:13.5px;font-weight:500;color:#41505F;cursor:pointer;transition:.16s;line-height:1.5;
+}
+.pill:hover span{border-color:#BCC9DA;background:#F8FAFC;}
+.pill input:checked+span{background:var(--darkblue);border-color:var(--darkblue);color:#fff;font-weight:600;box-shadow:0 3px 10px rgba(29,53,87,.18);}
+.pill input:focus-visible+span{outline:2px solid var(--gold);outline-offset:2px;}
+
+/* ============================================================
+   13. QUESTIONS
+   ============================================================ */
+.q-card{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;
+  margin-bottom:16px;box-shadow:var(--shadow-sm);
+}
+.q-head{display:flex;gap:13px;align-items:flex-start;margin-bottom:15px;}
+.q-num{
+  flex:none;width:30px;height:30px;border-radius:8px;background:var(--lightblue);color:var(--darkblue);
+  display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13.5px;
+}
+.q-text{font-size:15.5px;font-weight:600;line-height:1.95;color:var(--navy);padding-top:2px;}
+.opt-group{display:grid;gap:9px;}
+.opt{
+  display:flex;gap:12px;align-items:flex-start;padding:12px 15px;border:1px solid var(--line-cool);
+  border-radius:var(--radius-sm);cursor:pointer;background:#fff;transition:.16s;line-height:1.75;
+}
+.opt:hover{border-color:#B9C8DB;background:#FBFCFE;}
+.opt input{margin:5px 0 0;width:18px;height:18px;flex:none;accent-color:var(--darkblue);cursor:pointer;}
+.opt .opt-key{
+  flex:none;font-weight:700;color:var(--grey);font-size:13.5px;min-width:16px;margin-top:1px;
+}
+.opt .opt-text{font-size:14.8px;color:#2A3648;line-height:1.8;}
+.opt.selected{border-color:var(--darkblue);background:var(--lightblue);box-shadow:inset 0 0 0 1px var(--darkblue);}
+.opt.selected .opt-key{color:var(--darkblue);}
+.opt.selected .opt-text{font-weight:500;}
+
+/* ============================================================
+   14. RESULT
+   ============================================================ */
+.result-hero{
+  background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+  padding:32px 24px;text-align:center;box-shadow:var(--shadow);margin-bottom:22px;
+}
+.ring{position:relative;width:170px;height:170px;margin:0 auto 18px;}
+.ring svg{transform:rotate(-90deg);width:170px;height:170px;}
+.ring circle{fill:none;stroke-width:11;stroke-linecap:round;}
+.ring .ring-bg{stroke:#EDEFF2;}
+.ring .ring-fg{stroke:var(--green);transition:stroke-dashoffset 1s ease;}
+.ring .ring-fg.fail{stroke:var(--red);}
+.ring-label{
+  position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+}
+.ring-label strong{font-size:30px;font-weight:700;color:var(--navy);line-height:1.1;}
+.ring-label span{font-size:15px;color:var(--grey);font-weight:600;}
+.result-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:22px;}
+.rs-item{background:#FBFBF8;border:1px solid var(--line-soft);border-radius:11px;padding:13px 10px;}
+.rs-item .rs-label{font-size:12px;color:var(--grey);font-weight:600;margin-bottom:5px;line-height:1.45;}
+.rs-item .rs-value{font-size:19px;font-weight:700;color:var(--navy);}
+
+/* ============================================================
+   15. CERTIFICATE
+   ============================================================ */
+.cert-wrap{padding:6px 0 20px;}
+.cert{
+  width:100%;max-width:1000px;margin:0 auto;aspect-ratio:1.414/1;position:relative;
+  background:#FDFBF4;border:1px solid #D9D2BF;border-radius:8px;
+  box-shadow:0 18px 50px rgba(20,36,58,.14);overflow:hidden;
+  display:flex;align-items:stretch;padding:11px;
+}
+.cert-inner{
+  flex:1;border:2px solid var(--navy);border-radius:4px;position:relative;
+  padding:clamp(14px,2.4vw,32px) clamp(16px,3vw,44px);
+  display:flex;flex-direction:column;
+  background:
+    repeating-linear-gradient(45deg, rgba(197,164,109,.035) 0 2px, transparent 2px 12px);
+}
+.cert-inner::after{
+  content:"";position:absolute;inset:7px;border:1px solid rgba(197,164,109,.65);border-radius:2px;pointer-events:none;
+}
+.cert-corner{position:absolute;width:46px;height:46px;border:2px solid var(--gold);z-index:2;}
+.cert-corner.tl{top:16px;left:16px;border-right:0;border-bottom:0;}
+.cert-corner.tr{top:16px;right:16px;border-left:0;border-bottom:0;}
+.cert-corner.bl{bottom:16px;left:16px;border-right:0;border-top:0;}
+.cert-corner.br{bottom:16px;right:16px;border-left:0;border-top:0;}
+.cert-head{text-align:center;position:relative;z-index:3;}
+.cert-emblem{margin-bottom:6px;}
+.cert-inst{font-size:clamp(14px,1.9vw,20px);font-weight:700;color:var(--navy);line-height:1.45;}
+.cert-inst-en{font-size:clamp(8.5px,.95vw,11px);letter-spacing:2px;text-transform:uppercase;color:#8B7A54;margin-top:3px;}
+.cert-rule{width:120px;height:1px;background:var(--gold);margin:clamp(8px,1.4vw,14px) auto;}
+.cert-title{
+  font-size:clamp(19px,3vw,32px);font-weight:700;color:var(--navy);letter-spacing:1px;
+  text-align:center;line-height:1.4;
+}
+.cert-subtitle{text-align:center;font-size:clamp(9px,1.1vw,12px);letter-spacing:2.4px;text-transform:uppercase;color:#8B7A54;margin-top:2px;}
+.cert-body{flex:1;display:flex;flex-direction:column;justify-content:center;text-align:center;position:relative;z-index:3;padding:clamp(6px,1.4vw,16px) 0;}
+.cert-lead{font-size:clamp(11px,1.35vw,14.5px);color:#4A5568;line-height:1.9;}
+.cert-name{
+  font-size:clamp(19px,2.9vw,30px);font-weight:700;color:var(--navy);
+  margin:clamp(5px,1vw,12px) 0;line-height:1.4;
+  padding-bottom:4px;border-bottom:1.5px dotted rgba(197,164,109,.8);display:inline-block;
+}
+.cert-topic{
+  font-size:clamp(11px,1.4vw,15px);line-height:1.9;color:#2A3648;max-width:88%;margin:0 auto;
+  font-weight:500;
+}
+.cert-meta{
+  display:flex;gap:clamp(8px,2vw,26px);justify-content:center;flex-wrap:wrap;
+  margin-top:clamp(8px,1.6vw,18px);font-size:clamp(10px,1.15vw,13px);color:var(--darkblue);
+}
+.cert-meta b{font-weight:700;}
+.cert-foot{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:16px;position:relative;z-index:3;
+  margin-top:auto;padding-top:clamp(6px,1.2vw,14px);border-top:1px solid rgba(197,164,109,.45);
+}
+.cert-no{font-size:clamp(9px,1.05vw,12px);color:#6B7280;line-height:1.7;}
+.cert-no b{color:var(--navy);letter-spacing:.4px;}
+.cert-sign{text-align:center;min-width:150px;}
+.cert-sign .sig-line{border-top:1.5px solid var(--navy);padding-top:5px;margin-top:22px;}
+.cert-sign .sig-name{font-size:clamp(10px,1.2vw,13.5px);font-weight:700;color:var(--navy);line-height:1.5;}
+.cert-sign .sig-role{font-size:clamp(8.5px,1vw,11px);color:#6B7280;line-height:1.5;}
+.cert-demo{
+  text-align:center;font-size:clamp(8px,.95vw,10.5px);color:#9A8F76;letter-spacing:.4px;
+  margin-top:clamp(5px,1vw,10px);position:relative;z-index:3;
+}
+.cert-toolbar{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin:22px 0 0;}
+
+/* ============================================================
+   16. TABLES
+   ============================================================ */
+.table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1px solid var(--line-soft);}
+table.data{width:100%;border-collapse:collapse;background:#fff;min-width:620px;}
+table.data th{
+  text-align:left;font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;
+  color:var(--grey);padding:12px 14px;background:#FAFAF7;border-bottom:1px solid var(--line-soft);white-space:nowrap;
+}
+table.data td{padding:13px 14px;border-bottom:1px solid var(--line-soft);font-size:14px;vertical-align:middle;}
+table.data tbody tr:last-child td{border-bottom:0;}
+table.data tbody tr:hover{background:#FCFCFA;}
+table.data .td-name{font-weight:600;color:var(--navy);}
+.table-empty{padding:34px 16px;text-align:center;color:var(--grey);font-size:14px;}
+
+/* ============================================================
+   17. MODAL & TOAST
+   ============================================================ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(20,36,58,.5);z-index:900;
+  display:flex;align-items:center;justify-content:center;padding:20px;
+  overflow-y:auto;backdrop-filter:blur(2px);
+}
+.modal{
+  background:#fff;border-radius:16px;width:100%;max-width:560px;padding:26px;
+  box-shadow:0 30px 80px rgba(0,0,0,.3);max-height:88vh;overflow-y:auto;
+  animation:modalIn .18s ease;
+}
+.modal.modal-wide{max-width:860px;}
+@keyframes modalIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:none;}}
+.modal h3{color:var(--navy);margin-bottom:10px;}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:22px;flex-wrap:wrap;}
+.modal-close{position:sticky;top:0;float:right;}
+body.modal-open{overflow:hidden;}
+
+.toasts{position:fixed;right:20px;bottom:20px;z-index:1200;display:flex;flex-direction:column;gap:10px;max-width:min(400px,calc(100vw - 32px));}
+.toast{
+  background:#fff;border:1px solid var(--line);border-left:4px solid var(--darkblue);
+  border-radius:10px;padding:12px 16px;box-shadow:0 12px 34px rgba(20,36,58,.16);
+  font-size:14px;line-height:1.6;color:var(--ink);animation:toastIn .22s ease;
+}
+.toast.success{border-left-color:var(--green);}
+.toast.error{border-left-color:var(--red);}
+.toast.info{border-left-color:var(--gold);}
+@keyframes toastIn{from{opacity:0;transform:translateX(24px);}to{opacity:1;transform:none;}}
+
+/* ============================================================
+   18. ADMIN QUESTION EDITOR
+   ============================================================ */
+.qedit{border:1px solid var(--line-cool);border-radius:12px;padding:16px;margin-bottom:14px;background:#FCFCFD;}
+.qedit-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;flex-wrap:wrap;}
+.qnum{background:var(--lightblue);color:var(--darkblue);font-weight:700;font-size:12.5px;padding:4px 11px;border-radius:20px;}
+.qedit-tools{display:flex;gap:6px;}
+.qedit-tools button{
+  width:32px;height:32px;border-radius:8px;border:1px solid var(--line-cool);background:#fff;
+  cursor:pointer;font-size:14px;color:var(--darkblue);display:flex;align-items:center;justify-content:center;transition:.16s;
+}
+.qedit-tools button:hover{background:var(--lightblue);}
+.qedit-tools button.danger{color:var(--red);border-color:#EBCFCF;}
+.qedit-tools button.danger:hover{background:#FDF2F2;}
+.subhead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:26px 0 14px;flex-wrap:wrap;}
+.subhead h3{margin:0;color:var(--navy);font-size:16.5px;}
+.divider{height:1px;background:var(--line-soft);margin:22px 0;}
+
+/* ============================================================
+   19. FILTER BAR
+   ============================================================ */
+.filter-bar{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:18px;}
+.filter-bar .field{margin-bottom:0;min-width:170px;flex:1;}
+.filter-bar .field>span{font-size:12.5px;}
+
+/* ============================================================
+   20. RESPONSIVE
+   ============================================================ */
+@media (max-width:1080px){
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .result-stats{grid-template-columns:repeat(3,1fr);}
+}
+@media (max-width:980px){
+  .app-shell{grid-template-columns:1fr;}
+  .sidebar{
+    position:fixed;left:0;top:0;bottom:0;width:278px;height:100%;transform:translateX(-100%);
+    transition:transform .26s cubic-bezier(.4,0,.2,1);box-shadow:0 0 60px rgba(0,0,0,.3);
+  }
+  .sidebar.open{transform:translateX(0);}
+  .sidebar-overlay.show{display:block;position:fixed;inset:0;background:rgba(20,36,58,.45);z-index:95;}
+  .only-mobile{display:inline-flex;}
+  .main{padding:20px 16px 70px;}
+  .topbar{padding:0 16px;height:62px;}
+  .topbar h1{font-size:15.5px;}
+  .user-chip .uc-role{display:none;}
+  .login-page{grid-template-columns:1fr;}
+  .login-brand{padding:38px 22px;}
+  .brand-inner{max-width:520px;}
+  .brand-points{grid-template-columns:1fr 1fr;display:grid;}
+  .login-panel{padding:28px 16px 44px;}
+  .login-card{padding:26px 20px;}
+}
+@media (max-width:760px){
+  .grid-2{grid-template-columns:1fr;}
+  .grid-3{grid-template-columns:1fr;}
+  .result-stats{grid-template-columns:repeat(2,1fr);}
+  .steps{padding:14px 8px;gap:2px;}
+  .step{min-width:84px;}
+  .step .s-dot{width:30px;height:30px;font-size:12.5px;}
+  .step .s-label{font-size:11px;}
+  .step:not(:last-child)::after{top:15px;left:calc(50% + 18px);right:calc(-50% + 18px);}
+  .cert{aspect-ratio:auto;min-height:auto;}
+  .cert-foot{flex-direction:column;align-items:center;gap:10px;text-align:center;}
+  .cert-sign{min-width:0;width:100%;}
+  /* responsive table -> cards */
+  table.data{min-width:0;}
+  table.data thead{display:none;}
+  table.data,table.data tbody,table.data tr,table.data td{display:block;width:100%;}
+  table.data tr{border:1px solid var(--line-soft);border-radius:12px;margin-bottom:12px;padding:6px 4px;background:#fff;}
+  table.data td{border:0;padding:8px 14px;display:flex;justify-content:space-between;gap:14px;align-items:center;text-align:right;}
+  table.data td::before{
+    content:attr(data-label);font-size:12px;font-weight:700;color:var(--grey);
+    text-transform:uppercase;letter-spacing:.4px;flex:none;text-align:left;
+  }
+  .table-wrap{border:0;overflow:visible;}
+}
+@media (max-width:520px){
+  body{font-size:15px;}
+  .stat-grid{grid-template-columns:1fr;}
+  .q-card{padding:16px;}
+  .q-text{font-size:15px;line-height:1.9;}
+  .opt{padding:11px 12px;}
+  .opt .opt-text{font-size:14.5px;}
+  .card{padding:17px;}
+  .btn{padding:10px 16px;font-size:14.5px;}
+  .brand-kn{font-size:24px;}
+  .brand-points{grid-template-columns:1fr;}
+  .toasts{right:12px;left:12px;bottom:12px;max-width:none;}
+}
+
+/* ============================================================
+   21. PRINT (certificate only)
+   ============================================================ */
+@page{size:A4 landscape;margin:8mm;}
+@media print{
+  body{background:#fff !important;}
+  body.print-mode .sidebar,
+  body.print-mode .topbar,
+  body.print-mode .no-print,
+  body.print-mode .toasts{display:none !important;}
+  body.print-mode *{visibility:hidden;}
+  body.print-mode .cert,body.print-mode .cert *{visibility:visible;}
+  body.print-mode .cert{
+    position:absolute;left:0;top:0;width:100%;max-width:none;margin:0;
+    border-radius:0;box-shadow:none;border:1px solid #D9D2BF;
+  }
+  .app-shell{display:block !important;}
+  .main{padding:0 !important;max-width:none !important;}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toasts" class="toasts" aria-live="polite"></div>
+<div id="modal-root"></div>
+
+<script>
+(function(){
+'use strict';
+
+/* ============================================================
+   SECTION A — UTILITIES
+   ============================================================ */
+const $  = (sel, root) => (root||document).querySelector(sel);
+const $$ = (sel, root) => Array.prototype.slice.call((root||document).querySelectorAll(sel));
+
+function esc(v){
+  return String(v === null || v === undefined ? '' : v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function uid(p){ return (p||'id') + '_' + Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+function trunc(s,n){ s = String(s||''); return s.length > n ? s.slice(0,n) + '…' : s; }
+function pad(n){ return String(n).padStart(2,'0'); }
+function nowISO(){ return new Date().toISOString(); }
+function fmtDateTime(iso){
+  try{
+    const d = new Date(iso);
+    if(isNaN(d.getTime())) return '—';
+    return pad(d.getDate()) + '-' + pad(d.getMonth()+1) + '-' + d.getFullYear() +
+           ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+  }catch(e){ return '—'; }
+}
+function setPath(obj, path, value){
+  const parts = String(path).split('.');
+  let o = obj;
+  for(let i=0;i<parts.length-1;i++){
+    const k = parts[i];
+    if(o[k] === undefined || o[k] === null) o[k] = /^\d+$/.test(parts[i+1]) ? [] : {};
+    o = o[k];
+  }
+  o[parts[parts.length-1]] = value;
+}
+function getPath(obj, path){
+  return String(path).split('.').reduce((o,k)=> (o==null?undefined:o[k]), obj);
+}
+function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v||'').trim()); }
+function deepCopy(o){ return JSON.parse(JSON.stringify(o)); }
+
+/* Toast */
+function toast(msg, type){
+  const box = document.getElementById('toasts');
+  if(!box) return;
+  const el = document.createElement('div');
+  el.className = 'toast ' + (type || 'info');
+  el.textContent = msg;
+  box.appendChild(el);
+  setTimeout(()=>{
+    el.style.transition = 'opacity .3s, transform .3s';
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(20px)';
+    setTimeout(()=> el.remove(), 320);
+  }, 3600);
+}
+
+/* Modal */
+let confirmCallback = null;
+function openModal(innerHTML, wide){
+  const root = document.getElementById('modal-root');
+  root.innerHTML =
+    '<div class="modal-overlay" data-action="modal-overlay">' +
+      '<div class="modal' + (wide ? ' modal-wide' : '') + '" role="dialog" aria-modal="true">' + innerHTML + '</div>' +
+    '</div>';
+  document.body.classList.add('modal-open');
+}
+function closeModal(){
+  document.getElementById('modal-root').innerHTML = '';
+  document.body.classList.remove('modal-open');
+  confirmCallback = null;
+}
+function confirmDialog(title, message, cb, danger){
+  confirmCallback = cb;
+  openModal(
+    '<h3>' + esc(title) + '</h3>' +
+    '<p class="muted">' + esc(message) + '</p>' +
+    '<div class="modal-actions">' +
+      '<button class="btn btn-ghost" data-action="modal-close">ರದ್ದು ಮಾಡಿ</button>' +
+      '<button class="btn ' + (danger ? 'btn-danger' : 'btn-primary') + '" data-action="confirm-yes">ಸರಿ, ಮುಂದುವರಿಸಿ</button>' +
+    '</div>'
+  );
+}
+
+/* SVG icons (inline, no external deps) */
+const ICON = {
+  dashboard:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
+  book:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  results:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 3 5-7"/></svg>',
+  cert:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5"/><path d="M8.5 13.5L7 22l5-2.6L17 22l-1.5-8.5"/></svg>',
+  feedback:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5a8.4 8.4 0 0 1-.9-3.8 8.4 8.4 0 0 1 8.4-8.4 8.4 8.4 0 0 1 8.6 7.7z"/></svg>',
+  users:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  settings:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  logout:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>',
+  menu:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>',
+  check:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  eye:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>',
+  print:'<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>'
+};
+
+function emblem(size, gold, light){
+  const g = gold || '#C5A46D';
+  const l = light || '#F7F5EF';
+  return '<svg class="emblem" width="' + size + '" height="' + size + '" viewBox="0 0 100 100" fill="none" aria-hidden="true">' +
+    '<circle cx="50" cy="50" r="47" stroke="' + g + '" stroke-width="1.6"/>' +
+    '<circle cx="50" cy="50" r="41" stroke="' + g + '" stroke-width="0.8" opacity="0.55"/>' +
+    '<polygon points="50,17 79,33 21,33" fill="' + g + '" opacity="0.92"/>' +
+    '<rect x="26" y="37" width="7" height="33" fill="' + l + '" opacity="0.85"/>' +
+    '<rect x="41" y="37" width="7" height="33" fill="' + l + '" opacity="0.85"/>' +
+    '<rect x="55" y="37" width="7" height="33" fill="' + l + '" opacity="0.85"/>' +
+    '<rect x="70" y="37" width="7" height="33" fill="' + l + '" opacity="0.85"/>' +
+    '<rect x="21" y="72" width="58" height="5" fill="' + g + '"/>' +
+    '<rect x="17" y="79" width="66" height="4" fill="' + g + '" opacity="0.85"/>' +
+    '<circle cx="50" cy="50" r="47" stroke="' + g + '" stroke-width="0.8" opacity="0.4" stroke-dasharray="2 6"/>' +
+  '</svg>';
+}
+
+/* ============================================================
+   SECTION B — DATA LAYER (localStorage)
+   ============================================================ */
+const STORE_KEY   = 'dti_bng_v1';
+const DRAFT_PREFIX= 'dti_draft_';
+const INSTITUTE   = 'ಜಿಲ್ಲಾ ತರಬೇತಿ ಸಂಸ್ಥೆ, ಬೆಂಗಳೂರು ನಗರ';
+const INSTITUTE_EN= 'District Training Institute, Bengaluru City';
+const RATINGS     = ['ಅತ್ಯುತ್ತಮ','ಉತ್ತಮ','ತೃಪ್ತಿಕರ','ಸಾಧಾರಣ'];
+
+/* ---- Default assessment questions (exact Kannada text) ---- */
+function defaultQuestions(){
+  return [
+    { id:'q1', marks:1,
+      text:'ಕರ್ನಾಟಕ ವಿಧಾನಸಭೆ ಮತ್ತು ವಿಧಾನ ಪರಿಷತ್ತಿನಲ್ಲಿ ಚುಕ್ಕೆ ಗುರುತಿನ ಪ್ರಶ್ನೆ ಎಂದರೆ ಯಾವುದು?',
+      options:['ಲಿಖಿತ ಉತ್ತರ ಪಡೆಯುವ ಪ್ರಶ್ನೆ','ಮೌಖಿಕ ಉತ್ತರ ಪಡೆಯುವ ಪ್ರಶ್ನೆ','ಚರ್ಚೆಗೆ ಮಾತ್ರ ಸೀಮಿತವಾದ ಪ್ರಶ್ನೆ','ಉತ್ತರದ ಅಗತ್ಯವಿಲ್ಲದ ಪ್ರಶ್ನೆ'] },
+    { id:'q2', marks:1,
+      text:'ಚುಕ್ಕೆ ಗುರುತಿಲ್ಲದ ಪ್ರಶ್ನೆಗಳಿಗೆ ಯಾವ ರೀತಿಯಲ್ಲಿ ಉತ್ತರ ನೀಡಲಾಗುತ್ತದೆ?',
+      options:['ಮೌಖಿಕವಾಗಿ','ಲಿಖಿತವಾಗಿ','ಚರ್ಚೆಯ ಮೂಲಕ','ಮತದಾನದ ಮೂಲಕ'] },
+    { id:'q3', marks:1,
+      text:'ಚುಕ್ಕೆ ಗುರುತಿನ ಪ್ರಶ್ನೆಯನ್ನು ಗುರುತಿಸಲು ಯಾವ ಚಿಹ್ನೆಯನ್ನು ಬಳಸಲಾಗುತ್ತದೆ?',
+      options:['#','@','*','%'] },
+    { id:'q4', marks:1,
+      text:'ವಿಧಾನಸಭೆ ಅಥವಾ ವಿಧಾನ ಪರಿಷತ್ತಿನಲ್ಲಿ ಪ್ರಶ್ನೋತ್ತರ ಅವಧಿಯಲ್ಲಿ ಕೇಳಲಾದ ಪ್ರಶ್ನೆಗೆ ಸಂಬಂಧಿಸಿದಂತೆ ಉತ್ತರ ನೀಡಲು ಸಾಧ್ಯವಾಗದಿದ್ದರೆ, ಅದನ್ನು ಯಾವ ಅವಧಿಗೆ ಮುಂದೂಡಲಾಗುತ್ತದೆ?',
+      options:['ಮುಂದಿನ ಅಧಿವೇಶನಕ್ಕೆ','ಶೂನ್ಯ ವೇಳೆಗೆ','ಮುಂದಿನ ದಿನದ ಪ್ರಶ್ನೋತ್ತರ ಅವಧಿಗೆ','ಅನಿರ್ದಿಷ್ಟ ಅವಧಿಗೆ'] },
+    { id:'q5', marks:1,
+      text:'ಚುಕ್ಕೆ ಗುರುತಿನ ಪ್ರಶ್ನೆಗೆ ಸಚಿವರು ಉತ್ತರಿಸಿದ ನಂತರ ಸದಸ್ಯರು ಏನು ಮಾಡಬಹುದು?',
+      options:['ಮತದಾನ ಮಾಡಬಹುದು','ಪೂರಕ ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಬಹುದು','ಸದನವನ್ನು ಮುಂದೂಡಬಹುದು','ನಿರ್ಣಯ ಮಂಡಿಸಬಹುದು'] },
+    { id:'q6', marks:1,
+      text:'ಚುಕ್ಕೆ ಗುರುತಿಲ್ಲದ ಪ್ರಶ್ನೆಗೆ ಉತ್ತರ ನೀಡಿದ ನಂತರ ಪೂರಕ ಪ್ರಶ್ನೆಗಳನ್ನು ಕೇಳಲು ಅವಕಾಶವಿದೆಯೇ?',
+      options:['ಇದೆ','ಇಲ್ಲ','ಸಭಾಧ್ಯಕ್ಷರ ಅನುಮತಿಯಿದ್ದರೆ ಮಾತ್ರ','ಸಚಿವರ ಅನುಮತಿಯಿದ್ದರೆ ಮಾತ್ರ'] },
+    { id:'q7', marks:1,
+      text:'ಚುಕ್ಕೆ ಗುರುತಿನ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸುವ ಸಂದರ್ಭದಲ್ಲಿ ಸದನದಲ್ಲಿ ಪ್ರಶ್ನೆಗಳನ್ನು ಕರೆಯುವ ಜವಾಬ್ದಾರಿ ಯಾರಿಗಿರುತ್ತದೆ?',
+      options:['ಮುಖ್ಯಮಂತ್ರಿಗಳಿಗೆ','ಸಂಬಂಧಪಟ್ಟ ಸಚಿವರಿಗೆ','ಸಭಾಧ್ಯಕ್ಷರು / ಸಭಾಪತಿಗಳಿಗೆ','ವಿರೋಧ ಪಕ್ಷದ ನಾಯಕರಿಗೆ'] },
+    { id:'q8', marks:1,
+      text:'ಕರ್ನಾಟಕ ವಿಧಾನಸಭೆ ಅಥವಾ ವಿಧಾನ ಪರಿಷತ್ತಿನಲ್ಲಿ ಗಮನ ಸೆಳೆಯುವ ಸೂಚನೆಯ (Calling Attention Notice) ಮುಖ್ಯ ಉದ್ದೇಶವೇನು?',
+      options:['ಸರ್ಕಾರದ ವಿರುದ್ಧ ಅವಿಶ್ವಾಸ ನಿರ್ಣಯ ಮಂಡಿಸುವುದು','ಸಾರ್ವಜನಿಕ ಮಹತ್ವದ ತುರ್ತು ವಿಷಯದ ಬಗ್ಗೆ ಸಂಬಂಧಪಟ್ಟ ಸಚಿವರ ಗಮನ ಸೆಳೆಯುವುದು','ಹೊಸ ಮಸೂದೆಯನ್ನು ಮಂಡಿಸುವುದು','ಸದನದ ಸದಸ್ಯರನ್ನು ಆಯ್ಕೆ ಮಾಡುವುದು'] },
+    { id:'q9', marks:1,
+      text:'ಶೂನ್ಯ ವೇಳೆಯ (Zero Hour) ಮುಖ್ಯ ಉದ್ದೇಶವೇನು?',
+      options:['ಸಾರ್ವಜನಿಕ ಮಹತ್ವದ ತುರ್ತು ವಿಷಯಗಳನ್ನು ಪ್ರಸ್ತಾಪಿಸುವುದು','ಸದನದ ಸದಸ್ಯರನ್ನು ಆಯ್ಕೆ ಮಾಡುವುದು','ವಾರ್ಷಿಕ ಬಜೆಟ್ ಮಂಡಿಸುವುದು','ಮಸೂದೆಗಳಿಗೆ ಅಂತಿಮ ಅನುಮೋದನೆ ನೀಡುವುದು'] },
+    { id:'q10', marks:1,
+      text:'ಚುಕ್ಕೆ ಗುರುತಿನ ಮತ್ತು ಚುಕ್ಕೆ ಗುರುತಿಲ್ಲದ ಪ್ರಶ್ನೆಗಳ ಮುಖ್ಯ ಉದ್ದೇಶವೇನು?',
+      options:['ಸರ್ಕಾರದ ಕಾರ್ಯಚಟುವಟಿಕೆಗಳ ಬಗ್ಗೆ ಮಾಹಿತಿ ಪಡೆಯುವುದು ಮತ್ತು ಸರ್ಕಾರದ ಜವಾಬ್ದಾರಿಯನ್ನು ಖಚಿತಪಡಿಸುವುದು','ಕೇವಲ ರಾಜಕೀಯ ಚರ್ಚೆ ನಡೆಸುವುದು','ಹೊಸ ಕಾನೂನುಗಳನ್ನು ರಚಿಸುವುದು','ಸದನದ ಸದಸ್ಯರನ್ನು ಆಯ್ಕೆ ಮಾಡುವುದು'] }
+  ];
+}
+/* Correct answers stored SEPARATELY from visible question data */
+function defaultAnswerKey(){
+  return { q1:1, q2:1, q3:2, q4:2, q5:1, q6:1, q7:2, q8:1, q9:0, q10:0 };
+}
+
+/* ---- Default feedback structure ---- */
+function defaultFeedback(){
+  return {
+    day:'ದಿನ- 23-11-2026',
+    sessions:[
+      {
+        heading:'ಅಧಿವೇಶನ-1-3',
+        topic:'ವಿಷಯ: ಕಾಯ್ದೆಗಳು, ವಿಧೇಯಕಗಳು, ನಿಯಮಗಳು, ವಿನಿಯಮಗಳು, ಬೈಲಾಸ್‌ ಬಗ್ಗೆ ಸಂಕ್ಷಿಪ್ತ ವಿವರಗಳು, ಸಂವಿಧಾನದ ಅವಶ್ಯಕತೆಗಳು, ಕರ್ನಾಟಕ ವಿಧಾನ ‌ಸಭೆ ಮತ್ತು ವಿಧಾನ ಪರಿಷತ್ ಕಾರ್ಯಕಲಾಪಗಳು, ಸಮಿತಿಗಳು, ಶೂನ್ಯ ವೇಳೆ',
+        lecturer:'ಉಪನ್ಯಾಸಕರು: ಸೀನಾ ಪಿ, ಜಂಟಿ ನಿರ್ದೇಶಕರು, ಸಚಿವಾಲಯ'
+      },
+      {
+        heading:'ಅಧಿವೇಶನ- 4-5',
+        topic:'ವಿಷಯ: ಚುಕ್ಕೆ ಗುರುತಿನ ಹಾಗೂ ಚುಕ್ಕೆ ಗುರುತಿಲ್ಲದ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸುವ ಕ್ರಮ',
+        lecturer:'ಉಪನ್ಯಾಸಕರು: ವತ್ಸಲ ಆರ್‌, ಬೋಧಕರು'
+      }
+    ],
+    questions:[
+      { id:'f1', text:'ತರಬೇತಿಯ ಉದ್ದೇಶಗಳನ್ನು ಸಾಧಿಸಲಾಗಿದೆಯೇ ?', type:'radio', options:['ಹೌದು','ಇಲ್ಲ'] },
+      { id:'f2', text:'ನಿಮ್ಮ ವೃತ್ತಿ / ಕಾರ್ಯ ಕ್ಷೇತ್ರಕ್ಕೆ ತರಬೇತಿಯು ಹೇಗೆ ಸಹಕಾರಿಯಾಗಿದೆ ?', type:'radio', options:['ತುಂಬಾ ಉಪಯುಕ್ತ','ಉಪಯುಕ್ತ','ಸಾಧಾರಣ'] },
+      { id:'f3', text:'ಈ ತರಬೇತಿಯು ಪ್ರಾಯೋಗಿಕಾತ್ಮವಾಗಿತ್ತೆ ?', type:'radio', options:['ಪ್ರಾಯೋಗಿಕಾತ್ಮಕ','ಸೈದ್ಧಾಂತಿಕ (Theory)'] },
+      { id:'f4', text:'ಸಹ ಶಿಬಿರಾರ್ಥಿಗಳಿಂದ ಚರ್ಚೆಗಳು / ಕಲಿಕಾ ಸೌಲಭ್ಯಗಳು', type:'radio', options:['ಹೆಚ್ಚಿನ ಸೌಲಭ್ಯಗಳಾಯಿತು.','ಕಡಿಮೆ ಸೌಲಭ್ಯಗಳಾಯಿತು.'] },
+      { id:'f5', text:'ಬೋಧಕರು ಮತ್ತು ಸಂಪನ್ಮೂಲ ವ್ಯಕ್ತಿಗಳೊಂದಿಗಿನ ಸಂವಹನ ?', type:'radio', options:['ತೃಪ್ತಿಕರ','ಅತೃಪ್ತಿಕರ'] },
+      { id:'f6', text:'ತರಬೇತಿಯಿಂದ ಕಲಿತ 2 ಅಂಶಗಳು;', type:'textarea', options:[] },
+      { id:'f7', text:'ತರಬೇತಿ ಕಾರ್ಯಕ್ರಮದ ಒಟ್ಟಾರೆ ಅಭಿಪ್ರಾಯ', type:'radio', options:['ಅತ್ಯುತ್ತಮ','ಉತ್ತಮ','ತೃಪ್ತಿಕರ','ಸಾಧಾರಣ'] },
+      { id:'f8', text:'ತರಬೇತಿ ಕಾರ್ಯಕುರಿತು ಸಲಹೆಗಳು ?', type:'textarea', options:[] }
+    ]
+  };
+}
+
+/* ---- Default training programme ---- */
+function defaultTraining(){
+  return {
+    id:'t_assembly',
+    title:'ಪ್ರವೇಶ ನಂತರ ಪರೀಕ್ಷೆ ಮತ್ತು ತರಬೇತಿ',
+    topic:'ಕರ್ನಾಟಕ ವಿಧಾನಸಭೆ ಮತ್ತು ವಿಧಾನ ಪರಿಷತ್ತಿನ ಚುಕ್ಕೆ ಗುರುತಿಲ್ಲದ ಮತ್ತು ಚುಕ್ಕೆ ಗುರುತಿನ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸುವ ಕ್ರಮ',
+    date:'23-11-2026',
+    institute:INSTITUTE,
+    category:'ವಿಧಾನಮಂಡಲ ಕಾರ್ಯವಿಧಾನ',
+    accent:'#1D3557',
+    description:'ಕರ್ನಾಟಕ ವಿಧಾನಮಂಡಲದ ಪ್ರಶ್ನೋತ್ತರ ಕಲಾಪಗಳು, ಚುಕ್ಕೆ ಗುರುತಿನ ಹಾಗೂ ಚುಕ್ಕೆ ಗುರುತಿಲ್ಲದ ಪ್ರಶ್ನೆಗಳ ಸ್ವರೂಪ ಮತ್ತು ಅವುಗಳಿಗೆ ಉತ್ತರಿಸುವ ಕ್ರಮದ ಕುರಿತು ಅಧಿಕಾರಿಗಳಿಗೆ ವೃತ್ತಿಪರ ತರಬೇತಿ.',
+    passing:70,
+    createdAt:nowISO(),
+    questions:defaultQuestions(),
+    answerKey:defaultAnswerKey(),
+    feedback:defaultFeedback()
+  };
+}
+
+function seedData(){
+  return {
+    version:1,
+    users:[
+      { id:'u1', username:'student1', password:'demo123', name:'ಅನನ್ಯಾ ಆರ್.',  role:'student' },
+      { id:'u2', username:'student2', password:'demo123', name:'ರಾಹುಲ್ ಕೆ.',     role:'student' },
+      { id:'u3', username:'student3', password:'demo123', name:'ದೀಪಾ ಎಂ.',       role:'student' },
+      { id:'u4', username:'savita',   password:'admin123', name:'Savita K. H.',   role:'admin',
+        designation:'ಉಪ ಪ್ರಾಂಶುಪಾಲರು / Vice Principal' }
+    ],
+    trainings:[ defaultTraining() ],
+    submissions:[],
+    certificates:[],
+    session:null,
+    certCounter:0,
+    settings:{ defaultPassing:70 }
+  };
+}
+
+let DB = null;
+
+function loadDB(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw){
+      DB = seedData();
+      saveDB();
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    DB = parsed && typeof parsed === 'object' ? parsed : seedData();
+
+    /* one-time structural healing (never wipes user data) */
+    if(!Array.isArray(DB.users) || !DB.users.length) DB.users = seedData().users;
+    if(!Array.isArray(DB.trainings) || !DB.trainings.length) DB.trainings = seedData().trainings;
+    if(!Array.isArray(DB.submissions)) DB.submissions = [];
+    if(!Array.isArray(DB.certificates)) DB.certificates = [];
+    if(typeof DB.certCounter !== 'number') DB.certCounter = 0;
+    if(!DB.settings) DB.settings = { defaultPassing:70 };
+    if(DB.session === undefined) DB.session = null;
+
+    /* ensure built-in training always has its answer key intact */
+    const built = DB.trainings.find(t => t.id === 't_assembly');
+    if(built && (!built.answerKey || Object.keys(built.answerKey).length !== 10)){
+      const keys = defaultAnswerKey();
+      built.questions.forEach(q => { if(keys[q.id] !== undefined) built.answerKey[q.id] = keys[q.id]; });
+    }
+  }catch(e){
+    console.warn('Storage read failed, using fresh demo data.', e);
+    DB = seedData();
+    try{ saveDB(); }catch(_e){}
+  }
+}
+function saveDB(){
+  try{
+    localStorage.setItem(STORE_KEY, JSON.stringify(DB));
+    return true;
+  }catch(e){
+    toast('ಡೇಟಾವನ್ನು ಉಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ಸ್ಟೋರೇಜ್ ಸ್ಥಳಾವಕಾಶ ಪರಿಶೀಲಿಸಿ.','error');
+    return false;
+  }
+}
+
+/* ============================================================
+   SECTION C — APP STATE & SESSION
+   ============================================================ */
+const state = {
+  route:'dashboard',        /* dashboard | workflow | admin */
+  adminSection:'overview',
+  trainingId:null,
+  stage:1,
+  draft:null,
+  editing:null,             /* admin training draft */
+  filter:{ training:'', q:'', cert:'' }
+};
+
+function currentUser(){
+  if(!DB.session || !DB.session.userId) return null;
+  return DB.users.find(u => u.id === DB.session.userId) || null;
+}
+function getTraining(id){ return DB.trainings.find(t => t.id === id) || null; }
+function getSubmission(userId, trainingId){
+  return DB.submissions.find(s => s.userId === userId && s.trainingId === trainingId) || null;
+}
+function submissionsForTraining(tid){ return DB.submissions.filter(s => s.trainingId === tid); }
+
+function login(username, password){
+  const u = DB.users.find(
+    x => x.username.toLowerCase() === String(username||'').trim().toLowerCase() &&
+         x.password === password
+  );
+  if(!u) return null;
+  DB.session = { userId:u.id, at:nowISO() };
+  saveDB();
+  return u;
+}
+function logout(){
+  DB.session = null;
+  saveDB();
+  state.route = 'dashboard';
+  state.adminSection = 'overview';
+  state.trainingId = null;
+  state.stage = 1;
+  state.draft = null;
+  state.editing = null;
+  render();
+  toast('ನೀವು ಯಶಸ್ವಿಯಾಗಿ ಲಾಗ್ ಔಟ್ ಆಗಿದ್ದೀರಿ.','success');
+}
+
+/* ---- Draft persistence ---- */
+function draftKey(){
+  const u = currentUser();
+  if(!u || !state.trainingId) return null;
+  return DRAFT_PREFIX + u.id + '_' + state.trainingId;
+}
+function readDraft(){
+  const k = draftKey();
+  if(!k) return null;
+  try{
+    const raw = localStorage.getItem(k);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; }
+}
+let draftTimer = null;
+function persistDraft(){
+  const k = draftKey();
+  if(!k || !state.draft) return;
+  clearTimeout(draftTimer);
+  draftTimer = setTimeout(() => {
+    try{ localStorage.setItem(k, JSON.stringify(state.draft)); }catch(e){ /* silent */ }
+  }, 250);
+}
+function dropDraft(){
+  const k = draftKey();
+  if(!k) return;
+  try{ localStorage.removeItem(k); }catch(e){}
+}
+function newDraft(user){
+  return {
+    stage:1,
+    details:{ email:'', name:user ? user.name : '', kgid:'' },
+    feedback:{ ratings:{}, answers:{} },
+    answers:{}
+  };
+}
+
+/* ============================================================
+   SECTION D — RENDER ENTRY
+   ============================================================ */
+const appEl = document.getElementById('app');
+
+function render(){
+  const u = currentUser();
+
+  if(!u){
+    appEl.innerHTML = viewLogin();
+    bindPostRender();
+    return;
+  }
+  if(u.role === 'admin'){
+    appEl.innerHTML = viewAdminShell(u);
+    bindPostRender();
+    return;
+  }
+  /* student */
+  if(state.route === 'workflow' && state.trainingId && getTraining(state.trainingId)){
+    appEl.innerHTML = viewWorkflowShell(u);
+  }else{
+    state.route = 'dashboard';
+    appEl.innerHTML = viewStudentShell(u);
+  }
+  bindPostRender();
+}
+
+/* Bind data-bind inputs for admin editor + misc after every render */
+function bindPostRender(){
+  $$('[data-bind]').forEach(el => {
+    const handler = () => {
+      if(!state.editing) return;
+      let v = el.value;
+      const p = el.dataset.bind;
+      if(/(\.|^)(correct|passing|marks)$/.test(p)) v = Number(v) || 0;
+      setPath(state.editing, p, v);
+    };
+    el.addEventListener('input', handler);
+    el.addEventListener('change', handler);
+  });
+
+  $$('[data-det]').forEach(el => {
+    el.addEventListener('input', () => {
+      if(!state.draft) return;
+      state.draft.details[el.dataset.det] = el.value;
+      persistDraft();
+    });
+  });
+
+  $$('[data-fb]').forEach(el => {
+    el.addEventListener('input', () => {
+      if(!state.draft) return;
+      state.draft.feedback.answers[el.dataset.fb] = el.value;
+      persistDraft();
+    });
+  });
+
+  $$('input[name^="rate_"]').forEach(el => {
+    el.addEventListener('change', () => {
+      if(!state.draft) return;
+      state.draft.feedback.ratings[el.name.slice(5)] = el.value;
+      persistDraft();
+    });
+  });
+
+  $$('input[name^="ans_"]').forEach(el => {
+    el.addEventListener('change', () => {
+      if(!state.draft) return;
+      state.draft.answers[el.name.slice(4)] = Number(el.value);
+      persistDraft();
+    });
+  });
+
+  /* filter inputs for results table (live DOM filtering) */
+  $$('[data-filter]').forEach(el => {
+    el.addEventListener('input', applyResultFilter);
+    el.addEventListener('change', applyResultFilter);
+  });
+}
+
+/* ============================================================
+   SECTION E — LOGIN VIEW
+   ============================================================ */
+function viewLogin(){
+  const demoRows = DB.users.map(u => {
+    const isAdmin = u.role === 'admin';
+    return '<button type="button" class="demo-item" data-action="fill-demo" data-u="' + esc(u.username) + '" data-p="' + esc(u.password) + '">' +
+      '<span class="di-name">' + esc(u.name) + '</span>' +
+      '<span class="di-cred">' + esc(u.username) + ' / ' + esc(u.password) + '</span>' +
+      '<span class="di-role' + (isAdmin ? ' admin' : '') + '">' + (isAdmin ? 'ನಿರ್ವಾಹಕ' : 'ವಿದ್ಯಾರ್ಥಿ') + '</span>' +
+    '</button>';
+  }).join('');
+
+  return '' +
+  '<div class="login-page">' +
+    '<div class="login-brand">' +
+      '<div class="brand-inner">' +
+        emblem(94) +
+        '<h1 class="brand-kn">ಜಿಲ್ಲಾ ತರಬೇತಿ ಸಂಸ್ಥೆ</h1>' +
+        '<div class="brand-city">ಬೆಂಗಳೂರು ನಗರ</div>' +
+        '<div class="brand-en">District Training Institute, Bengaluru City</div>' +
+        '<div class="brand-rule"></div>' +
+        '<p class="brand-tag">ಸರ್ಕಾರಿ ಅಧಿಕಾರಿಗಳ ವೃತ್ತಿಪರ ತರಬೇತಿ, ಮೌಲ್ಯಮಾಪನ ಮತ್ತು ಪ್ರಮಾಣಪತ್ರ ವಿತರಣಾ ವ್ಯವಸ್ಥೆ</p>' +
+        '<ul class="brand-points">' +
+          '<li>' + ICON.check + '<span>ತರಬೇತಿ ಪ್ರತಿಕ್ರಿಯೆ ಸಂಗ್ರಹಣೆ</span></li>' +
+          '<li>' + ICON.check + '<span>ಪ್ರವೇಶ ನಂತರ ಮೌಲ್ಯಮಾಪನ ಪರೀಕ್ಷೆ</span></li>' +
+          '<li>' + ICON.check + '<span>ಸ್ವಯಂಚಾಲಿತ ಫಲಿತಾಂಶ ಮತ್ತು ಡಿಜಿಟಲ್ ಪ್ರಮಾಣಪತ್ರ</span></li>' +
+          '<li>' + ICON.check + '<span>ನಿರ್ವಾಹಕರಿಗೆ ಸಂಪೂರ್ಣ ತರಬೇತಿ ನಿರ್ವಹಣೆ</span></li>' +
+        '</ul>' +
+      '</div>' +
+    '</div>' +
+    '<div class="login-panel">' +
+      '<div class="login-card">' +
+        '<h2>ಸ್ವಾಗತ</h2>' +
+        '<p class="sub">ದಯವಿಟ್ಟು ನಿಮ್ಮ ಖಾತೆಯ ವಿವರಗಳನ್ನು ನಮೂದಿಸಿ</p>' +
+        '<form data-form="login" novalidate autocomplete="on">' +
+          '<label class="field"><span>ಬಳಕೆದಾರ ಹೆಸರು (Username)</span>' +
+            '<input type="text" name="username" id="loginUser" placeholder="student1" autocomplete="username" required>' +
+          '</label>' +
+          '<label class="field"><span>ಗುಪ್ತಪದ (Password)</span>' +
+            '<div class="pw-wrap">' +
+              '<input type="password" name="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" required>' +
+              '<button type="button" class="pw-toggle" data-action="toggle-pw" aria-label="ಗುಪ್ತಪದ ತೋರಿಸಿ">' + ICON.eye + '</button>' +
+            '</div>' +
+          '</label>' +
+          '<div class="form-msg" id="loginMsg"></div>' +
+          '<button type="submit" class="btn btn-primary btn-block">ಪ್ರವೇಶಿಸಿ</button>' +
+        '</form>' +
+        '<details class="demo-panel">' +
+          '<summary>ಡೆಮೊ ಖಾತೆಗಳು (Demo Accounts)</summary>' +
+          '<div class="demo-list">' + demoRows + '</div>' +
+          '<p class="login-note">ಈ ಖಾತೆಗಳು ಪ್ರದರ್ಶನ (demonstration) ಉದ್ದೇಶಕ್ಕೆ ಮಾತ್ರ. ಇವು ನಿಜವಾದ ಭದ್ರತೆಯನ್ನು ಒದಗಿಸುವುದಿಲ್ಲ.</p>' +
+        '</details>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+/* ============================================================
+   SECTION F — SHARED SHELL PIECES
+   ============================================================ */
+function sidebarBrand(){
+  return '<div class="sb-brand">' +
+    emblem(42, '#C5A46D', '#F7F5EF') +
+    '<div class="sb-text">' +
+      '<div class="sb-kn">ಜಿಲ್ಲಾ ತರಬೇತಿ ಸಂಸ್ಥೆ</div>' +
+      '<div class="sb-en">Bengaluru City</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function sidebarUserCard(u){
+  const initial = (u.name || '?').trim().charAt(0).toUpperCase();
+  const role = u.role === 'admin'
+    ? (u.designation || 'ಉಪ ಪ್ರ ಪ್ರಾಂಶುಪಾಲರು')
+    : 'ಶಿಬಿರಾರ್ಥಿ (Student)';
+  return '<div class="sb-user">' +
+      '<div class="su-name">' + esc(u.name) + '</div>' +
+      '<div class="su-role">' + esc(role) + '</div>' +
+    '</div>' +
+    '<button type="button" class="sb-logout" data-action="logout">' + ICON.logout + '<span>ಲಾಗ್ ಔಟ್</span></button>';
+}
+
+function topbar(title, sub, u){
+  const initial = (u.name || '?').trim().charAt(0).toUpperCase();
+  const isAdmin = u.role === 'admin';
+  return '<header class="topbar">' +
+      '<button type="button" class="icon-btn only-mobile" data-action="open-sidebar" aria-label="ಮೆನು">' + ICON.menu + '</button>' +
+      '<div>' +
+        '<h1>' + esc(title) + '</h1>' +
+        (sub ? '<div class="tb-sub">' + esc(sub) + '</div>' : '') +
+      '</div>' +
+      '<div class="spacer"></div>' +
+      '<div class="user-chip">' +
+        '<div class="avatar' + (isAdmin ? ' admin' : '') + '">' + esc(initial) + '</div>' +
+        '<div>' +
+          '<div class="uc-name">' + esc(u.name) + '</div>' +
+          '<div class="uc-role">' + esc(isAdmin ? 'ಉಪ ಪ್ರಾಂಶುಪಾಲರು' : 'ಶಿಬಿರಾರ್ಥಿ') + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</header>';
+}
+
+/* ============================================================
+   SECTION G — STUDENT DASHBOARD
+   ============================================================ */
+function viewStudentShell(u){
+  const subs = DB.submissions.filter(s => s.userId === u.id);
+  const certs = DB.certificates.filter(c => c.userId === u.id);
+  const latest = subs.length ? subs[subs.length-1] : null;
+
+  const navItems =
+    '<div class="sb-label">ಮುಖ್ಯ ಮೆನು</div>' +
+    '<button class="nav-item active" data-action="student-nav" data-to="dashboard">' + ICON.dashboard + '<span>ಡ್ಯಾಶ್‌ಬೋರ್ಡ್</span></button>' +
+    '<button class="nav-item" data-action="student-nav" data-to="training">' + ICON.book + '<span>ತರಬೇತಿಗಳು</span></button>' +
+    '<button class="nav-item" data-action="student-nav" data-to="result">' + ICON.results + '<span>ಫಲಿತಾಂಶ</span></button>' +
+    '<button class="nav-item" data-action="student-nav" data-to="certificate">' + ICON.cert + '<span>ಪ್ರಮಾಣಪತ್ರ</span></button>';
+
+  return '<div class="app-shell">' +
+    '<aside class="sidebar" id="sidebar">' + sidebarBrand() +
+      '<nav class="sb-nav">' + navItems + '</nav>' +
+      sidebarUserCard(u) +
+    '</aside>' +
+    '<div class="sidebar-overlay" id="sidebarOverlay" data-action="close-sidebar"></div>' +
+    '<div class="main-col">' +
+      topbar('ಶಿಬಿರಾರ್ಥಿ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್', INSTITUTE, u) +
+      '<main class="main">' + viewStudentDashboard(u, subs, certs, latest) + '</main>' +
+    '</div>' +
+  '</div>';
+}
+
+function viewStudentDashboard(u, subs, certs, latest){
+  const totalTrainings = DB.trainings.length;
+  const completed = subs.length;
+  const certCount = certs.length;
+
+  const cards = DB.trainings.map(t => {
+    const sub = getSubmission(u.id, t.id);
+    const statusBadge = sub
+      ? '<span class="badge green">ಪೂರ್ಣಗೊಂಡಿದೆ</span>'
+      : '<span class="badge blue">ಪ್ರಾರಂಭಿಸಲು ಸಿದ್ಧ</span>';
+
+    return '<div class="training-card">' +
+      '<div class="tc-top">' +
+        '<div class="tc-eyebrow">' +
+          statusBadge +
+          '<span class="badge grey">' + esc(t.category || 'ಸಾಮಾನ್ಯ') + '</span>' +
+        '</div>' +
+        '<div class="tc-title">' + esc(t.title) + '</div>' +
+        '<div class="tc-topic">“' + esc(t.topic) + '”</div>' +
+        '<div class="tc-meta">' +
+          '<div><div class="m-label">ದಿನಾಂಕ</div><div class="m-value">' + esc(t.date) + '</div></div>' +
+          '<div><div class="m-label">ಸಂಸ್ಥೆ</div><div class="m-value">' + esc(t.institute || INSTITUTE) + '</div></div>' +
+          '<div><div class="m-label">ಪ್ರಶ್ನೆಗಳು</div><div class="m-value">' + t.questions.length + ' MCQ</div></div>' +
+          '<div><div class="m-label">ಉತ್ತೀರ್ಣ ಮಿತಿ</div><div class="m-value">' + (t.passing || 70) + '%</div></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="tc-foot">' +
+        (sub
+          ? '<button class="btn btn-primary" data-action="open-training" data-id="' + esc(t.id) + '">ಫಲಿತಾಂಶ ನೋಡಿ</button>' +
+            '<span class="muted small">ಅಂಕಗಳು: <b>' + sub.result.marks + '/' + sub.result.total + '</b> · ' + sub.result.pct + '%</span>'
+          : '<button class="btn btn-primary" data-action="open-training" data-id="' + esc(t.id) + '">ತರಬೇತಿ ಪ್ರಾರಂಭಿಸಿ</button>') +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  return '' +
+  '<div class="page-head">' +
+    '<h2>ನಮಸ್ಕಾರ, ' + esc(u.name) + '</h2>' +
+    '<div class="ph-sub">' + esc(INSTITUTE) + ' — ತರಬೇತಿ ಪೋರ್ಟಲ್‌ಗೆ ಸ್ವಾಗತ</div>' +
+  '</div>' +
+
+  '<div class="stat-grid">' +
+    '<div class="stat navy"><div class="st-label">ಲಭ್ಯವಿರುವ ತರಬೇತಿಗಳು</div><div class="st-value">' + totalTrainings + '</div><div class="st-hint">ಒಟ್ಟು ಕಾರ್ಯಕ್ರಮಗಳು</div></div>' +
+    '<div class="stat gold"><div class="st-label">ಪೂರ್ಣಗೊಂಡ ತರಬೇತಿಗಳು</div><div class="st-value">' + completed + '</div><div class="st-hint">ಸಲ್ಲಿಸಿದ ಮೌಲ್ಯಮಾಪನಗಳು</div></div>' +
+    '<div class="stat ' + (latest ? 'green' : '') + '"><div class="st-label">ಇತ್ತೀಚಿನ ಅಂಕಗಳು</div><div class="st-value">' + (latest ? (latest.result.marks + '/' + latest.result.total) : '—') + '</div><div class="st-hint">' + (latest ? (latest.result.pct + '% · ' + (latest.result.passed ? 'ಉತ್ತೀರ್ಣ' : 'ಅನುತ್ತೀರ್ಣ')) : 'ಇನ್ನೂ ಪರೀಕ್ಷೆ ಬಾಕಿ') + '</div></div>' +
+    '<div class="stat green"><div class="st-label">ಪ್ರಮಾಣಪತ್ರ</div><div class="st-value">' + certCount + '</div><div class="st-hint">ನೀಡಲಾದ ಪ್ರಮಾಣಪತ್ರಗಳು</div></div>' +
+  '</div>' +
+
+  '<div class="card" style="margin-bottom:22px;background:#FCFBF7;border-color:#E7E2D3;">' +
+    '<div class="row" style="gap:16px;align-items:flex-start;">' +
+      '<div style="flex:1;min-width:220px;">' +
+        '<h3 style="color:var(--navy);margin-bottom:6px;">ನಿಮ್ಮ ತರಬೇತಿ ಪ್ರಗತಿ</h3>' +
+        '<p class="muted small" style="margin:0;">ತರಬೇತಿ ಪ್ರಾರಂಭಿಸಿ — ಭಾಗವಹಿಸುವವರ ವಿವರಗಳು, ತರಬೇತಿ ಪ್ರತಿಕ್ರಿಯೆ, ಮೌಲ್ಯಮಾಪನ, ಫಲಿತಾಂಶ ಮತ್ತು ಪ್ರಮಾಣಪತ್ರ ಹಂತಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ.</p>' +
+      '</div>' +
+      '<div style="text-align:right;min-width:150px;">' +
+        '<div class="tiny muted">ಸ್ಥಿತಿ</div>' +
+        '<div class="strong" style="color:var(--darkblue);">' + (completed > 0 ? 'ಸಕ್ರಿಯ' : 'ಹೊಸ ಬಳಕೆದಾರ') + '</div>' +
+      '</div>' +
+    '</div>' +
+  '</div>' +
+
+  '<div class="card-head" style="margin-bottom:14px;">' +
+    '<h2 style="font-size:19px;">ಲಭ್ಯವಿರುವ ತರಬೇತಿ ಕಾರ್ಯಕ್ರಮಗಳು</h2>' +
+  '</div>' +
+  '<div class="training-list">' + (cards || '<div class="card muted center">ಯಾವುದೇ ತರಬೇತಿ ಕಾರ್ಯಕ್ರಮಗಳು ಲಭ್ಯವಿಲ್ಲ.</div>') + '</div>';
+}
+
+/* ============================================================
+   SECTION H — TRAINING WORKFLOW
+   ============================================================ */
+const STAGES = [
+  { n:1, label:'ಭಾಗವಹಿಸುವವರ ವಿವರಗಳು' },
+  { n:2, label:'ತರಬೇತಿ ಪ್ರತಿಕ್ರಿಯೆ' },
+  { n:3, label:'ಮೌಲ್ಯಮಾಪನ' },
+  { n:4, label:'ಫಲಿತಾಂಶ' },
+  { n:5, label:'ಪ್ರಮಾಣಪತ್ರ' }
+];
+
+function openTraining(id){
+  const u = currentUser();
+  if(!u) return;
+  const t = getTraining(id);
+  if(!t){ toast('ತರಬೇತಿ ಕಾರ್ಯಕ್ರಮ ಕಂಡುಬಂದಿಲ್ಲ.','error'); return; }
+
+  state.trainingId = id;
+  const sub = getSubmission(u.id, id);
+
+  if(sub){
+    state.stage = 4;
+    state.draft = newDraft(u);
+    state.route = 'workflow';
+    render();
+    return;
+  }
+
+  const d = readDraft();
+  state.draft = d || newDraft(u);
+  if(!state.draft.details) state.draft.details = { email:'', name:u.name, kgid:'' };
+  if(!state.draft.details.name) state.draft.details.name = u.name;
+  if(!state.draft.feedback) state.draft.feedback = { ratings:{}, answers:{} };
+  if(!state.draft.answers) state.draft.answers = {};
+
+  state.stage = Math.min(Math.max(Number(state.draft.stage) || 1, 1), 3);
+  state.route = 'workflow';
+  render();
+}
+
+function stageAccessible(n){
+  const u = currentUser();
+  const t = getTraining(state.trainingId);
+  if(!u || !t) return false;
+  const sub = getSubmission(u.id, t.id);
+
+  if(n === 1) return true;
+  if(n === 2) return isDetailsComplete();
+  if(n === 3) return isDetailsComplete() && isFeedbackComplete(t);
+  if(n === 4) return !!sub;
+  if(n === 5) return !!(sub && sub.result.passed);
+  return false;
+}
+
+function isDetailsComplete(){
+  const d = state.draft && state.draft.details;
+  if(!d) return false;
+  return !!(String(d.email||'').trim() && isEmail(d.email) &&
+            String(d.name||'').trim() && String(d.kgid||'').trim());
+}
+function isFeedbackComplete(t){
+  if(!state.draft || !t) return false;
+  const fb = state.draft.feedback || {};
+  const sessions = (t.feedback && t.feedback.sessions) || [];
+  for(let i=0;i<sessions.length;i++){
+    if(!fb.ratings || !fb.ratings[String(i)]) return false;
+  }
+  const qs = (t.feedback && t.feedback.questions) || [];
+  for(let i=0;i<qs.length;i++){
+    const q = qs[i];
+    const val = fb.answers ? fb.answers[q.id] : '';
+    if(q.type === 'textarea'){
+      if(!String(val||'').trim()) return false;
+    }else if(!val){
+      return false;
+    }
+  }
+  return true;
+}
+
+function viewWorkflowShell(u){
+  const t = getTraining(state.trainingId);
+  if(!t){
+    return '<div class="app-shell"><div class="main-col">' +
+      topbar('ತರಬೇತಿ', INSTITUTE, u) +
+      '<main class="main"><div class="card center">ತರಬೇತಿ ಕಾರ್ಯಕ್ರಮ ಲಭ್ಯವಿಲ್ಲ. <button class="btn btn-primary btn-sm" data-action="student-nav" data-to="dashboard">ಮರಳಿ</button></div></main></div></div>';
+  }
+  const sub = getSubmission(u.id, t.id);
+
+  const stepsHtml = STAGES.map(s => {
+    const accessible = stageAccessible(s.n);
+    const cls = 'step' + (state.stage === s.n ? ' active' : '') +
+      (state.stage > s.n ? ' done' : '') + (accessible ? ' clickable' : '');
+    return '<div class="' + cls + '" data-action="goto-stage" data-n="' + s.n + '">' +
+      '<div class="s-dot">' + (state.stage > s.n ? '✓' : s.n) + '</div>' +
+      '<div class="s-label">' + esc(s.label) + '</div>' +
+    '</div>';
+  }).join('');
+
+  let content = '';
+  if(state.stage === 1)      content = stageDetails(t);
+  else if(state.stage === 2) content = stageFeedback(t);
+  else if(state.stage === 3) content = stageAssessment(t, sub);
+  else if(state.stage === 4) content = stageResult(t, sub);
+  else if(state.stage === 5) content = stageCertificate(t, sub);
+
+  return '<div class="app-shell">' +
+    '<aside class="sidebar" id="sidebar">' + sidebarBrand() +
+      '<nav class="sb-nav">' +
+        '<div class="sb-label">ತರಬೇತಿ</div>' +
+        '<button class="nav-item" data-action="student-nav" data-to="dashboard">' + ICON.dashboard + '<span>ಡ್ಯಾಶ್‌ಬೋರ್ಡ್</span></button>' +
+        '<button class="nav-item active" data-action="open-training" data-id="' + esc(t.id) + '">' + ICON.book + '<span>ಪ್ರಸ್ತುತ ತರಬೇತಿ</span></button>' +
+        '<button class="nav-item" data-action="student-nav" data-to="result">' + ICON.results + '<span>ಫಲಿತಾಂಶ</span></button>' +
+        '<button class="nav-item" data-action="student-nav" data-to="certificate">' + ICON.cert + '<span>ಪ್ರಮಾಣಪತ್ರ</span></button>' +
+      '</nav>' +
+      sidebarUserCard(u) +
+    '</aside>' +
+    '<div class="sidebar-overlay" id="sidebarOverlay" data-action="close-sidebar"></div>' +
+    '<div class="main-col">' +
+      topbar(trunc(t.title, 46), 'ದಿನಾಂಕ: ' + t.date, u) +
+      '<main class="main">' +
+        '<div class="page-head">' +
+          '<h2>' + esc(t.title) + '</h2>' +
+          '<div class="ph-sub">' + esc(t.topic) + '</div>' +
+        '</div>' +
+        '<div class="steps">' + stepsHtml + '</div>' +
+        content +
+      '</main>' +
+    '</div>' +
+  '</div>';
+}
+
+/* ---------- STAGE 1 : PARTICIPANT DETAILS ---------- */
+function stageDetails(t){
+  const d = state.draft.details || {};
+  return '<div class="card">' +
+    '<div class="card-head">' +
+      '<div>' +
+        '<h2>ಭಾಗವಹಿಸುವವರ ವಿವರಗಳು</h2>' +
+        '<p class="muted small" style="margin:0;">ದಯವಿಟ್ಟು ನಿಮ್ಮ ಮಾಹಿತಿಯನ್ನು ಖಚಿತಪಡಿಸಿ. ಎಲ್ಲಾ ಕ್ಷೇತ್ರಗಳು ಕಡ್ಡಾಯ.</p>' +
+      '</div>' +
+      '<span class="badge gold">ಹಂತ 1 / 5</span>' +
+    '</div>' +
+    '<div class="grid-2">' +
+      '<label class="field"><span>ಇ-ಮೇಲ್‌ ವಿಳಾಸ *</span>' +
+        '<input type="email" data-det="email" value="' + esc(d.email||'') + '" placeholder="name@example.com" autocomplete="email">' +
+        '<div class="field-hint">ಉದಾಹರಣೆ: officer@karnataka.gov.in</div>' +
+      '</label>' +
+      '<label class="field"><span>ಹೆಸರು *</span>' +
+        '<input type="text" data-det="name" value="' + esc(d.name||'') + '" placeholder="ಪೂರ್ಣ ಹೆಸರು">' +
+      '</label>' +
+      '<label class="field"><span>ಕೆ.ಜಿ.ಐ.ಡಿ / ಹೆಚ್‌ ಆರ್‌ ಎಂಎಸ್‌ ಸಂಖ್ಯೆ *</span>' +
+        '<input type="text" data-det="kgid" value="' + esc(d.kgid||'') + '" placeholder="ಉದಾ: KGID123456">' +
+      '</label>' +
+      '<div class="field"><span>ತರಬೇತಿ ವಿವರ</span>' +
+        '<div class="card-soft" style="font-size:13.5px;line-height:1.8;">' +
+          '<div><b>ದಿನಾಂಕ:</b> ' + esc(t.date) + '</div>' +
+          '<div><b>ಸಂಸ್ಥೆ:</b> ' + esc(t.institute || INSTITUTE) + '</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="form-msg" id="stageMsg"></div>' +
+    '<div class="row row-end" style="margin-top:6px;">' +
+      '<button class="btn btn-ghost" data-action="student-nav" data-to="dashboard">ರದ್ದು ಮಾಡಿ</button>' +
+      '<button class="btn btn-primary" data-action="stage-next">ಮುಂದಿನ ಹಂತ →</button>' +
+    '</div>' +
+  '</div>';
+}
+
+/* ---------- STAGE 2 : FEEDBACK ---------- */
+function stageFeedback(t){
+  const fb = t.feedback || { sessions:[], questions:[] };
+  const d = state.draft.feedback || { ratings:{}, answers:{} };
+
+  const sessionsHtml = (fb.sessions || []).map((s, i) => {
+    const selected = (d.ratings || {})[String(i)] || '';
+    const pills = RATINGS.map(r =>
+      '<label class="pill"><input type="radio" name="rate_' + i + '" value="' + esc(r) + '"' +
+        (selected === r ? ' checked' : '') + '><span>' + esc(r) + '</span></label>'
+    ).join('');
+    return '<div class="session-block">' +
+      '<div class="ss-head">' + esc(s.heading) + '</div>' +
+      '<div class="ss-topic">' + esc(s.topic) + '</div>' +
+      '<div class="ss-lect">' + esc(s.lecturer) + '</div>' +
+      '<div class="rating-label">ಅಧಿವೇಶನದ ಮೌಲ್ಯಮಾಪನ *</div>' +
+      '<div class="rating-row">' + pills + '</div>' +
+    '</div>';
+  }).join('');
+
+  const questionsHtml = (fb.questions || []).map((q, i) => {
+    const val = (d.answers || {})[q.id];
+    let control = '';
+    if(q.type === 'textarea'){
+      control = '<textarea data-fb="' + esc(q.id) + '" rows="4" placeholder="ನಿಮ್ಮ ಉತ್ತರವನ್ನು ಇಲ್ಲಿ ಬರೆಯಿರಿ...">' + esc(val || '') + '</textarea>';
+    }else{
+      control = '<div class="rating-row">' + (q.options||[]).map((o, j) =>
+        '<label class="pill"><input type="radio" name="fb_' + esc(q.id) + '" value="' + esc(o) + '"' +
+          (val === o ? ' checked' : '') +
+          ' data-fbgroup="' + esc(q.id) + '"><span>' + esc(o) + '</span></label>'
+      ).join('') + '</div>';
+    }
+    return '<div class="q-card" style="box-shadow:none;">' +
+      '<div class="q-head"><div class="q-num">' + (i+1) + '</div>' +
+        '<div class="q-text">' + esc(q.text) + '</div>' +
+      '</div>' + control +
+    '</div>';
+  }).join('');
+
+  return '<div class="stack">' +
+    '<div class="card">' +
+      '<div class="section-head">' +
+        '<span class="sh-badge">ಭಾಗ-01</span>' +
+        '<span class="sh-title">ದಿನದ ಹಿಮ್ಮಾಹಿತಿ</span>' +
+        '<span class="spacer"></span>' +
+        '<span class="badge grey">' + esc(fb.day || ('ದಿನ- ' + t.date)) + '</span>' +
+      '</div>' +
+      sessionsHtml +
+    '</div>' +
+    '<div class="card">' +
+      '<div class="section-head">' +
+        '<span class="sh-badge">ಭಾಗ-2</span>' +
+        '<span class="sh-title">ತರಬೇತಿ ಉಪಯುಕ್ತತೆ ಕುರಿತು ಹಿಮ್ಮಾಹಿತಿ</span>' +
+      '</div>' +
+      questionsHtml +
+    '</div>' +
+    '<div class="card">' +
+      '<div class="form-msg" id="stageMsg"></div>' +
+      '<div class="row row-end">' +
+        '<button class="btn btn-ghost" data-action="stage-prev">← ಹಿಂದಿನ ಹಂತ</button>' +
+        '<button class="btn btn-primary" data-action="stage-next">ಮುಂದಿನ ಹಂತ →</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+/* ---------- STAGE 3 : ASSESSMENT ---------- */
+function stageAssessment(t, sub){
+  if(sub){
+    return '<div class="card center">' +
+      '<h2>ಮೌಲ್ಯಮಾಪನ ಪೂರ್ಣಗೊಂಡಿದೆ</h2>' +
+      '<p class="muted">ನೀವು ಈ ತರಬೇತಿಯ ಪ್ರವೇಶ ನಂತರ ಪರೀಕ್ಷೆಯನ್ನು ಈಗಾಗಲೇ ಪೂರ್ಣಗೊಳಿಸಿದ್ದೀರಿ. ಪುನಃ ಉತ್ತರಿಸಲು ಅವಕಾಶವಿಲ್ಲ.</p>' +
+      '<button class="btn btn-primary" data-action="goto-stage" data-n="4">ಫಲಿತಾಂಶ ನೋಡಿ</button>' +
+    '</div>';
+  }
+
+  const answers = state.draft.answers || {};
+  const questionsHtml = t.questions.map((q, i) => {
+    const opts = q.options.map((o, j) => {
+      const key = 'ABCD'[j];
+      const sel = String(answers[q.id]) === String(j);
+      return '<label class="opt' + (sel ? ' selected' : '') + '">' +
+        '<input type="radio" name="ans_' + esc(q.id) + '" value="' + j + '"' + (sel ? ' checked' : '') + '>' +
+        '<span class="opt-key">' + key + ')</span>' +
+        '<span class="opt-text">' + esc(o) + '</span>' +
+      '</label>';
+    }).join('');
+    return '<div class="q-card">' +
+      '<div class="q-head">' +
+        '<div class="q-num">' + (i+1) + '</div>' +
+        '<div class="q-text">' + esc(q.text) + '</div>' +
+      '</div>' +
+      '<div class="opt-group">' + opts + '</div>' +
+    '</div>';
+  }).join('');
+
+  return '<div class="card" style="margin-bottom:18px;background:#FCFBF7;border-color:#E7E2D3;">' +
+      '<div class="row" style="align-items:center;">' +
+        '<div style="flex:1;min-width:200px;">' +
+          '<h2 style="margin:0 0 4px;font-size:19px;">ಪ್ರವೇಶ ನಂತರ ಪರೀಕ್ಷೆ</h2>' +
+          '<div class="small" style="color:#3A4658;line-height:1.8;">“' + esc(t.topic) + '”</div>' +
+        '</div>' +
+        '<div style="text-align:right;">' +
+          '<div class="badge blue">ದಿನಾಂಕ: ' + esc(t.date) + '</div>' +
+          '<div class="badge gold" style="margin-top:6px;">ಒಟ್ಟು ' + t.questions.length + ' ಅಂಕಗಳು</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div>' + questionsHtml + '</div>' +
+    '<div class="card">' +
+      '<div class="form-msg" id="stageMsg"></div>' +
+      '<p class="muted small">ಎಲ್ಲಾ ' + t.questions.length + ' ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಿದ ನಂತರವೇ ಸಲ್ಲಿಸಲು ಸಾಧ್ಯ. ಉತ್ತೀರ್ಣ ಮಿತಿ: ' + (t.passing||70) + '%</p>' +
+      '<div class="row row-end">' +
+        '<button class="btn btn-ghost" data-action="stage-prev">← ಹಿಂದಿನ ಹಂತ</button>' +
+        '<button class="btn btn-primary" data-action="submit-assessment">ಪರೀಕ್ಷೆ ಸಲ್ಲಿಸಿ</button>' +
+      '</div>' +
+    '</div>';
+}
+
+/* ---------- STAGE 4 : RESULT ---------- */
+function stageResult(t, sub){
+  if(!sub){
+    return '<div class="card center"><h2>ಫಲಿತಾಂಶ ಲಭ್ಯವಿಲ್ಲ</h2>' +
+      '<p class="muted">ದಯವಿಟ್ಟು ಮೊದಲು ಮೌಲ್ಯಮಾಪನ ಪರೀಕ್ಷೆಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ.</p>' +
+      '<button class="btn btn-primary" data-action="goto-stage" data-n="3">ಮೌಲ್ಯಮಾಪನಕ್ಕೆ ಹೋಗಿ</button></div>';
+  }
+  const r = sub.result;
+  const radius = 52;
+  const circ = 2 * Math.PI * radius;
+  const offset = circ * (1 - r.pct / 100);
+
+  return '<div class="result-hero">' +
+      '<div class="badge ' + (r.passed ? 'green' : 'red') + '" style="margin-bottom:14px;">' +
+        (r.passed ? 'ಉತ್ತೀರ್ಣ' : 'ಅನುತ್ತೀರ್ಣ') + '</div>' +
+      '<div class="ring">' +
+        '<svg viewBox="0 0 120 120">' +
+          '<circle class="ring-bg" cx="60" cy="60" r="' + radius + '"></circle>' +
+          '<circle class="ring-fg' + (r.passed ? '' : ' fail') + '" cx="60" cy="60" r="' + radius + '" ' +
+            'style="stroke-dasharray:' + circ.toFixed(2) + ';stroke-dashoffset:' + offset.toFixed(2) + '"></circle>' +
+        '</svg>' +
+        '<div class="ring-label"><strong>' + r.marks + '/' + r.total + '</strong><span>' + r.pct + '%</span></div>' +
+      '</div>' +
+      '<h2 style="margin-bottom:6px;">' + (r.passed ? 'ಅಭಿನಂದನೆಗಳು!' : 'ಪ್ರಯತ್ನಕ್ಕೆ ಧನ್ಯವಾದಗಳು') + '</h2>' +
+      '<p class="muted" style="max-width:520px;margin:0 auto;">' +
+        (r.passed
+          ? 'ನೀವು ಯಶಸ್ವಿಯಾಗಿ ಮೌಲ್ಯಮಾಪನವನ್ನು ಪೂರ್ಣಗೊಳಿಸಿದ್ದೀರಿ. ನಿಮ್ಮ ಪ್ರಮಾಣಪತ್ರವನ್ನು ಈಗ ನೋಡಬಹುದು.'
+          : 'ನೀವು ಉತ್ತೀರ್ಣ ಮಿತಿಯನ್ನು (' + (t.passing||70) + '%) ತಲುಪಿಲ್ಲ. ಆದ್ದರಿಂದ ಪ್ರಮಾಣಪತ್ರವನ್ನು ನೀಡಲಾಗಿಲ್ಲ.') +
+      '</p>' +
+      '<div class="result-stats">' +
+        '<div class="rs-item"><div class="rs-label">ಒಟ್ಟು ಪ್ರಶ್ನೆಗಳು</div><div class="rs-value">' + r.total + '</div></div>' +
+        '<div class="rs-item"><div class="rs-label">ಸರಿಯಾದ ಉತ್ತರಗಳು</div><div class="rs-value" style="color:var(--green);">' + r.correct + '</div></div>' +
+        '<div class="rs-item"><div class="rs-label">ತಪ್ಪಾದ ಉತ್ತರಗಳು</div><div class="rs-value" style="color:var(--red);">' + r.wrong + '</div></div>' +
+        '<div class="rs-item"><div class="rs-label">ಪಡೆದ ಅಂಕಗಳು</div><div class="rs-value">' + r.marks + '/' + r.total + '</div></div>' +
+        '<div class="rs-item"><div class="rs-label">ಶೇಕಡಾವಾರು</div><div class="rs-value">' + r.pct + '%</div></div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="card">' +
+      '<div class="row" style="justify-content:space-between;">' +
+        '<div class="small muted">ಸಲ್ಲಿಸಿದ ದಿನಾಂಕ: ' + esc(fmtDateTime(sub.submittedAt)) + '</div>' +
+        '<div class="row">' +
+          '<button class="btn btn-ghost" data-action="student-nav" data-to="dashboard">ಡ್ಯಾಶ್‌ಬೋರ್ಡ್</button>' +
+          (r.passed
+            ? '<button class="btn btn-primary" data-action="goto-stage" data-n="5">ಪ್ರಮಾಣಪತ್ರ ನೋಡಿ →</button>'
+            : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+}
+
+/* ---------- STAGE 5 : CERTIFICATE ---------- */
+function stageCertificate(t, sub){
+  if(!sub || !sub.result.passed){
+    return '<div class="card center">' +
+      '<h2>ಪ್ರಮಾಣಪತ್ರ ಲಭ್ಯವಿಲ್ಲ</h2>' +
+      '<p class="muted">ಉತ್ತೀರ್ಣ ಮಿತಿಯನ್ನು ತಲುಪಿದ ನಂತರವೇ ಪ್ರಮಾಣಪತ್ರ ನೀಡಲಾಗುತ್ತದೆ.</p>' +
+      '<button class="btn btn-ghost" data-action="goto-stage" data-n="4">ಫಲಿತಾಂಶ ನೋಡಿ</button>' +
+    '</div>';
+  }
+  const cert = DB.certificates.find(c => c.submissionId === sub.id);
+  const certNo = cert ? cert.number : '—';
+
+  return '<div class="cert-wrap">' + certificateHTML(t, sub, certNo) + '</div>' +
+    '<div class="cert-toolbar no-print">' +
+      '<button class="btn btn-primary" data-action="print-cert">' + ICON.print + '<span>ಪ್ರಮಾಣಪತ್ರ ಡೌನ್‌ಲೋಡ್ / ಮುದ್ರಿಸಿ</span></button>' +
+      '<button class="btn btn-ghost" data-action="goto-stage" data-n="4">← ಫಲಿತಾಂಶ</button>' +
+      '<button class="btn btn-ghost" data-action="student-nav" data-to="dashboard">ಡ್ಯಾಶ್‌ಬೋರ್ಡ್</button>' +
+    '</div>';
+}
+
+function certificateHTML(t, sub, certNo){
+  const name = sub.details && sub.details.name ? sub.details.name : sub.userName;
+  const r = sub.result;
+  return '<div class="cert" id="cert">' +
+    '<div class="cert-corner tl"></div><div class="cert-corner tr"></div>' +
+    '<div class="cert-corner bl"></div><div class="cert-corner br"></div>' +
+    '<div class="cert-inner">' +
+      '<div class="cert-head">' +
+        '<div class="cert-emblem">' + emblem(52, '#C5A46D', '#14243A') + '</div>' +
+        '<div class="cert-inst">' + esc(INSTITUTE) + '</div>' +
+        '<div class="cert-inst-en">' + esc(INSTITUTE_EN) + '</div>' +
+        '<div class="cert-rule"></div>' +
+        '<div class="cert-title">ಪ್ರಶಿಕ್ಷಣ ಪ್ರಮಾಣಪತ್ರ</div>' +
+        '<div class="cert-subtitle">Certificate of Training</div>' +
+      '</div>' +
+      '<div class="cert-body">' +
+        '<div class="cert-lead">ಈ ಪ್ರಮಾಣಪತ್ರವನ್ನು</div>' +
+        '<div class="cert-name">' + esc(name) + '</div>' +
+        '<div class="cert-lead">ಅವರು ಈ ಕೆಳಗಿನ ತರಬೇತಿ ಕಾರ್ಯಕ್ರಮವನ್ನು ಯಶಸ್ವಿಯಾಗಿ ಪೂರ್ಣಗೊಳಿಸಿದ್ದಕ್ಕಾಗಿ ನೀಡಲಾಗಿದೆ.</div>' +
+        '<div class="cert-topic">“' + esc(t.topic) + '”</div>' +
+        '<div class="cert-meta">' +
+          '<div>ದಿನಾಂಕ: <b>' + esc(t.date) + '</b></div>' +
+          '<div>ಅಂಕಗಳು: <b>' + r.marks + ' / ' + r.total + '</b></div>' +
+          '<div>ಶೇಕಡಾವಾರು: <b>' + r.pct + '%</b></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="cert-foot">' +
+        '<div class="cert-no">' +
+          'ಪ್ರಮಾಣಪತ್ರ ಸಂಖ್ಯೆ<br><b>' + esc(certNo) + '</b>' +
+        '</div>' +
+        '<div class="cert-sign">' +
+          '<div class="sig-line"></div>' +
+          '<div class="sig-name">Savita K. H.</div>' +
+          '<div class="sig-role">ಉಪ ಪ್ರಾಂಶುಪಾಲರು / Vice Principal</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="cert-demo">ಇದು ಪ್ರದರ್ಶನ (Demonstration) ಪ್ರಮಾಣಪತ್ರವಾಗಿದೆ — ಯಾವುದೇ ಅಧಿಕೃತ ಪರಿಶೀಲನೆಗೆ ಅರ್ಹವಲ್ಲ.</div>' +
+    '</div>' +
+  '</div>';
+}
+
+/* ============================================================
+   SECTION I — ASSESSMENT SCORING & SUBMISSION
+   ============================================================ */
+function computeResult(training, answers){
+  let correct = 0;
+  const total = training.questions.length;
+  training.questions.forEach(q => {
+    const key = training.answerKey ? training.answerKey[q.id] : undefined;
+    const given = answers[q.id];
+    if(given !== undefined && given !== null && String(given) !== '' && Number(given) === Number(key)){
+      correct++;
+    }
+  });
+  const pct = total ? Math.round((correct / total) * 100) : 0;
+  const passing = Number(training.passing) || 70;
+  return {
+    correct: correct,
+    wrong: total - correct,
+    total: total,
+    marks: correct,
+    pct: pct,
+    passed: pct >= passing,
+    passing: passing
+  };
+}
+
+function nextCertificateNumber(){
+  DB.certCounter = (Number(DB.certCounter) || 0) + 1;
+  return 'DTI-BNG-2026-' + String(DB.certCounter).padStart(4, '0');
+}
+
+function submitAssessment(){
+  const u = currentUser();
+  const t = getTraining(state.trainingId);
+  if(!u || !t) return;
+
+  /* duplicate guard */
+  if(getSubmission(u.id, t.id)){
+    toast('ನೀವು ಈಗಾಗಲೇ ಈ ಪರೀಕ್ಷೆಯನ್ನು ಸಲ್ಲಿಸಿದ್ದೀರಿ.','error');
+    state.stage = 4; render(); return;
+  }
+
+  const answers = state.draft.answers || {};
+  const missing = t.questions.filter(q => answers[q.id] === undefined || answers[q.id] === null || answers[q.id] === '');
+  if(missing.length){
+    showStageMsg('ಎಲ್ಲಾ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಿ. ಬಾಕಿ ಇರುವ ಪ್ರಶ್ನೆಗಳು: ' + missing.length, 'error');
+    toast('ದಯವಿಟ್ಟು ಎಲ್ಲಾ ' + t.questions.length + ' ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಿ.','error');
+    return;
+  }
+
+  const result = computeResult(t, answers);
+  const details = state.draft.details || {};
+
+  const submission = {
+    id: uid('sub'),
+    userId: u.id,
+    userName: u.name,
+    trainingId: t.id,
+    trainingTitle: t.title,
+    trainingTopic: t.topic,
+    trainingDate: t.date,
+    details: {
+      name: details.name || u.name,
+      email: details.email || '',
+      kgid: details.kgid || ''
+    },
+    feedback: deepCopy(state.draft.feedback || { ratings:{}, answers:{} }),
+    answers: deepCopy(answers),
+    result: result,
+    submittedAt: nowISO(),
+    certificateNo: null
+  };
+
+  if(result.passed){
+    const certNo = nextCertificateNumber();
+    submission.certificateNo = certNo;
+    DB.certificates.push({
+      id: uid('cert'),
+      number: certNo,
+      submissionId: submission.id,
+      userId: u.id,
+      studentName: submission.details.name,
+      trainingId: t.id,
+      trainingTitle: t.title,
+      trainingTopic: t.topic,
+      date: t.date,
+      marks: result.marks,
+      total: result.total,
+      pct: result.pct,
+      issuedAt: nowISO()
+    });
+  }
+
+  DB.submissions.push(submission);
+  saveDB();
+  dropDraft();
+
+  state.stage = 4;
+  render();
+  toast(result.passed
+    ? 'ಪರೀಕ್ಷೆ ಯಶಸ್ವಿಯಾಗಿ ಸಲ್ಲಿಸಲಾಗಿದೆ. ಅಭಿನಂದನೆಗಳು!'
+    : 'ಪರೀಕ್ಷೆ ಸಲ್ಲಿಸಲಾಗಿದೆ.', result.passed ? 'success' : 'info');
+}
+
+function showStageMsg(text, type){
+  const el = document.getElementById('stageMsg');
+  if(!el) return;
+  el.className = 'form-msg show ' + (type || 'error');
+  el.textContent = text;
+}
+
+/* ============================================================
+   SECTION J — ADMIN SHELL & DASHBOARD
+   ============================================================ */
+function viewAdminShell(u){
+  const sections = [
+    { k:'overview',    label:'ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',   icon:ICON.dashboard },
+    { k:'trainings',   label:'ತರಬೇತಿ ನಿರ್ವಹಣೆ',  icon:ICON.book },
+    { k:'results',     label:'ವಿದ್ಯಾರ್ಥಿ ಫಲಿತಾಂಶ', icon:ICON.results },
+    { k:'feedback',    label:'ಪ್ರತಿಕ್ರಿಯೆ',      icon:ICON.feedback },
+    { k:'certificates',label:'ಪ್ರಮಾಣಪತ್ರಗಳು',   icon:ICON.cert },
+    { k:'settings',    label:'ಸಂಯೋಜನೆಗಳು',      icon:ICON.settings }
+  ];
+
+  const nav = sections.map(s =>
+    '<button class="nav-item' + (state.adminSection === s.k ? ' active' : '') + '" data-action="admin-nav" data-to="' + s.k + '">' +
+      s.icon + '<span>' + esc(s.label) + '</span>' +
+    '</button>'
+  ).join('');
+
+  let body = '';
+  if(state.adminSection === 'overview')      body = adminOverview();
+  else if(state.adminSection === 'trainings')body = adminTrainings();
+  else if(state.adminSection === 'results')  body = adminResults();
+  else if(state.adminSection === 'feedback') body = adminFeedback();
+  else if(state.adminSection === 'certificates') body = adminCertificates();
+  else if(state.adminSection === 'settings') body = adminSettings();
+
+  const titles = {
+    overview:'ನಿರ್ವಾಹಕ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್',
+    trainings:'ತರಬೇತಿ ನಿರ್ವಹಣೆ',
+    results:'ವಿದ್ಯಾರ್ಥಿ ಫಲಿತಾಂಶಗಳು',
+    feedback:'ಪ್ರತಿಕ್ರಿಯೆ ಪ್ರತಿಕ್ರಿಯೆಗಳು',
+    certificates:'ಪ್ರಮಾಣಪತ್ರ ದಾಖಲೆಗಳು',
+    settings:'ಸಂಯೋಜನೆಗಳು'
+  };
+
+  return '<div class="app-shell">' +
+    '<aside class="sidebar" id="sidebar">' + sidebarBrand() +
+      '<nav class="sb-nav">' +
+        '<div class="sb-label">ನಿರ್ವಹಣೆ</div>' + nav +
+      '</nav>' +
+      sidebarUserCard(u) +
+    '</aside>' +
+    '<div class="sidebar-overlay" id="sidebarOverlay" data-action="close-sidebar"></div>' +
+    '<div class="main-col">' +
+      topbar(titles[state.adminSection] || 'ನಿರ್ವಾಹಕ', 'ಉಪ ಪ್ರಾಂಶುಪಾಲರು · ' + INSTITUTE, u) +
+      '<main class="main">' + body + '</main>' +
+    '</div>' +
+  '</div>';
+}
+
+function adminOverview(){
+  const totalTrainings = DB.trainings.length;
+  const totalParticipants = new Set(DB.submissions.map(s => s.userId)).size;
+  const assessed = DB.submissions.length;
+  const certified = DB.certificates.length;
+
+  const recent = DB.submissions.slice().sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt)).slice(0,6);
+
+  const rows = recent.length
+    ? recent.map(s =>
+        '<tr>' +
+          '<td data-label="ವಿದ್ಯಾರ್ಥಿ"><span class="td-name">' + esc(s.details.name || s.userName) + '</span></td>' +
+          '<td data-label="ತರಬೇತಿ">' + esc(trunc(s.trainingTitle, 34)) + '</td>' +
+          '<td data-label="ಅಂಕಗಳು">' + s.result.marks + ' / ' + s.result.total + '</td>' +
+          '<td data-label="ಶೇಕಡಾವಾರು">' + s.result.pct + '%</td>' +
+          '<td data-label="ಸ್ಥಿತಿ"><span class="badge ' + (s.result.passed ? 'green' : 'red') + '">' +
+            (s.result.passed ? 'ಉತ್ತೀರ್ಣ' : 'ಅನುತ್ತೀರ್ಣ') + '</span></td>' +
+        '</tr>'
+      ).join('')
+    : '<tr><td colspan="5"><div class="table-empty">ಇನ್ನೂ ಯಾವುದೇ ಸಲ್ಲಿಕೆಗಳು ಇಲ್ಲ.</div></td></tr>';
+
+  return '' +
+  '<div class="page-head"><h2>ಸಾರಾಂಶ</h2><div class="ph-sub">ಸಂಸ್ಥೆಯ ತರಬೇತಿ ಚಟುವಟಿಕೆಗಳ ಒಟ್ಟು ಮಾಹಿತಿ</div></div>' +
+  '<div class="stat-grid">' +
+    '<div class="stat navy"><div class="st-label">ಒಟ್ಟು ತರಬೇತಿಗಳು</div><div class="st-value">' + totalTrainings + '</div><div class="st-hint">ಸಕ್ರಿಯ ಕಾರ್ಯಕ್ರಮಗಳು</div></div>' +
+    '<div class="stat gold"><div class="st-label">ಒಟ್ಟು ಭಾಗವಹಿಸುವವರು</div><div class="st-value">' + totalParticipants + '</div><div class="st-hint">ವಿವಿಧ ಶಿಬಿರಾರ್ಥಿಗಳು</div></div>' +
+    '<div class="stat"><div class="st-label">ಪರೀಕ್ಷೆ ಪೂರ್ಣಗೊಳಿಸಿದವರು</div><div class="st-value">' + assessed + '</div><div class="st-hint">ಸಲ್ಲಿಸಿದ ಮೌಲ್ಯಮಾಪನಗಳು</div></div>' +
+    '<div class="stat green"><div class="st-label">ಪ್ರಮಾಣಪತ್ರ ಪಡೆದವರು</div><div class="st-value">' + certified + '</div><div class="st-hint">ನೀಡಲಾದ ಪ್ರಮಾಣಪತ್ರಗಳು</div></div>' +
+  '</div>' +
+  '<div class="card">' +
+    '<div class="card-head"><h2 style="font-size:18px;">ಇತ್ತೀಚಿನ ಸಲ್ಲಿಕೆಗಳು</h2>' +
+      '<button class="btn btn-ghost btn-sm" data-action="admin-nav" data-to="results">ಎಲ್ಲಾ ಫಲಿತಾಂಶಗಳು</button>' +
+    '</div>' +
+    '<div class="table-wrap"><table class="data">' +
+      '<thead><tr><th>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು</th><th>ತರಬೇತಿ</th><th>ಅಂಕಗಳು</th><th>ಶೇಕಡಾವಾರು</th><th>ಸ್ಥಿತಿ</th></tr></thead>' +
+      '<tbody>' + rows + '</tbody>' +
+    '</table></div>' +
+  '</div>';
+}
+
+/* ============================================================
+   SECTION K — ADMIN: TRAINING MANAGEMENT
+   ============================================================ */
+function adminTrainings(){
+  if(state.editing) return adminTrainingForm();
+
+  const list = DB.trainings.map(t => {
+    const subs = submissionsForTraining(t.id).length;
+    return '<div class="card" style="margin-bottom:16px;">' +
+      '<div class="card-head" style="margin-bottom:10px;">' +
+        '<div style="flex:1;min-width:240px;">' +
+          '<h3 style="margin-bottom:6px;color:var(--navy);">' + esc(t.title) + '</h3>' +
+          '<div class="small muted" style="line-height:1.8;">' + esc(trunc(t.topic, 130)) + '</div>' +
+        '</div>' +
+        '<span class="badge grey">' + esc(t.date) + '</span>' +
+      '</div>' +
+      '<div class="row" style="gap:8px;margin-bottom:14px;">' +
+        '<span class="badge blue">' + t.questions.length + ' ಪ್ರಶ್ನೆಗಳು</span>' +
+        '<span class="badge gold">ಉತ್ತೀರ್ಣ ' + (t.passing||70) + '%</span>' +
+        '<span class="badge grey">' + subs + ' ಸಲ್ಲಿಕೆಗಳು</span>' +
+        '<span class="badge grey">' + ((t.feedback && t.feedback.questions) ? t.feedback.questions.length : 0) + ' ಪ್ರತಿಕ್ರಿಯೆ ಪ್ರಶ್ನೆಗಳು</span>' +
+      '</div>' +
+      '<div class="row">' +
+        '<button class="btn btn-ghost btn-sm" data-action="preview-training" data-id="' + esc(t.id) + '">ಮುನ್ನೋಟ</button>' +
+        '<button class="btn btn-primary btn-sm" data-action="edit-training" data-id="' + esc(t.id) + '">ಸಂಪಾದಿಸಿ</button>' +
+        '<button class="btn btn-danger btn-sm" data-action="delete-training" data-id="' + esc(t.id) + '">ಅಳಿಸಿ</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  return '' +
+  '<div class="page-head"><h2>ತರಬೇತಿ ನಿರ್ವಹಣೆ</h2><div class="ph-sub">ತರಬೇತಿ ಕಾರ್ಯಕ್ರಮಗಳನ್ನು ಸೇರಿಸಿ, ಸಂಪಾದಿಸಿ ಅಥವಾ ಅಳಿಸಿ</div></div>' +
+  '<div class="row" style="margin-bottom:18px;">' +
+    '<button class="btn btn-primary" data-action="new-training">+ ಹೊಸ ತರಬೇತಿ ಸೇರಿಸಿ</button>' +
+  '</div>' +
+  (list || '<div class="card center muted">ಯಾವುದೇ ತರಬೇತಿಗಳು ಇಲ್ಲ.</div>');
+}
+
+function blankTrainingDraft(){
+  return {
+    isNew:true,
+    id:'',
+    title:'',
+    topic:'',
+    date:'',
+    description:'',
+    category:'',
+    accent:'#1D3557',
+    institute:INSTITUTE,
+    passing:70,
+    feedback:{ day:'', sessions:[{ heading:'', topic:'', lecturer:'' }], questions:[] },
+    questions:[{ id:uid('q'), text:'', options:['','','',''], correct:0, marks:1 }]
+  };
+}
+
+function draftFromTraining(t){
+  return {
+    isNew:false,
+    id:t.id,
+    title:t.title,
+    topic:t.topic,
+    date:t.date,
+    description:t.description || '',
+    category:t.category || '',
+    accent:t.accent || '#1D3557',
+    institute:t.institute || INSTITUTE,
+    passing:Number(t.passing) || 70,
+    feedback: deepCopy(t.feedback || { day:'', sessions:[], questions:[] }),
+    questions: t.questions.map(q => ({
+      id:q.id,
+      text:q.text,
+      options: q.options.slice(),
+      marks: Number(q.marks) || 1,
+      correct: Number(t.answerKey && t.answerKey[q.id] !== undefined ? t.answerKey[q.id] : 0)
+    }))
+  };
+}
+
+function adminTrainingForm(){
+  const d = state.editing;
+
+  const sessionsHtml = (d.feedback.sessions || []).map((s,i) =>
+    '<div class="qedit">' +
+      '<div class="qedit-head"><span class="qnum">ಅಧಿವೇಶನ ' + (i+1) + '</span>' +
+        '<div class="qedit-tools"><button type="button" class="danger" data-action="del-session" data-i="' + i + '" title="ಅಳಿಸಿ">✕</button></div>' +
+      '</div>' +
+      '<label class="field"><span>ಅಧಿವೇಶನ ಶೀರ್ಷಿಕೆ</span><input data-bind="feedback.sessions.' + i + '.heading" value="' + esc(s.heading||'') + '"></label>' +
+      '<label class="field"><span>ವಿಷಯ (ವಿವರಣೆ)</span><textarea data-bind="feedback.sessions.' + i + '.topic" rows="3">' + esc(s.topic||'') + '</textarea></label>' +
+      '<label class="field" style="margin-bottom:0;"><span>ಉಪನ್ಯಾಸಕರು</span><input data-bind="feedback.sessions.' + i + '.lecturer" value="' + esc(s.lecturer||'') + '"></label>' +
+    '</div>'
+  ).join('') || '<p class="muted small">ಯಾವುದೇ ಅಧಿವೇಶನಗಳಿಲ್ಲ.</p>';
+
+  const fbHtml = (d.feedback.questions || []).map((q,i) => {
+    const isText = q.type === 'textarea';
+    const optInputs = isText ? '' :
+      '<div class="grid-2">' + (q.options||[]).map((o,j) =>
+        '<label class="field"><span>ಆಯ್ಕೆ ' + (j+1) + '</span>' +
+          '<input data-bind="feedback.questions.' + i + '.options.' + j + '" value="' + esc(o) + '"></label>'
+      ).join('') + '</div>';
+    return '<div class="qedit">' +
+      '<div class="qedit-head"><span class="qnum">ಪ್ರತಿಕ್ರಿಯೆ ಪ್ರಶ್ನೆ ' + (i+1) + '</span>' +
+        '<div class="qedit-tools"><button type="button" class="danger" data-action="del-fbq" data-i="' + i + '" title="ಅಳಿಸಿ">✕</button></div>' +
+      '</div>' +
+      '<label class="field"><span>ಪ್ರಶ್ನೆ ಪಠ್ಯ</span><input data-bind="feedback.questions.' + i + '.text" value="' + esc(q.text||'') + '"></label>' +
+      '<label class="field"><span>ಪ್ರಕಾರ</span>' +
+        '<select data-bind="feedback.questions.' + i + '.type">' +
+          '<option value="radio"' + (q.type==='radio'?' selected':'') + '>ಆಯ್ಕೆ (Radio)</option>' +
+          '<option value="textarea"' + (q.type==='textarea'?' selected':'') + '>ವಿವರಣಾತ್ಮಕ (Text area)</option>' +
+        '</select>' +
+      '</label>' +
+      optInputs +
+    '</div>';
+  }).join('') || '<p class="muted small">ಯಾವುದೇ ಪ್ರತಿಕ್ರಿಯೆ ಪ್ರಶ್ನೆಗಳಿಲ್ಲ.</p>';
+
+  const qHtml = (d.questions || []).map((q,i) =>
+    '<div class="qedit">' +
+      '<div class="qedit-head">' +
+        '<span class="qnum">ಪ್ರಶ್ನೆ ' + (i+1) + '</span>' +
+        '<div class="qedit-tools">' +
+          '<button type="button" data-action="q-up" data-i="' + i + '" title="ಮೇಲೆ ಸರಿಸಿ">↑</button>' +
+          '<button type="button" data-action="q-down" data-i="' + i + '" title="ಕೆಳಗೆ ಸರಿಸಿ">↓</button>' +
+          '<button type="button" class="danger" data-action="q-del" data-i="' + i + '" title="ಅಳಿಸಿ">✕</button>' +
+        '</div>' +
+      '</div>' +
+      '<label class="field"><span>ಪ್ರಶ್ನೆ ಪಠ್ಯ</span>' +
+        '<textarea data-bind="questions.' + i + '.text" rows="2">' + esc(q.text||'') + '</textarea></label>' +
+      '<div class="grid-2">' +
+        (q.options||[]).map((o,j) =>
+          '<label class="field"><span>ಆಯ್ಕೆ ' + 'ABCD'[j] + '</span>' +
+            '<input data-bind="questions.' + i + '.options.' + j + '" value="' + esc(o) + '"></label>'
+        ).join('') +
+      '</div>' +
+      '<div class="grid-2">' +
+        '<label class="field"><span>ಸರಿಯಾದ ಉತ್ತರ</span>' +
+          '<select data-bind="questions.' + i + '.correct">' +
+            (q.options||[]).map((o,j) =>
+              '<option value="' + j + '"' + (Number(q.correct) === j ? ' selected' : '') + '>' +
+                'ABCD'[j] + ') ' + esc(trunc(o, 46)) + '</option>'
+            ).join('') +
+          '</select>' +
+        '</label>' +
+        '<label class="field"><span>ಅಂಕಗಳು</span>' +
+          '<input type="number" min="1" data-bind="questions.' + i + '.marks" value="' + (q.marks||1) + '"></label>' +
+      '</div>' +
+      '<button type="button" class="btn btn-ghost btn-sm" data-action="q-preview" data-i="' + i + '">ಮುನ್ನೋಟ (Preview)</button>' +
+    '</div>'
+  ).join('') || '<p class="muted small">ಯಾವುದೇ ಮೌಲ್ಯಮಾಪನ ಪ್ರಶ್ನೆಗಳಿಲ್ಲ.</p>';
+
+  return '<form data-form="training" class="card" novalidate>' +
+    '<div class="card-head">' +
+      '<div><h2>' + (d.isNew ? 'ಹೊಸ ತರಬೇತಿ ಸೇರಿಸಿ' : 'ತರಬೇತಿ ಸಂಪಾದಿಸಿ') + '</h2>' +
+      '<p class="muted small" style="margin:0;">ಎಲ್ಲಾ ಕ್ಷೇತ್ರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಿ ಮತ್ತು ಉಳಿಸಿ ಒತ್ತಿ.</p></div>' +
+      '<span class="badge gold">' + (d.isNew ? 'ಹೊಸದು' : 'ಸಂಪಾದನೆ') + '</span>' +
+    '</div>' +
+
+    '<div class="grid-2">' +
+      '<label class="field"><span>ತರಬೇತಿ ಶೀರ್ಷಿಕೆ *</span><input data-bind="title" value="' + esc(d.title) + '" placeholder="ಉದಾ: ಪ್ರವೇಶ ನಂತರ ಪರೀಕ್ಷೆ ಮತ್ತು ತರಬೇತಿ"></label>' +
+      '<label class="field"><span>ದಿನಾಂಕ *</span><input data-bind="date" value="' + esc(d.date) + '" placeholder="DD-MM-YYYY"></label>' +
+      '<label class="field span-2"><span>ತರಬೇತಿ ವಿಷಯ / ಶೀರ್ಷಿಕೆ (Heading) *</span><input data-bind="topic" value="' + esc(d.topic) + '" placeholder="ತರಬೇತಿಯ ಮುಖ್ಯ ವಿಷಯ"></label>' +
+      '<label class="field span-2"><span>ವಿವರಣೆ</span><textarea data-bind="description" rows="3">' + esc(d.description) + '</textarea></label>' +
+      '<label class="field"><span>ವರ್ಗ (Category)</span><input data-bind="category" value="' + esc(d.category) + '" placeholder="ಉದಾ: ವಿಧಾನಮಂಡಲ ಕಾರ್ಯವಿಧಾನ"></label>' +
+      '<label class="field"><span>ಥೀಮ್ ಬಣ್ಣ</span><input type="color" data-bind="accent" value="' + esc(d.accent) + '"></label>' +
+      '<label class="field"><span>ಉತ್ತೀರ್ಣ ಶೇಕಡಾವಾರು (%) *</span><input type="number" min="1" max="100" data-bind="passing" value="' + (d.passing||70) + '"></label>' +
+    '</div>' +
+
+    '<div class="divider"></div>' +
+    '<div class="subhead"><h3>ಅಧಿವೇಶನಗಳು (Session Headings)</h3>' +
+      '<button type="button" class="btn btn-ghost btn-sm" data-action="add-session">+ ಅಧಿವೇಶನ ಸೇರಿಸಿ</button></div>' +
+    sessionsHtml +
+
+    '<div class="divider"></div>' +
+    '<div class="subhead"><h3>ಪ್ರತಿಕ್ರಿಯೆ ಪ್ರಶ್ನೆಗಳು</h3>' +
+      '<button type="button" class="btn btn-ghost btn-sm" data-action="add-fbq">+ ಪ್ರತಿಕ್ರಿಯೆ ಪ್ರಶ್ನೆ ಸೇರಿಸಿ</button></div>' +
+    fbHtml +
+
+    '<div class="divider"></div>' +
+    '<div class="subhead"><h3>ಮೌಲ್ಯಮಾಪನ ಪ್ರಶ್ನೆಗಳು (MCQ)</h3>' +
+      '<button type="button" class="btn btn-ghost btn-sm" data-action="q-add">+ ಪ್ರಶ್ನೆ ಸೇರಿಸಿ</button></div>' +
+    qHtml +
+
+    '<div class="divider"></div>' +
+    '<div class="form-msg" id="adminFormMsg"></div>' +
+    '<div class="row row-end">' +
+      '<button type="button" class="btn btn-ghost" data-action="cancel-edit">ರದ್ದು ಮಾಡಿ</button>' +
+      '<button type="submit" class="btn btn-primary">ತರಬೇತಿ ಉಳಿಸಿ</button>' +
+    '</div>' +
+  '</form>';
+}
+
+/* ---------- Training save ---------- */
+function saveTraining(){
+  const d = state.editing;
+  if(!d) return;
+
+  const errors = [];
+  if(!String(d.title||'').trim()) errors.push('ತರಬೇತಿ ಶೀರ್ಷಿಕೆ ಅಗತ್ಯ.');
+  if(!String(d.topic||'').trim()) errors.push('ತರಬೇತಿ ವಿಷಯ ಅಗತ್ಯ.');
+  if(!String(d.date||'').trim()) errors.push('ದಿನಾಂಕ ಅಗತ್ಯ.');
+
+  const passing = Number(d.passing);
+  if(!passing || passing < 1 || passing > 100) errors.push('ಉತ್ತೀರ್ಣ ಶೇಕಡಾವಾರು 1 ಮತ್ತು 100 ರ ನಡುವೆ ಇರಬೇಕು.');
+
+  if(!Array.isArray(d.questions) || d.questions.length === 0) errors.push('ಕನಿಷ್ಠ ಒಂದು ಮೌಲ್ಯಮಾಪನ ಪ್ರಶ್ನೆ ಅಗತ್ಯ.');
+
+  (d.questions||[]).forEach((q, i) => {
+    if(!String(q.text||'').trim()) errors.push('ಪ್ರಶ್ನೆ ' + (i+1) + ': ಪ್ರಶ್ನೆ ಪಠ್ಯ ಅಗತ್ಯ.');
+    const opts = (q.options||[]).map(o => String(o||'').trim());
+    if(opts.length !== 4 || opts.some(o => !o)){
+      errors.push('ಪ್ರಶ್ನೆ ' + (i+1) + ': ನಾಲ್ಕು ಆಯ್ಕೆಗಳು ಅಗತ್ಯ.');
+    }
+    const c = Number(q.correct);
+    if(isNaN(c) || c < 0 || c > 3) errors.push('ಪ್ರಶ್ನೆ ' + (i+1) + ': ಸರಿಯಾದ ಉತ್ತರವನ್ನು ಆಯ್ಕೆಮಾಡಿ.');
+  });
+
+  if(errors.length){
+    const msg = document.getElementById('adminFormMsg');
+    if(msg){
+      msg.className = 'form-msg show error';
+      msg.innerHTML = errors.map(e => '• ' + esc(e)).join('<br>');
+    }
+    toast('ದಯವಿಟ್ಟು ದೋಷಗಳನ್ನು ಸರಿಪಡಿಸಿ.','error');
+    return;
+  }
+
+  /* split visible questions from the answer key */
+  const questions = d.questions.map(q => ({
+    id: q.id || uid('q'),
+    text: String(q.text).trim(),
+    options: q.options.map(o => String(o).trim()),
+    marks: Number(q.marks) || 1
+  }));
+  const answerKey = {};
+  d.questions.forEach(q => { answerKey[q.id] = Number(q.correct) || 0; });
+
+  const feedback = deepCopy(d.feedback || { day:'', sessions:[], questions:[] });
+  feedback.questions = (feedback.questions || []).map(q => ({
+    id: q.id || uid('f'),
+    text: String(q.text||'').trim(),
+    type: q.type === 'textarea' ? 'textarea' : 'radio',
+    options: q.type === 'textarea' ? [] : (q.options || []).map(o => String(o||'').trim()).filter(Boolean)
+  }));
+
+  if(d.isNew){
+    const newT = {
+      id: uid('t'),
+      title: d.title.trim(),
+      topic: d.topic.trim(),
+      date: d.date.trim(),
+      description: (d.description||'').trim(),
+      category: (d.category||'').trim(),
+      accent: d.accent || '#1D3557',
+      institute: INSTITUTE,
+      passing: passing,
+      createdAt: nowISO(),
+      questions: questions,
+      answerKey: answerKey,
+      feedback: feedback
+    };
+    DB.trainings.push(newT);
+    toast('ಹೊಸ ತರಬೇತಿ ಯಶಸ್ವಿಯಾಗಿ ಸೇರಿಸಲಾಗಿದೆ.','success');
+  }else{
+    const t = getTraining(d.id);
+    if(!t){ toast('ತರಬೇತಿ ಕಂಡುಬಂದಿಲ್ಲ.','error'); return; }
+    t.title = d.title.trim();
+    t.topic = d.topic.trim();
+    t.date = d.date.trim();
+    t.description = (d.description||'').trim();
+    t.category = (d.category||'').trim();
+    t.accent = d.accent || '#1D3557';
+    t.passing = passing;
+    t.questions = questions;
+    t.answerKey = answerKey;
+    t.feedback = feedback;
+    toast('ತರಬೇತಿ ಯಶಸ್ವಿಯಾಗಿ ಸಂಪಾದಿಸಲಾಗಿದೆ.','success');
+  }
+
+  saveDB();
+  state.editing = null;
+  render();
+}
+
+/* ============================================================
+   SECTION L — ADMIN: RESULTS / FEEDBACK / CERTIFICATES / SETTINGS
+   ============================================================ */
+function adminResults(){
+  const subs = DB.submissions.slice().sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+
+  const trainingOptions = '<option value="">ಎಲ್ಲಾ ತರಬೇತಿಗಳು</option>' +
+    DB.trainings.map(t => '<option value="' + esc(t.id) + '">' + esc(trunc(t.title, 46)) + '</option>').join('');
+
+  const rows = subs.length ? subs.map(s =>
+    '<tr data-training="' + esc(s.trainingId) + '" data-cert="' + (s.result.passed ? 'yes' : 'no') + '">' +
+      '<td data-label="ವಿದ್ಯಾರ್ಥಿ"><span class="td-name">' + esc(s.details.name || s.userName) + '</span>' +
+        '<div class="tiny muted">' + esc(s.details.email || '') + '</div></td>' +
+      '<td data-label="ತರಬೇತಿ">' + esc(trunc(s.trainingTitle, 30)) + '</td>' +
+      '<td data-label="ಅಂಕಗಳು">' + s.result.marks + ' / ' + s.result.total + '</td>' +
+      '<td data-label="ಶೇಕಡಾವಾರು">' + s.result.pct + '%</td>' +
+      '<td data-label="ಸ್ಥಿತಿ"><span class="badge ' + (s.result.passed ? 'green' : 'red') + '">' +
+        (s.result.passed ? 'ಉತ್ತೀರ್ಣ' : 'ಅನುತ್ತೀರ್ಣ') + '</span></td>' +
+      '<td data-label="ಪ್ರಮಾಣಪತ್ರ">' + (s.certificateNo
+        ? '<span class="badge gold">' + esc(s.certificateNo) + '</span>'
+        : '<span class="badge grey">ಇಲ್ಲ</span>') + '</td>' +
+      '<td data-label=""><button class="btn btn-ghost btn-sm" data-action="view-submission" data-id="' + esc(s.id) + '">ವಿವರ</button></td>' +
+    '</tr>'
+  ).join('') : '<tr><td colspan="7"><div class="table-empty">ಯಾವುದೇ ಸಲ್ಲಿಕೆಗಳು ಲಭ್ಯವಿಲ್ಲ.</div></td></tr>';
+
+  return '' +
+  '<div class="page-head"><h2>ವಿದ್ಯಾರ್ಥಿ ಫಲಿತಾಂಶಗಳು</h2><div class="ph-sub">ಸಲ್ಲಿಸಿದ ಮೌಲ್ಯಮಾಪನಗಳ ವಿವರಗಳು ಮತ್ತು CSV ರಫ್ತು</div></div>' +
+  '<div class="card">' +
+    '<div class="filter-bar">' +
+      '<label class="field"><span>ತರಬೇತಿ</span><select data-filter="training" id="fTraining">' + trainingOptions + '</select></label>' +
+      '<label class="field"><span>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು / ಇಮೇಲ್</span><input type="text" data-filter="q" id="fQuery" placeholder="ಹುಡುಕಿ..."></label>' +
+      '<label class="field"><span>ಪ್ರಮಾಣಪತ್ರ ಸ್ಥಿತಿ</span><select data-filter="cert" id="fCert">' +
+        '<option value="">ಎಲ್ಲಾ</option><option value="yes">ಪ್ರಮಾಣಪತ್ರ ನೀಡಲಾಗಿದೆ</option><option value="no">ನೀಡಿಲ್ಲ</option>' +
+      '</select></label>' +
+      '<button class="btn btn-ghost" data-action="export-csv">CSV ರಫ್ತು</button>' +
+    '</div>' +
+    '<div class="table-wrap"><table class="data" id="resultsTable">' +
+      '<thead><tr><th>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು</th><th>ತರಬೇತಿ</th><th>ಅಂಕಗಳು</th><th>ಶೇಕಡಾವಾರು</th><th>ಸ್ಥಿತಿ</th><th>ಪ್ರಮಾಣಪತ್ರ</th><th></th></tr></thead>' +
+      '<tbody>' + rows + '</tbody>' +
+    '</table></div>' +
+  '</div>';
+}
+
+function applyResultFilter(){
+  const tSel = document.getElementById('fTraining');
+  const qInp = document.getElementById('fQuery');
+  const cSel = document.getElementById('fCert');
+  const table = document.getElementById('resultsTable');
+  if(!table) return;
+
+  const tid = tSel ? tSel.value : '';
+  const q = qInp ? qInp.value.trim().toLowerCase() : '';
+  const cert = cSel ? cSel.value : '';
+
+  $$('#resultsTable tbody tr').forEach(tr => {
+    const rowTraining = tr.getAttribute('data-training') || '';
+    const rowCert = tr.getAttribute('data-cert') || '';
+    const text = tr.textContent.toLowerCase();
+    let show = true;
+    if(tid && rowTraining !== tid) show = false;
+    if(q && text.indexOf(q) === -1) show = false;
+    if(cert && rowCert !== cert) show = false;
+    tr.style.display = show ? '' : 'none';
+  });
+}
+
+function exportCSV(){
+  const tSel = document.getElementById('fTraining');
+  const qInp = document.getElementById('fQuery');
+  const cSel = document.getElementById('fCert');
+  const tid = tSel ? tSel.value : '';
+  const q = qInp ? qInp.value.trim().toLowerCase() : '';
+  const cert = cSel ? cSel.value : '';
+
+  let rows = DB.submissions.slice().sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+  rows = rows.filter(s => {
+    if(tid && s.trainingId !== tid) return false;
+    if(cert === 'yes' && !s.result.passed) return false;
+    if(cert === 'no' && s.result.passed) return false;
+    if(q){
+      const hay = ((s.details.name||'') + ' ' + (s.details.email||'') + ' ' + (s.userName||'')).toLowerCase();
+      if(hay.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+
+  if(!rows.length){ toast('ರಫ್ತು ಮಾಡಲು ಯಾವುದೇ ದಾಖಲೆಗಳಿಲ್ಲ.','error'); return; }
+
+  const header = ['ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು','ಇ-ಮೇಲ್','ಕೆ.ಜಿ.ಐ.ಡಿ / HRMS','ತರಬೇತಿ','ಅಂಕಗಳು','ಒಟ್ಟು','ಶೇಕಡಾವಾರು','ಸ್ಥಿತಿ','ಪ್ರಮಾಣಪತ್ರ ಸಂಖ್ಯೆ','ಸಲ್ಲಿಸಿದ ದಿನಾಂಕ'];
+  const lines = [header];
+  rows.forEach(s => {
+    lines.push([
+      s.details.name || s.userName,
+      s.details.email || '',
+      s.details.kgid || '',
+      s.trainingTitle,
+      s.result.marks,
+      s.result.total,
+      s.result.pct + '%',
+      s.result.passed ? 'ಉತ್ತೀರ್ಣ' : 'ಅನುತ್ತೀರ್ಣ',
+      s.certificateNo || '-',
+      fmtDateTime(s.submittedAt)
+    ]);
+  });
+
+  const csv = '\uFEFF' + lines.map(r => r.map(c => '"' + String(c).replace(/"/g,'""') + '"').join(',')).join('\r\n');
+  try{
+    const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dti-bengaluru-results-' + Date.now() + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=> URL.revokeObjectURL(url), 1500);
+    toast('CSV ಫೈಲ್ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ.','success');
+  }catch(e){
+    toast('CSV ರಫ್ತು ವಿಫಲವಾಯಿತು.','error');
+  }
+}
+
+function adminFeedback(){
+  const subs = DB.submissions.slice().sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+  const rows = subs.length ? subs.map(s =>
+    '<tr>' +
+      '<td data-label="ವಿದ್ಯಾರ್ಥಿ"><span class="td-name">' + esc(s.details.name || s.userName) + '</span></td>' +
+      '<td data-label="ತರಬೇತಿ">' + esc(trunc(s.trainingTitle, 30)) + '</td>' +
+      '<td data-label="ಅಧಿವೇಶನ 1-3">' + esc((s.feedback && s.feedback.ratings && s.feedback.ratings['0']) || '—') + '</td>' +
+      '<td data-label="ಅಧಿವೇಶನ 4-5">' + esc((s.feedback && s.feedback.ratings && s.feedback.ratings['1']) || '—') + '</td>' +
+      '<td data-label="ಸಲ್ಲಿಸಿದ ದಿನಾಂಕ">' + esc(fmtDateTime(s.submittedAt)) + '</td>' +
+      '<td data-label=""><button class="btn btn-ghost btn-sm" data-action="view-submission" data-id="' + esc(s.id) + '">ಪೂರ್ಣ ಪ್ರತಿಕ್ರಿಯೆ</button></td>' +
+    '</tr>'
+  ).join('') : '<tr><td colspan="6"><div class="table-empty">ಯಾವುದೇ ಪ್ರತಿಕ್ರಿಯೆಗಳು ಲಭ್ಯವಿಲ್ಲ.</div></td></tr>';
+
+  return '' +
+  '<div class="page-head"><h2>ಪ್ರತಿಕ್ರಿಯೆ ಪ್ರತಿಕ್ರಿಯೆಗಳು</h2><div class="ph-sub">ಶಿಬಿರಾರ್ಥಿಗಳ ತರಬೇತಿ ಪ್ರತಿಕ್ರಿಯೆಗಳು</div></div>' +
+  '<div class="card"><div class="table-wrap"><table class="data">' +
+    '<thead><tr><th>ವಿದ್ಯಾರ್ಥಿ</th><th>ತರಬೇತಿ</th><th>ಅಧಿವೇಶನ 1-3</th><th>ಅಧಿವೇಶನ 4-5</th><th>ಸಲ್ಲಿಸಿದ ದಿನಾಂಕ</th><th></th></tr></thead>' +
+    '<tbody>' + rows + '</tbody>' +
+  '</table></div></div>';
+}
+
+function adminCertificates(){
+  const certs = DB.certificates.slice().sort((a,b) => new Date(b.issuedAt) - new Date(a.issuedAt));
+  const rows = certs.length ? certs.map(c =>
+    '<tr>' +
+      '<td data-label="ಪ್ರಮಾಣಪತ್ರ ಸಂಖ್ಯೆ"><span class="td-name">' + esc(c.number) + '</span></td>' +
+      '<td data-label="ವಿದ್ಯಾರ್ಥಿ">' + esc(c.studentName) + '</td>' +
+      '<td data-label="ತರಬೇತಿ">' + esc(trunc(c.trainingTitle, 28)) + '</td>' +
+      '<td data-label="ಅಂಕಗಳು">' + c.marks + ' / ' + c.total + '</td>' +
+      '<td data-label="ಶೇಕಡಾವಾರು">' + c.pct + '%</td>' +
+      '<td data-label="ನೀಡಿದ ದಿನಾಂಕ">' + esc(fmtDateTime(c.issuedAt)) + '</td>' +
+    '</tr>'
+  ).join('') : '<tr><td colspan="6"><div class="table-empty">ಇನ್ನೂ ಯಾವುದೇ ಪ್ರಮಾಣಪತ್ರಗಳನ್ನು ನೀಡಿಲ್ಲ.</div></td></tr>';
+
+  return '' +
+  '<div class="page-head"><h2>ಪ್ರಮಾಣಪತ್ರ ದಾಖಲೆಗಳು</h2><div class="ph-sub">ನೀಡಲಾದ ಎಲ್ಲಾ ಪ್ರಮಾಣಪತ್ರಗಳ ದಾಖಲೆ</div></div>' +
+  '<div class="card"><div class="table-wrap"><table class="data">' +
+    '<thead><tr><th>ಪ್ರಮಾಣಪತ್ರ ಸಂಖ್ಯೆ</th><th>ವಿದ್ಯಾರ್ಥಿ</th><th>ತರಬೇತಿ</th><th>ಅಂಕಗಳು</th><th>ಶೇಕಡಾವಾರು</th><th>ನೀಡಿದ ದಿನಾಂಕ</th></tr></thead>' +
+    '<tbody>' + rows + '</tbody>' +
+  '</table></div></div>';
+}
+
+function adminSettings(){
+  return '' +
+  '<div class="page-head"><h2>ಸಂಯೋಜನೆಗಳು</h2><div class="ph-sub">ಪೋರ್ಟಲ್ ನಿರ್ವಹಣೆ ಮತ್ತು ಡೆಮೊ ಡೇಟಾ</div></div>' +
+  '<div class="card" style="margin-bottom:18px;">' +
+    '<h3>ಸಂಸ್ಥೆಯ ಮಾಹಿತಿ</h3>' +
+    '<div class="card-soft" style="line-height:2;">' +
+      '<div><b>ಸಂಸ್ಥೆ:</b> ' + esc(INSTITUTE) + '</div>' +
+      '<div><b>English:</b> ' + esc(INSTITUTE_EN) + '</div>' +
+      '<div><b>ನಿರ್ವಾಹಕರು:</b> Savita K. H. — ಉಪ ಪ್ರಾಂಶುಪಾಲರು / Vice Principal</div>' +
+    '</div>' +
+  '</div>' +
+  '<div class="card" style="margin-bottom:18px;">' +
+    '<h3>ಡೇಟಾ ಸಾರಾಂಶ</h3>' +
+    '<div class="row" style="gap:10px;">' +
+      '<span class="badge blue">ತರಬೇತಿಗಳು: ' + DB.trainings.length + '</span>' +
+      '<span class="badge blue">ಸಲ್ಲಿಕೆಗಳು: ' + DB.submissions.length + '</span>' +
+      '<span class="badge gold">ಪ್ರಮಾಣಪತ್ರಗಳು: ' + DB.certificates.length + '</span>' +
+      '<span class="badge grey">ಡೆಮೊ ಬಳಕೆದಾರರು: ' + DB.users.length + '</span>' +
+    '</div>' +
+  '</div>' +
+  '<div class="card">' +
+    '<h3>ಡೆಮೊ ಡೇಟಾ ಮರುಹೊಂದಿಸಿ</h3>' +
+    '<p class="muted small">ಇದು ಎಲ್ಲಾ ತರಬೇತಿಗಳು, ಸಲ್ಲಿಕೆಗಳು, ಪ್ರಮಾಣಪತ್ರಗಳು ಮತ್ತು ಪ್ರತಿಕ್ರಿಯೆಗಳನ್ನು ಅಳಿಸಿ ಆರಂಭಿಕ ಡೆಮೊ ಸ್ಥಿತಿಗೆ ಮರಳಿಸುತ್ತದೆ. ಈ ಕ್ರಿಯೆಯನ್ನು ರದ್ದು ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ.</p>' +
+    '<button class="btn btn-danger" data-action="reset-data">ಡೆಮೊ ಡೇಟಾ ಮರುಹೊಂದಿಸಿ</button>' +
+  '</div>';
+}
+
+/* ============================================================
+   SECTION M — SUBMISSION DETAIL MODAL
+   ============================================================ */
+function viewSubmissionModal(id){
+  const s = DB.submissions.find(x => x.id === id);
+  if(!s){ toast('ಸಲ್ಲಿಕೆ ಕಂಡುಬಂದಿಲ್ಲ.','error'); return; }
+  const t = getTraining(s.trainingId);
+
+  const fbRows = (() => {
+    if(!t || !t.feedback || !t.feedback.questions || !t.feedback.questions.length){
+      return '<p class="muted small">ಈ ತರಬೇತಿಗೆ ಪ್ರತಿಕ್ರಿಯೆ ಪ್ರಶ್ನೆಗಳು ವ್ಯಾಖ್ಯಾನಿಸಲಾಗಿಲ್ಲ.</p>';
+    }
+    return t.feedback.questions.map((q, i) => {
+      const ans = (s.feedback && s.feedback.answers) ? s.feedback.answers[q.id] : '';
+      return '<div style="padding:10px 0;border-bottom:1px solid var(--line-soft);">' +
+        '<div class="small strong" style="color:var(--darkblue);">' + (i+1) + '. ' + esc(q.text) + '</div>' +
+        '<div class="small" style="margin-top:4px;">' + esc(ans || '—') + '</div>' +
+      '</div>';
+    }).join('');
+  })();
+
+  const ratingsHtml = (() => {
+    if(!t || !t.feedback || !t.feedback.sessions || !t.feedback.sessions.length) return '';
+    return t.feedback.sessions.map((sess, i) => {
+      const r = (s.feedback && s.feedback.ratings) ? s.feedback.ratings[String(i)] : '';
+      return '<div class="small" style="padding:5px 0;">' +
+        '<b>' + esc(sess.heading) + ':</b> ' + esc(r || '—') + '</div>';
+    }).join('');
+  })();
+
+  const answerRows = (() => {
+    if(!t) return '<p class="muted small">ತರಬೇತಿ ಲಭ್ಯವಿಲ್ಲ.</p>';
+    return t.questions.map((q, i) => {
+      const given = s.answers ? s.answers[q.id] : undefined;
+      const key = t.answerKey ? t.answerKey[q.id] : undefined;
+      const isCorrect = given !== undefined && Number(given) === Number(key);
+      return '<div style="padding:10px 0;border-bottom:1px solid var(--line-soft);">' +
+        '<div class="small strong" style="color:var(--darkblue);">' + (i+1) + '. ' + esc(q.text) + '</div>' +
+        '<div class="small" style="margin-top:5px;">' +
+          '<span style="color:' + (isCorrect ? 'var(--green)' : 'var(--red)') + ';">' +
+            (isCorrect ? '✓' : '✕') + ' ಆಯ್ಕೆ: ' + esc(given !== undefined ? q.options[given] : '—') +
+          '</span>' +
+        '</div>' +
+        '<div class="tiny muted" style="margin-top:2px;">ಸರಿಯಾದ ಉತ್ತರ: ' + esc(key !== undefined ? q.options[key] : '—') + '</div>' +
+      '</div>';
+    }).join('');
+  })();
+
+  openModal(
+    '<div class="card-head" style="margin-bottom:12px;">' +
+      '<div><h3 style="margin-bottom:4px;">' + esc(s.details.name || s.userName) + '</h3>' +
+      '<div class="small muted">' + esc(s.trainingTitle) + '</div></div>' +
+      '<span class="badge ' + (s.result.passed ? 'green' : 'red') + '">' +
+        (s.result.passed ? 'ಉತ್ತೀರ್ಣ' : 'ಅನುತ್ತೀರ್ಣ') + '</span>' +
+    '</div>' +
+    '<div class="card-soft" style="margin-bottom:14px;font-size:13.5px;line-height:2;">' +
+      '<div><b>ಇ-ಮೇಲ್:</b> ' + esc(s.details.email || '—') + '</div>' +
+      '<div><b>ಕೆ.ಜಿ.ಐ.ಡಿ / HRMS:</b> ' + esc(s.details.kgid || '—') + '</div>' +
+      '<div><b>ತರಬೇತಿ ದಿನಾಂಕ:</b> ' + esc(s.trainingDate) + '</div>' +
+      '<div><b>ಅಂಕಗಳು:</b> ' + s.result.marks + ' / ' + s.result.total + ' &nbsp;·&nbsp; <b>ಶೇಕಡಾವಾರು:</b> ' + s.result.pct + '%</div>' +
+      '<div><b>ಪ್ರಮಾಣಪತ್ರ:</b> ' + (s.certificateNo ? esc(s.certificateNo) : 'ನೀಡಿಲ್ಲ') + '</div>' +
+      '<div><b>ಸಲ್ಲಿಸಿದ ದಿನಾಂಕ:</b> ' + esc(fmtDateTime(s.submittedAt)) + '</div>' +
+    '</div>' +
+    '<h4 style="color:var(--navy);margin-top:16px;">ಅಧಿವೇಶನ ಮೌಲ್ಯಮಾಪನ</h4>' + (ratingsHtml || '<p class="muted small">—</p>') +
+    '<h4 style="color:var(--navy);margin-top:16px;">ಪ್ರತಿಕ್ರಿಯೆ ಉತ್ತರಗಳು</h4>' + fbRows +
+    '<h4 style="color:var(--navy);margin-top:16px;">ಮೌಲ್ಯಮಾಪನ ಉತ್ತರಗಳು</h4>' + answerRows +
+    '<div class="modal-actions">' +
+      '<button class="btn btn-ghost" data-action="modal-close">ಮುಚ್ಚಿ</button>' +
+    '</div>',
+    true
+  );
+}
+
+/* ============================================================
+   SECTION N — EVENT HANDLING
+   ============================================================ */
+document.addEventListener('click', function(e){
+  const overlay = e.target.closest('[data-action="modal-overlay"]');
+  if(overlay && e.target === overlay){ closeModal(); return; }
+
+  const el = e.target.closest('[data-action]');
+  if(!el) return;
+  const action = el.getAttribute('data-action');
+
+  switch(action){
+
+    /* ---------- global ---------- */
+    case 'modal-close': closeModal(); break;
+    case 'modal-overlay': closeModal(); break;
+    case 'confirm-yes': {
+      const cb = confirmCallback;
+      closeModal();
+      if(typeof cb === 'function') cb();
+      break;
+    }
+    case 'logout': logout(); break;
+
+    case 'toggle-pw': {
+      const inp = document.getElementById('loginPass');
+      if(!inp) break;
+      const isPw = inp.type === 'password';
+      inp.type = isPw ? 'text' : 'password';
+      el.innerHTML = isPw ? ICON.eyeOff : ICON.eye;
+      break;
+    }
+    case 'fill-demo': {
+      const uEl = document.getElementById('loginUser');
+      const pEl = document.getElementById('loginPass');
+      if(uEl) uEl.value = el.getAttribute('data-u') || '';
+      if(pEl) pEl.value = el.getAttribute('data-p') || '';
+      if(uEl) uEl.focus();
+      break;
+    }
+    case 'open-sidebar': {
+      const sb = document.getElementById('sidebar');
+      const ov = document.getElementById('sidebarOverlay');
+      if(sb) sb.classList.add('open');
+      if(ov) ov.classList.add('show');
+      break;
+    }
+    case 'close-sidebar': {
+      const sb = document.getElementById('sidebar');
+      const ov = document.getElementById('sidebarOverlay');
+      if(sb) sb.classList.remove('open');
+      if(ov) ov.classList.remove('show');
+      break;
+    }
+
+    /* ---------- student ---------- */
+    case 'student-nav': {
+      const to = el.getAttribute('data-to');
+      const u = currentUser();
+      if(!u) break;
+      if(to === 'dashboard'){ state.route = 'dashboard'; render(); break; }
+      if(to === 'training'){
+        const t = DB.trainings[0];
+        if(t) openTraining(t.id);
+        break;
+      }
+      if(to === 'result' || to === 'certificate'){
+        const sub = DB.submissions.filter(s => s.userId === u.id).slice(-1)[0];
+        if(!sub){ toast('ಇನ್ನೂ ಯಾವುದೇ ಮೌಲ್ಯಮಾಪನ ಸಲ್ಲಿಸಿಲ್ಲ.','info'); break; }
+        state.trainingId = sub.trainingId;
+        state.route = 'workflow';
+        if(to === 'result') state.stage = 4;
+        else state.stage = sub.result.passed ? 5 : 4;
+        state.draft = newDraft(u);
+        render();
+        break;
+      }
+      break;
+    }
+    case 'open-training': {
+      const id = el.getAttribute('data-id');
+      if(id) openTraining(id);
+      break;
+    }
+    case 'goto-stage': {
+      const n = Number(el.getAttribute('data-n'));
+      if(!n) break;
+      if(!stageAccessible(n)){
+        toast('ಈ ಹಂತವು ಇನ್ನೂ ಲಭ್ಯವಿಲ್ಲ. ದಯವಿಟ್ಟು ಹಿಂದಿನ ಹಂತಗಳನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ.','info');
+        break;
+      }
+      state.stage = n;
+      if(state.draft) state.draft.stage = Math.min(n, 3);
+      persistDraft();
+      render();
+      window.scrollTo({ top:0, behavior:'smooth' });
+      break;
+    }
+    case 'stage-next': {
+      const u = currentUser();
+      const t = getTraining(state.trainingId);
+      if(!u || !t || !state.draft) break;
+
+      if(state.stage === 1){
+        const d = state.draft.details || {};
+        if(!String(d.email||'').trim()){ showStageMsg('ಇ-ಮೇಲ್ ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ.','error'); break; }
+        if(!isEmail(d.email)){ showStageMsg('ಸರಿಯಾದ ಇ-ಮೇಲ್ ವಿಳಾಸವನ್ನು ನಮೂದಿಸಿ.','error'); break; }
+        if(!String(d.name||'').trim()){ showStageMsg('ಹೆಸರನ್ನು ನಮೂದಿಸಿ.','error'); break; }
+        if(!String(d.kgid||'').trim()){ showStageMsg('ಕೆ.ಜಿ.ಐ.ಡಿ / ಹೆಚ್ ಆರ್ ಎಂಎಸ್ ಸಂಖ್ಯೆಯನ್ನು ನಮೂದಿಸಿ.','error'); break; }
+        state.stage = 2;
+        state.draft.stage = 2;
+        persistDraft();
+        render();
+        window.scrollTo({ top:0, behavior:'smooth' });
+        break;
+      }
+
+      if(state.stage === 2){
+        if(!isFeedbackComplete(t)){
+          showStageMsg('ದಯವಿಟ್ಟು ಎಲ್ಲಾ ಪ್ರತಿಕ್ರಿಯೆ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸಿ.','error');
+          toast('ಎಲ್ಲಾ ಪ್ರತಿಕ್ರಿಯೆ ಪ್ರಶ್ನೆಗಳಿಗೆ ಉತ್ತರಿಸುವುದು ಕಡ್ಡಾಯ.','error');
+          break;
+        }
+        state.stage = 3;
+        state.draft.stage = 3;
+        persistDraft();
+        render();
+        window.scrollTo({ top:0, behavior:'smooth' });
+        break;
+      }
+      break;
+    }
+    case 'stage-prev': {
+      if(state.stage > 1){
+        state.stage = state.stage - 1;
+        if(state.draft) state.draft.stage = Math.min(state.stage, 3);
+        persistDraft();
+        render();
+        window.scrollTo({ top:0, behavior:'smooth' });
+      }
+      break;
+    }
+    case 'submit-assessment': submitAssessment(); break;
+    case 'print-cert': {
+      document.body.classList.add('print-mode');
+      window.print();
+      setTimeout(()=> document.body.classList.remove('print-mode'), 600);
+      break;
+    }
+
+    /* ---------- admin nav ---------- */
+    case 'admin-nav': {
+      state.adminSection = el.getAttribute('data-to') || 'overview';
+      state.editing = null;
+      render();
+      window.scrollTo({ top:0, behavior:'smooth' });
+      break;
+    }
+
+    /* ---------- admin training CRUD ---------- */
+    case 'new-training': {
+      state.editing = blankTrainingDraft();
+      render();
+      window.scrollTo({ top:0, behavior:'smooth' });
+      break;
+    }
+    case 'edit-training': {
+      const t = getTraining(el.getAttribute('data-id'));
+      if(!t){ toast('ತರಬೇತಿ ಕಂಡುಬಂದಿಲ್ಲ.','error'); break; }
+      state.editing = draftFromTraining(t);
+      render();
+      window.scrollTo({ top:0, behavior:'smooth' });
+      break;
+    }
+    case 'delete-training': {
+      const id = el.getAttribute('data-id');
+      const t = getTraining(id);
+      if(!t) break;
+      confirmDialog(
+        'ತರಬೇತಿ ಅಳಿಸುವುದೇ?',
+        '“' + t.title + '” ತರಬೇತಿಯನ್ನು ಅಳಿಸಲಾಗುತ್ತದೆ. ಇದಕ್ಕೆ ಸಂಬಂಧಿಸಿದ ಸಲ್ಲಿಕೆಗಳು ಮತ್ತು ಪ್ರಮಾಣಪತ್ರ ದಾಖಲೆಗಳು ಉಳಿಯುತ್ತವೆ.',
+        function(){
+          DB.trainings = DB.trainings.filter(x => x.id !== id);
+          saveDB();
+          render();
+          toast('ತರಬೇತಿ ಅಳಿಸಲಾಗಿದೆ.','success');
+        },
+        true
+      );
+      break;
+    }
+    case 'cancel-edit': {
+      state.editing = null;
+      render();
+      break;
+    }
+    case 'preview-training': {
+      const t = getTraining(el.getAttribute('data-id'));
+      if(!t) break;
+      openModal(
+        '<h3>' + esc(t.title) + '</h3>' +
+        '<p class="small" style="line-height:1.9;">“' + esc(t.topic) + '”</p>' +
+        '<div class="card-soft small" style="line-height:2;">' +
+          '<div><b>ದಿನಾಂಕ:</b> ' + esc(t.date) + '</div>' +
+          '<div><b>ಸಂಸ್ಥೆ:</b> ' + esc(t.institute || INSTITUTE) + '</div>' +
+          '<div><b>ವರ್ಗ:</b> ' + esc(t.category || '—') + '</div>' +
+          '<div><b>ಪ್ರಶ್ನೆಗಳು:</b> ' + t.questions.length + ' &nbsp;·&nbsp; <b>ಉತ್ತೀರ್ಣ ಮಿತಿ:</b> ' + (t.passing||70) + '%</div>' +
+        '</div>' +
+        '<h4 style="margin-top:16px;color:var(--navy);">ಮೌಲ್ಯಮಾಪನ ಪ್ರಶ್ನೆಗಳು</h4>' +
+        t.questions.map((q,i) =>
+          '<div style="padding:8px 0;border-bottom:1px solid var(--line-soft);">' +
+            '<div class="small strong">' + (i+1) + '. ' + esc(q.text) + '</div>' +
+            '<div class="tiny muted" style="margin-top:3px;">' +
+              q.options.map((o,j) => 'ABCD'[j] + ') ' + esc(o)).join(' &nbsp;|&nbsp; ') +
+            '</div>' +
+          '</div>'
+        ).join('') +
+        '<div class="modal-actions"><button class="btn btn-ghost" data-action="modal-close">ಮುಚ್ಚಿ</button></div>',
+        true
+      );
+      break;
+    }
+    case 'add-session': {
+      if(!state.editing) break;
+      if(!state.editing.feedback.sessions) state.editing.feedback.sessions = [];
+      state.editing.feedback.sessions.push({ heading:'', topic:'', lecturer:'' });
+      render();
+      break;
+    }
+    case 'del-session': {
+      if(!state.editing) break;
+      const i = Number(el.getAttribute('data-i'));
+      state.editing.feedback.sessions.splice(i, 1);
+      render();
+      break;
+    }
+    case 'add-fbq': {
+      if(!state.editing) break;
+      if(!state.editing.feedback.questions) state.editing.feedback.questions = [];
+      state.editing.feedback.questions.push({
+        id: uid('f'), text:'', type:'radio', options:['','']
+      });
+      render();
+      break;
+    }
+    case 'del-fbq': {
+      if(!state.editing) break;
+      const i = Number(el.getAttribute('data-i'));
+      state.editing.feedback.questions.splice(i, 1);
+      render();
+      break;
+    }
+    case 'q-add': {
+      if(!state.editing) break;
+      state.editing.questions.push({ id:uid('q'), text:'', options:['','','',''], correct:0, marks:1 });
+      render();
+      break;
+    }
+    case 'q-del': {
+      if(!state.editing) break;
+      const i = Number(el.getAttribute('data-i'));
+      if(state.editing.questions.length <= 1){
+        toast('ಕನಿಷ್ಠ ಒಂದು ಪ್ರಶ್ನೆ ಅಗತ್ಯ.','error');
+        break;
+      }
+      state.editing.questions.splice(i, 1);
+      render();
+      break;
+    }
+    case 'q-up': {
+      if(!state.editing) break;
+      const i = Number(el.getAttribute('data-i'));
+      if(i <= 0) break;
+      const arr = state.editing.questions;
+      const tmp = arr[i-1]; arr[i-1] = arr[i]; arr[i] = tmp;
+      render();
+      break;
+    }
+    case 'q-down': {
+      if(!state.editing) break;
+      const i = Number(el.getAttribute('data-i'));
+      const arr = state.editing.questions;
+      if(i >= arr.length - 1) break;
+      const tmp = arr[i+1]; arr[i+1] = arr[i]; arr[i] = tmp;
+      render();
+      break;
+    }
+    case 'q-preview': {
+      if(!state.editing) break;
+      const i = Number(el.getAttribute('data-i'));
+      const q = state.editing.questions[i];
+      if(!q) break;
+      openModal(
+        '<h3 style="margin-bottom:14px;">ಮುನ್ನೋಟ — ಪ್ರಶ್ನೆ ' + (i+1) + '</h3>' +
+        '<div class="q-card" style="box-shadow:none;">' +
+          '<div class="q-head"><div class="q-num">' + (i+1) + '</div>' +
+            '<div class="q-text">' + esc(q.text || '(ಪ್ರಶ್ನೆ ಪಠ್ಯ ಖಾಲಿ)') + '</div></div>' +
+          '<div class="opt-group">' +
+            (q.options||[]).map((o,j) =>
+              '<label class="opt"><input type="radio" name="prev' + i + '" value="' + j + '"' +
+                (Number(q.correct) === j ? ' checked' : '') + ' disabled>' +
+                '<span class="opt-key">' + 'ABCD'[j] + ')</span>' +
+                '<span class="opt-text">' + esc(o || '(ಖಾಲಿ)') + '</span></label>'
+            ).join('') +
+          '</div>' +
+        '</div>' +
+        '<p class="tiny muted">ಇದು ಶಿಬಿರಾರ್ಥಿಗೆ ಕಾಣುವ ರೀತಿ. ಸರಿಯಾದ ಉತ್ತರವನ್ನು ಗುರುತಿಸಲಾಗಿದೆ (ವಿದ್ಯಾರ್ಥಿಗೆ ಕಾಣುವುದಿಲ್ಲ).</p>' +
+        '<div class="modal-actions"><button class="btn btn-ghost" data-action="modal-close">ಮುಚ್ಚಿ</button></div>'
+      );
+      break;
+    }
+
+    /* ---------- admin data actions ---------- */
+    case 'view-submission': viewSubmissionModal(el.getAttribute('data-id')); break;
+    case 'export-csv': exportCSV(); break;
+    case 'reset-data': {
+      confirmDialog(
+        'ಡೆಮೊ ಡೇಟಾ ಮರುಹೊಂದಿಸುವುದೇ?',
+        'ಎಲ್ಲಾ ತರಬೇತಿಗಳು, ಸಲ್ಲಿಕೆಗಳು, ಪ್ರಮಾಣಪತ್ರಗಳು ಮತ್ತು ಪ್ರತಿಕ್ರಿಯೆಗಳು ಅಳಿಸಲ್ಪಡುತ್ತವೆ. ಈ ಕ್ರಿಯೆಯನ್ನು ರದ್ದು ಮಾಡಲು ಸಾಧ್ಯವಿಲ್ಲ.',
+        function(){
+          try{
+            Object.keys(localStorage).forEach(k => {
+              if(k === STORE_KEY || k.indexOf(DRAFT_PREFIX) === 0) localStorage.removeItem(k);
+            });
+          }catch(e){}
+          DB = seedData();
+          saveDB();
+          state.editing = null;
+          state.adminSection = 'overview';
+          render();
+          toast('ಡೆಮೊ ಡೇಟಾ ಮರುಹೊಂದಿಸಲಾಗಿದೆ.','success');
+        },
+        true
+      );
+      break;
+    }
+  }
+});
+
+/* ---------- Form submissions ---------- */
+document.addEventListener('submit', function(e){
+  const form = e.target.closest('form[data-form]');
+  if(!form) return;
+  e.preventDefault();
+  const kind = form.getAttribute('data-form');
+
+  if(kind === 'login'){
+    const username = form.querySelector('[name="username"]').value;
+    const password = form.querySelector('[name="password"]').value;
+    const msg = document.getElementById('loginMsg');
+
+    if(!String(username).trim() || !String(password).trim()){
+      if(msg){ msg.className = 'form-msg show error'; msg.textContent = 'ಬಳಕೆದಾರ ಹೆಸರು ಮತ್ತು ಗುಪ್ತಪದವನ್ನು ನಮೂದಿಸಿ.'; }
+      return;
+    }
+
+    const u = login(username, password);
+    if(!u){
+      if(msg){ msg.className = 'form-msg show error'; msg.textContent = 'ಬಳಕೆದಾರ ಹೆಸರು ಅಥವಾ ಗುಪ್ತಪದ ತಪ್ಪಾಗಿದೆ.'; }
+      toast('ಲಾಗಿನ್ ವಿಫಲವಾಯಿತು. ಡೆಮೊ ವಿವರಗಳನ್ನು ಪರಿಶೀಲಿಸಿ.','error');
+      return;
+    }
+
+    state.route = 'dashboard';
+    state.adminSection = 'overview';
+    state.trainingId = null;
+    state.editing = null;
+    render();
+    toast('ಸ್ವಾಗತ, ' + u.name + '!', 'success');
+    return;
+  }
+
+  if(kind === 'training'){
+    saveTraining();
+    return;
+  }
+});
+
+/* ---------- Radio group visual state ---------- */
+document.addEventListener('change', function(e){
+  const t = e.target;
+  if(t && t.type === 'radio'){
+    /* assessment option styling */
+    const grp = t.closest('.opt-group');
+    if(grp){
+      $$('.opt', grp).forEach(o => o.classList.toggle('selected', !!o.querySelector('input:checked')));
+    }
+    /* generic feedback radio -> store answer */
+    const fbGroup = t.getAttribute('data-fbgroup');
+    if(fbGroup && state.draft){
+      state.draft.feedback.answers[fbGroup] = t.value;
+      persistDraft();
+    }
+  }
+});
+
+/* ---------- Init ---------- */
+function init(){
+  loadDB();
+  const u = currentUser();
+  if(u){
+    state.route = u.role === 'admin' ? 'admin' : 'dashboard';
+  }
+  render();
+}
+init();
+
+})();
+</script>
+</body>
+</html>
