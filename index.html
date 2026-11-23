@@ -1696,10 +1696,17 @@ function normalizeFeedback(f){
    only return permitted documents. So every read below is constrained
    with a where() that mirrors its rule:
 
-     trainings     published == true          (+ archived != true)
+     trainings     published == true
      submissions   studentUid == <own uid>
      certificates  studentUid == <own uid>
      students      admin only
+
+   The constraint and the rule must match EXACTLY. The trainings rule
+   used to carry an extra `resource.data.archived != true`, which this
+   query could not prove, and the emulator refused the whole query with
+   permission-denied — every student saw an empty portal. Archived
+   trainings are kept out of the list below, in JavaScript, and by the
+   fact that archiving also unpublishes.
 
    Do not replace these with plain getDocs(collection(...)) scans.
    ------------------------------------------------------------ */

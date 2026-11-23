@@ -11,7 +11,12 @@ const { admin, adminSdk, USERS } = require('./env');
 
 const T_PUB = 't_published';
 const T_DRAFT = 't_draft';
+/* what 'archive-training' in index.html actually writes:
+   { archived: true, published: false } */
 const T_ARCH = 't_archived';
+/* the hand-edited combination the UI cannot produce: published AND
+   archived. Kept as a fixture so the visibility tests cover it. */
+const T_PUB_ARCH = 't_published_archived';
 
 function training(id, overrides) {
   return Object.assign(
@@ -122,7 +127,8 @@ async function seed() {
 
   batch.set(db.doc('trainings/' + T_PUB), training(T_PUB));
   batch.set(db.doc('trainings/' + T_DRAFT), training(T_DRAFT, { published: false, archived: false }));
-  batch.set(db.doc('trainings/' + T_ARCH), training(T_ARCH, { published: true, archived: true }));
+  batch.set(db.doc('trainings/' + T_ARCH), training(T_ARCH, { published: false, archived: true }));
+  batch.set(db.doc('trainings/' + T_PUB_ARCH), training(T_PUB_ARCH, { published: true, archived: true }));
 
   batch.set(db.doc('trainingKeys/' + T_PUB), {
     key: { q1: 2, q2: 0 },
@@ -164,4 +170,4 @@ async function seed() {
   await batch.commit();
 }
 
-module.exports = { seed, training, submission, certificate, profile, T_PUB, T_DRAFT, T_ARCH };
+module.exports = { seed, training, submission, certificate, profile, T_PUB, T_DRAFT, T_ARCH, T_PUB_ARCH };

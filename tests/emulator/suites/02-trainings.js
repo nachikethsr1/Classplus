@@ -4,7 +4,7 @@
 const { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, query, where, getDocs, serverTimestamp } = require('firebase/firestore');
 const h = require('../harness');
 const { session } = require('../env');
-const { T_PUB, T_DRAFT, T_ARCH } = require('../fixtures');
+const { T_PUB, T_DRAFT, T_ARCH, T_PUB_ARCH } = require('../fixtures');
 
 module.exports = async function run() {
   h.setGroup('trainings/{id}');
@@ -24,8 +24,13 @@ module.exports = async function run() {
   await h.deny('T03', 'approved student reads an UNPUBLISHED (draft) training', () =>
     getDoc(doc(me.db, 'trainings/' + T_DRAFT))
   );
-  await h.deny('T04', 'approved student reads an ARCHIVED training', () =>
+  await h.deny('T04', 'approved student reads an ARCHIVED training (archive-training also unpublishes)', () =>
     getDoc(doc(me.db, 'trainings/' + T_ARCH))
+  );
+  await h.allow(
+    'T04b',
+    'approved student reads a hand-edited published+archived training (rule allows, loader filters it out)',
+    () => getDoc(doc(me.db, 'trainings/' + T_PUB_ARCH))
   );
   await h.deny('T05', 'PENDING student reads a published training', () =>
     getDoc(doc(pending.db, 'trainings/' + T_PUB))
@@ -44,7 +49,9 @@ module.exports = async function run() {
     getDocs(query(collection(me.db, 'trainings'), where('published', '==', true)))
   );
 
-  /* What the committed rule actually demands if it is to be provable. */
+  /* A second equality constraint is also provable, if the loader ever
+     wants to push the archived filter into the query. Every training
+     document must then actually carry the field. */
   await h.allow('T09', "query where published==true AND archived==false", () =>
     getDocs(query(collection(me.db, 'trainings'), where('published', '==', true), where('archived', '==', false)))
   );
@@ -68,8 +75,8 @@ module.exports = async function run() {
     h.expect('T14', 'published query never returns the draft', !ids.includes(T_DRAFT), 'got ' + JSON.stringify(ids));
     h.expect(
       'T15',
-      'archived training is filtered out of the student list (client-side filter in loadTrainingsForStudent)',
-      !ids.includes(T_ARCH) || true,
+      'published query never returns an archived (therefore unpublished) training',
+      !ids.includes(T_ARCH),
       'ids=' + JSON.stringify(ids)
     );
   } catch (e) {

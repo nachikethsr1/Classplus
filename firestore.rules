@@ -118,11 +118,29 @@ service cloud.firestore {
     // ---------- trainings ----------
     // trainings/{trainingId}
     match /trainings/{trainingId} {
-      // Students see published trainings only; drafts and archives
-      // are invisible to them. The admin sees everything.
+      // Students see published trainings only; drafts are invisible.
+      // The admin sees everything.
+      //
+      // ONE CLAUSE ON PURPOSE. Firestore evaluates rules as a pre-filter
+      // on a list query: the query is refused outright unless its own
+      // constraints prove every condition the rule puts on resource.data.
+      // The student loader runs
+      //     where('published','==',true)
+      // so that is exactly what this rule may require. An extra
+      //     resource.data.archived != true
+      // here refused that query with permission-denied and left every
+      // student looking at an empty portal — confirmed against the
+      // emulator, see tests/emulator/suites/02-trainings.js (T08).
+      //
+      // Archived trainings are still not visible to students:
+      //   - 'archive-training' in index.html writes
+      //     { archived: true, published: false }, so archiving already
+      //     takes the training out of this rule's reach, and
+      //   - loadTrainingsForStudent() drops archived === true client-side
+      //     for the hand-edited case where a document is both published
+      //     and archived.
       allow read: if isAdmin()
-        || (isApproved() && resource.data.published == true
-            && resource.data.archived != true);
+        || (isApproved() && resource.data.published == true);
 
       // Nobody but the admin can create or change a training, which
       // is what keeps question text and answer keys safe.
