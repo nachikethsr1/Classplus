@@ -118,6 +118,11 @@ behind `authIsAdmin()` guards, so a student never reaches them.
 
 ---
 
+## Superseded
+
+Two items listed as open here were fixed in Phase 2/3 — `kgid` protection and
+the answer-key exposure. See `PHASE2_PHASE3_REPORT.md`.
+
 ## Still open
 
 - **Real-rules run not done.** `@firebase/rules-unit-testing` is installed but no
