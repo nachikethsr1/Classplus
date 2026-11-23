@@ -190,13 +190,30 @@ module.exports = async function run() {
 
     /* certificate numbering through the admin path */
     try {
+      adminSdk();
+      const before = Number(((await admin.firestore().doc('settings/portal').get()).data() || {}).certCounter || 0);
       const n1 = await p.nextCertNo();
       const n2 = await p.nextCertNo();
+      const after = Number(((await admin.firestore().doc('settings/portal').get()).data() || {}).certCounter || 0);
       h.expect(
         'A30',
         'admin certificate numbers come from the settings counter and increase',
-        /^DTI-BNG-\d{4}-\d{4}$/.test(n1) && n1 !== n2,
+        /^DTI-BNG-\d{4}-\d{4}$/.test(n1) && !/-PROV-/.test(n1) && n1 !== n2,
         `n1=${n1} n2=${n2}`
+      );
+      /* the old assertion could not tell a counter serial from the
+         provisional fallback, so a refused transaction still "passed" */
+      h.expect(
+        'A31',
+        'issuing those numbers actually advanced settings/portal.certCounter',
+        after === before + 2,
+        `certCounter ${before} -> ${after}`
+      );
+      h.expect(
+        'A32',
+        'the numbers match the counter values they came from',
+        n1.endsWith(String(before + 1).padStart(4, '0')) && n2.endsWith(String(before + 2).padStart(4, '0')),
+        `n1=${n1} n2=${n2} counter ${before} -> ${after}`
       );
     } catch (e) {
       h.expect('A30', 'admin certificate numbering', false, 'threw: ' + h.errCode(e));

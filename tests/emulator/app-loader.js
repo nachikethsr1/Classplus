@@ -103,7 +103,17 @@ function makeRealService(sess, opts) {
     Timestamp,
     writeBatch: () => writeBatch(sess.db),
     getDocs,
-    runTransaction: (fn) => runTransaction(sess.db, fn),
+    /* the transaction object handed to page code writes page-realm
+       objects too, so wrap set/update the same way (see fromPageRealm) */
+    runTransaction: (fn) =>
+      runTransaction(sess.db, (tx) =>
+        fn({
+          get: (r) => tx.get(r),
+          set: (r, data, opts) => (opts === undefined ? tx.set(r, fromPageRealm(data)) : tx.set(r, fromPageRealm(data), fromPageRealm(opts))),
+          update: (r, data) => tx.update(r, fromPageRealm(data)),
+          delete: (r) => tx.delete(r),
+        })
+      ),
 
     async uploadCertificateBg(blob, ext) {
       if (!state.storageReady) throw new Error('storage-not-ready');
