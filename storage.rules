@@ -1,0 +1,57 @@
+rules_version = '2';
+
+// ============================================================
+// FIREBASE STORAGE SECURITY RULES
+// District Training Institute, Bengaluru City
+// ------------------------------------------------------------
+// Only the certificate background images live in Storage.
+//
+// DEPLOY
+//   firebase deploy --only storage
+//   (or paste into Firebase Console -> Storage -> Rules -> Publish)
+// ============================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Must match adminEmail() in firestore.rules.
+    function adminEmail() {
+      return 'replace-with-admin-google-account@gmail.com';
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == adminEmail();
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/(png|jpeg)');
+    }
+
+    // 5 MB ceiling, matching the client-side guard.
+    function underLimit() {
+      return request.resource.size < 5 * 1024 * 1024;
+    }
+
+    // ---------- certificate backgrounds ----------
+    // certificate-backgrounds/current.png  (or .jpg)
+    match /certificate-backgrounds/{fileName} {
+      // Any signed-in user may read the artwork so the student
+      // certificate can render. Nothing else in the bucket is public.
+      allow read: if isSignedIn();
+
+      // Only the admin uploads or replaces it, images only, size capped.
+      allow write: if isAdmin() && isImage() && underLimit();
+    }
+
+    // ---------- deny everything else ----------
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

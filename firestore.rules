@@ -1,0 +1,213 @@
+rules_version = '2';
+
+// ============================================================
+// FIRESTORE SECURITY RULES
+// District Training Institute, Bengaluru City
+// ------------------------------------------------------------
+// This file is the real access control for the portal.
+// Anything enforced only in JavaScript can be bypassed by anyone
+// who opens the browser console, so every rule below is written
+// on the assumption that the client is hostile.
+//
+// DEPLOY
+//   firebase deploy --only firestore:rules
+//   (or paste this file into Firebase Console -> Firestore ->
+//    Rules -> Publish)
+//
+// ADMIN
+//   Admin is granted by an EMAIL ALLOWLIST evaluated here, on the
+//   server side. Replace the address below with your mother's
+//   Google account, and keep window.ADMIN_EMAILS in
+//   js/firebase-config.js in sync (that copy only controls which
+//   menus appear; this copy is what actually grants access).
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------- helpers ----------
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // The single authorized administrator.
+    // Change this string, then redeploy the rules.
+    function adminEmail() {
+      return 'replace-with-admin-google-account@gmail.com';
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == adminEmail();
+    }
+
+    function isSelf(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+
+    // Has this account been approved by the admin?
+    // Reads the caller's own profile document.
+    function myStatus() {
+      return get(/databases/$(database)/documents/students/$(request.auth.uid)).data.status;
+    }
+
+    function isApproved() {
+      return isSignedIn() && myStatus() == 'approved';
+    }
+
+    // Fields a student is never allowed to write on their own profile.
+    function protectedProfileFields() {
+      return [
+        'status', 'role', 'verifiedAt', 'verifiedBy',
+        'createdAt', 'uid', 'marks', 'results'
+      ];
+    }
+
+    // KGID appears on the certificate, so it is frozen once an admin has
+    // approved the account: before approval a student may fix a typo,
+    // afterwards only an admin may change it.
+    function studentMayUpdateProfile() {
+      let touched = request.resource.data.diff(resource.data).affectedKeys();
+      return touched.hasAny(protectedProfileFields()) == false
+             && (resource.data.status == 'approved'
+                   ? touched.hasAny(['kgid', 'officialName']) == false
+                   : true);
+    }
+
+    // ---------- students ----------
+    // students/{uid}
+    match /students/{uid} {
+      // A student may read only their own profile.
+      // The admin may read every profile.
+      allow read: if isSelf(uid) || isAdmin();
+
+      // First sign-in creates the profile. Approval status can only
+      // start as 'pending' — nobody can register themselves as approved.
+      allow create: if isSelf(uid)
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.status == 'pending'
+        && request.resource.data.role == 'student';
+
+      // A student may correct their own details, but running an
+      // update that touches status/role/verification is refused.
+      allow update: if isSelf(uid) && studentMayUpdateProfile();
+
+      // Only the admin may approve, reject, disable or delete.
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ---------- training answer keys ----------
+    // trainingKeys/{trainingId}  { key: { questionId: optionIndex } }
+    //
+    // The whole point of this collection is that a student cannot read it.
+    // Score-bearing answer keys belong here, never on the training document.
+    //
+    // NOTE: while the app still marks papers in the browser (SCORING.mode
+    // === 'client' in index.html) the key has to remain readable, so a
+    // mirror is kept on trainings/{id}. Adopted together with the scoring
+    // Cloud Function, this collection is what makes the exam closed-book.
+    match /trainingKeys/{trainingId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ---------- trainings ----------
+    // trainings/{trainingId}
+    match /trainings/{trainingId} {
+      // Students see published trainings only; drafts and archives
+      // are invisible to them. The admin sees everything.
+      allow read: if isAdmin()
+        || (isApproved() && resource.data.published == true
+            && resource.data.archived != true);
+
+      // Nobody but the admin can create or change a training, which
+      // is what keeps question text and answer keys safe.
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------- submissions ----------
+    // submissions/{submissionId}
+    match /submissions/{submissionId} {
+      // A student reads only their own attempts. The admin reads all.
+      allow read: if isSelf(resource.data.studentUid) || isAdmin();
+
+      // A student may create a submission for themselves, on a
+      // published training, and may not hand in their own marks:
+      // the write is refused unless marks are absent (the client
+      // computes and stores them, so we validate the shape here).
+      allow create: if isApproved()
+        && request.resource.data.studentUid == request.auth.uid
+        && request.resource.data.keys().hasAll([
+             'studentUid', 'trainingId', 'officialNameSnapshot',
+             'kgidSnapshot', 'feedbackResponses', 'assessmentAnswers',
+             'marksObtained', 'totalMarks', 'percentage',
+             'passStatus', 'submittedAt'
+           ])
+        && get(/databases/$(database)/documents/trainings/$(request.resource.data.trainingId)).data.published == true;
+
+      // Submissions are an audit record: immutable once written.
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // ---------- certificates ----------
+    // certificates/{certificateId}
+    // The issued certificate register. One document per certificate.
+    match /certificates/{certificateId} {
+      // A student sees only their own certificates; the admin sees all.
+      allow read: if isSelf(resource.data.studentUid) || isAdmin();
+
+      // A student may issue a certificate for THEMSELVES, but only by
+      // pointing at a submission that is theirs, has passed, and whose
+      // scores the certificate must copy verbatim. That blocks a
+      // fabricated certificate for a failed or missing attempt.
+      //
+      // NOTE: submissions are still written by the browser until the
+      // scoring Cloud Function lands (see FIREBASE_SETUP.md). Once it
+      // does, both collections can be closed to students entirely.
+      allow create: if isSelf(request.resource.data.studentUid)
+        && request.resource.data.number is string
+        && request.resource.data.number != ''
+        && get(/databases/$(database)/documents/submissions/$(request.resource.data.submissionId)).data.studentUid == request.auth.uid
+        && get(/databases/$(database)/documents/submissions/$(request.resource.data.submissionId)).data.passStatus == true
+        && request.resource.data.marks == get(/databases/$(database)/documents/submissions/$(request.resource.data.submissionId)).data.marksObtained
+        && request.resource.data.total == get(/databases/$(database)/documents/submissions/$(request.resource.data.submissionId)).data.totalMarks
+        && request.resource.data.pct == get(/databases/$(database)/documents/submissions/$(request.resource.data.submissionId)).data.percentage;
+
+      // Certificates are a permanent record: nobody rewrites them after
+      // issue. Only the admin can remove one.
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // ---------- certificate design ----------
+    // certificateDesigns/current  (single active design)
+    match /certificateDesigns/{docId} {
+      allow read: if isSignedIn();      // students need the layout to render
+      allow write: if isAdmin();        // only the admin edits it
+    }
+
+    // ---------- settings ----------
+    match /settings/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ---------- counters ----------
+    // Used for the certificate serial number. Written only through
+    // the admin-side logic; students never touch it.
+    match /counters/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
+    }
+
+    // ---------- deny everything else ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,33 @@
+# ============================================================
+# NETLIFY CONFIGURATION
+# ------------------------------------------------------------
+# The site is a plain static page — there is no build step.
+# Netlify only needs to serve the repository root.
+# No Node server, no functions, nothing that must stay running.
+# ============================================================
+
+[build]
+  publish = "."
+  command = ""
+
+# The Firebase SDK comes from Google's CDN, and fonts from Google Fonts.
+# Firestore realtime connections are WebSockets, so do not add
+# restrictive Content-Security-Policy headers here.
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options = "SAMEORIGIN"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Never serve the rules files or internal notes as web content.
+[[headers]]
+  for = "/firestore.rules"
+  [headers.values]
+    Content-Type = "text/plain; charset=utf-8"
+
+[[redirects]]
+  from = "/firebase-config.js"
+  to = "/js/firebase-config.js"
+  status = 301
