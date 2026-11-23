@@ -1544,6 +1544,28 @@ function normalizeFeedback(f){
 }
 
 /* ------------------------------------------------------------
+   constrained reads
+
+   Firestore treats Security Rules as a pre-filter, not a post-filter:
+   a list query is rejected outright unless the rules can prove it can
+   only return permitted documents. So every read below is constrained
+   with a where() that mirrors its rule:
+
+     trainings     published == true          (+ archived != true)
+     submissions   studentUid == <own uid>
+     certificates  studentUid == <own uid>
+     students      admin only
+
+   Do not replace these with plain getDocs(collection(...)) scans.
+   ------------------------------------------------------------ */
+function q(collectionPath, ...constraints){
+  const svc = FS();
+  const parts = constraints.filter(Boolean);
+  if(!parts.length) return svc.collection(collectionPath);
+  return svc.query(svc.collection(collectionPath), ...parts);
+}
+
+/* ------------------------------------------------------------
    loading
    ------------------------------------------------------------ */
 
@@ -1565,12 +1587,15 @@ function loadPortalData(force){
 function loadTrainingsForStudent(){
   const svc = FS();
   if(!svc || !svc.state.firestoreReady) return Promise.resolve();
-  return svc.getDocs(svc.collection('trainings')).then(function(snap){
+  const ref = q('trainings', svc.where('published', '==', true));
+  return svc.getDocs(ref).then(function(snap){
     const out = [];
     if(snap && typeof snap.forEach === 'function'){
       snap.forEach(function(d){
         const v = d.data() || {};
-        if(v.published === true && v.archived !== true){
+        /* archived is excluded client-side: archived trainings stay
+           readable to keep the rule single-clause and indexable */
+        if(v.archived !== true){
           out.push(trainingFromDoc(d.id, v));
         }
       });
@@ -1581,6 +1606,8 @@ function loadTrainingsForStudent(){
   }).catch(function(err){ logFirestoreError('trainings', err); });
 }
 
+/* Admin reads may scan whole collections: isAdmin() is unconditional in
+   the rules, so no query constraint is required to prove it. */
 function loadTrainingsForAdmin(){
   const svc = FS();
   if(!svc || !svc.state.firestoreReady) return Promise.resolve();
@@ -1600,12 +1627,12 @@ function loadMySubmissions(force){
   const uid = svc && svc.uid;
   if(!svc || !svc.state.firestoreReady || !uid) return Promise.resolve();
   if(DataStore.loadedSubmissions && !force) return Promise.resolve();
-  return svc.getDocs(svc.collection('submissions')).then(function(snap){
+  const ref = q('submissions', svc.where('studentUid', '==', uid));
+  return svc.getDocs(ref).then(function(snap){
     const out = [];
     if(snap && typeof snap.forEach === 'function'){
       snap.forEach(function(d){
-        const v = d.data() || {};
-        if(v.studentUid === uid) out.push(submissionFromDoc(d.id, v));
+        out.push(submissionFromDoc(d.id, d.data() || {}));
       });
     }
     DB.submissions = out;
@@ -1632,12 +1659,12 @@ function loadMyCertificates(force){
   const uid = svc && svc.uid;
   if(!svc || !svc.state.firestoreReady || !uid) return Promise.resolve();
   if(DataStore.loadedCertificates && !force) return Promise.resolve();
-  return svc.getDocs(svc.collection('certificates')).then(function(snap){
+  const ref = q('certificates', svc.where('studentUid', '==', uid));
+  return svc.getDocs(ref).then(function(snap){
     const out = [];
     if(snap && typeof snap.forEach === 'function'){
       snap.forEach(function(d){
-        const v = d.data() || {};
-        if(v.studentUid === uid) out.push(v);
+        out.push(d.data() || {});
       });
     }
     DB.certificates = out;
