@@ -9,6 +9,7 @@ const h = require('../harness');
 const { session, admin, adminSdk } = require('../env');
 const { loadApp, makeRealService } = require('../app-loader');
 
+
 async function appFor(key) {
   const sess = await session(key);
   const app = loadApp();
@@ -28,6 +29,7 @@ module.exports = async function run() {
   const studentFirst = await a.probe.nextCertNo();
   const studentSecond = await a.probe.nextCertNo();
   h.expect('N01', 'student numbers keep one house format (DTI-BNG-<year>-…)', /^DTI-BNG-\d{4}-/.test(studentFirst), 'got ' + studentFirst);
+  h.expect('N01b', 'a student number is visibly provisional', /-PROV-/.test(studentFirst), 'got ' + studentFirst);
   h.expect('N02', 'the student allocator does not repeat itself on one device', studentFirst !== studentSecond, `${studentFirst} ${studentSecond}`);
 
   /* ---- a student cannot touch the real counter ---- */
@@ -78,9 +80,28 @@ module.exports = async function run() {
     'N07',
     'a certificate carrying a provisional number says so on the document',
     issuedByStudent.length === 0 || issuedByStudent.every((d) => d.provisional === true),
-    'certificates with a 9xxx number and no provisional flag: ' +
+    'certificates with a provisional-looking number and no provisional flag: ' +
       JSON.stringify(issuedByStudent.filter((d) => d.provisional !== true).map((d) => d.number))
   );
+
+  /* The flag has to survive the app's real issuing path, not just the
+     allocator. */
+  const sess = await session('approved');
+  const fresh = loadApp();
+  const svc = makeRealService(sess);
+  fresh.publishService(svc);
+  await fresh.settle(50);
+  svc.__setUser({ uid: sess.uid, email: sess.email });
+  await fresh.settle(1200);
+  const training = (fresh.probe.db.trainings || []).find((t) => t.id === 't_published');
+  if (!training) {
+    h.skip('N08', 'app-issued certificate is flagged provisional', 'no published training loaded');
+  } else {
+    const out = await fresh.probe.issueCertificate(training, { q1: 2, q2: 0 }, { name: 'ಅನನ್ಯಾ', kgid: 'KG-1001', email: sess.email });
+    const c = (await admin.firestore().doc('certificates/cert_' + out.id).get()).data() || {};
+    h.expect('N08', 'a certificate the student app issues is flagged provisional', c.provisional === true, 'number=' + c.number + ' provisional=' + c.provisional);
+    h.expect('N09', 'that number cannot be confused with a register serial', /-PROV-/.test(String(c.number)), 'number=' + c.number);
+  }
 
   /* restore */
   await admin.firestore().doc('settings/portal').set({ certCounter: 7 }, { merge: true });

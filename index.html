@@ -2034,26 +2034,66 @@ function authIsApproved(){
    (DTI-BNG-2026-S1J9NFU). Both looked official and neither was
    reconcilable with the other, so the register could not be audited.
 
-   There is now one format — DTI-BNG-<year>-<NNNN> — and one source: the
-   settings/portal counter. Students cannot increment that counter (the
-   rules reserve settings/ writes for the admin), so a student submission
-   is numbered by the same helper the admin uses, falling back to an
-   obviously-provisional number rather than a fake serial if the counter is
-   unreachable. */
+   ISSUED SERIAL      DTI-BNG-<year>-<NNNN>
+     One source: the settings/portal counter, bumped in a transaction.
+     Only the admin can write settings/, so only the admin can mint one.
+
+   PROVISIONAL NUMBER DTI-BNG-<year>-PROV-<uid token>-<NN>
+     A student cannot reach the counter, so when the browser issues the
+     certificate it cannot be given a serial. It gets this instead.
+
+     The provisional form used to be 9000 + a counter kept in this
+     browser's localStorage, formatted exactly like a serial. Two
+     problems, both reproduced against the emulator in
+     tests/emulator/suites/09-cert-numbering.js:
+       - the counter is per device, so EVERY student's first certificate
+         was DTI-BNG-<year>-9001 (N04); and
+       - once settings/portal.certCounter passes 9000 the admin mints
+         DTI-BNG-<year>-9001 as a real serial and the two collide (N05).
+
+     The uid token makes it unique per student, and the PROV marker means
+     it can never equal a counter serial and can never be mistaken for one
+     by a human reading the certificate. The certificate document also
+     carries provisional: true so the admin register can find them. */
 function formatCertNumber(year, n){
   return 'DTI-BNG-' + year + '-' + String(n).padStart(4, '0');
+}
+
+/* A short, stable, per-account token. Same account -> same token, so a
+   student's numbers stay recognisably theirs. */
+function certUidToken(uid){
+  const src = String(uid || 'anon');
+  let hashed = 0;
+  for(let i = 0; i < src.length; i++){
+    hashed = ((hashed << 5) - hashed + src.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hashed).toString(36).toUpperCase().padStart(5, '0').slice(0, 5);
+}
+
+function formatProvisionalCertNumber(year, uid, seq){
+  return 'DTI-BNG-' + year + '-PROV-' + certUidToken(uid) + '-' + String(seq).padStart(2, '0');
+}
+
+/* Is this number a provisional one rather than a register serial? */
+function isProvisionalCertNumber(no){
+  return /-PROV-/.test(String(no || ''));
 }
 
 function nextCertificateNumberRemote(){
   const svc = FS();
   const year = new Date().getFullYear();
+  const myUid = (svc && svc.uid) || (currentUser() || {}).id || 'anon';
 
-  if(!firestoreOn() || !svc) return Promise.resolve(formatCertNumber(year, nextLocalCertSeq()));
+  if(!firestoreOn() || !svc){
+    return Promise.resolve(formatProvisionalCertNumber(year, myUid, nextLocalCertSeq()));
+  }
 
   /* settings/ is admin-write-only. A student cannot run this transaction at
      all, so do not even attempt it: attempt it and the whole submit flow
      fails with permission-denied. They get a provisional number instead. */
-  if(!authIsAdmin()) return Promise.resolve(formatCertNumber(year, nextLocalCertSeq()));
+  if(!authIsAdmin()){
+    return Promise.resolve(formatProvisionalCertNumber(year, myUid, nextLocalCertSeq()));
+  }
 
   return svc.runTransaction(function(tx){
     const ref = svc.doc('settings/portal');
@@ -2064,36 +2104,35 @@ function nextCertificateNumberRemote(){
       return formatCertNumber(year, n);
     });
   }).catch(function(err){
-    /* a student cannot write settings/, so the transaction is refused for
-       them. Do not invent a serial that looks real: mark it provisional so
-       the admin can renumber it, and say so in the console. */
+    /* the counter is unreachable (offline, or the rules refused the write).
+       Do not invent a serial that looks real: mark it provisional so the
+       admin can renumber it, and say so in the console. */
     console.warn('[cert] counter unavailable, issuing a provisional number', err && err.code);
-    return formatCertNumber(year, nextLocalCertSeq());
+    return formatProvisionalCertNumber(year, myUid, nextLocalCertSeq());
   });
 }
 
-/* last-resort sequence, per device, used only when the counter is out of
-   reach. Deliberately offset into a high range so a provisional number can
-   never collide with a real serial. */
+/* Per-device attempt counter. It only distinguishes one student's own
+   provisional numbers from each other; uniqueness between students comes
+   from the uid token in formatProvisionalCertNumber(). */
 function nextLocalCertSeq(){
   DB.certCounter = (Number(DB.certCounter) || 0) + 1;
-  return 9000 + DB.certCounter;
+  return DB.certCounter;
 }
 
 function attachCertificateNumber(submissionId, certNo){
-  const svc = FS();
-  if(!firestoreOn() || !svc) return Promise.resolve();
-  /* submissions are immutable in the rules, so this only succeeds for
-     an admin acting on their own account. A student's number lives in
-     the certificate register, which is what the certificate renders. */
-  return svc.updateDoc(svc.doc('submissions/' + submissionId), { certificateNo: certNo })
-    .catch(function(){
-      /* expected for students — the register is the source of truth */
-      try{
-        const local = DB.submissions.find(function(s){ return s.id === submissionId; });
-        if(local) local.certificateNo = certNo;
-      }catch(e){}
-    });
+  /* submissions/{id} is an audit record: "allow update: if false" refuses
+     this write for EVERYONE, the admin included (verified against the
+     emulator, 04-submissions.js S17-S20). The old code sent it anyway and
+     swallowed the permission-denied, which cost a round trip on every
+     single submission and logged a denial server-side. The certificate
+     register is the source of truth for the number; keep the local copy
+     in step so the result screen can show it. */
+  try{
+    const local = DB.submissions.find(function(s){ return s.id === submissionId; });
+    if(local) local.certificateNo = certNo;
+  }catch(e){}
+  return Promise.resolve();
 }
 
 function saveCertificateToFirestore(sub, certNo){
@@ -2102,6 +2141,10 @@ function saveCertificateToFirestore(sub, certNo){
   const id = 'cert_' + sub.id;
   const doc = {
     number: certNo,
+    /* A number the browser minted because the student cannot reach the
+       settings/portal counter. The admin register shows these separately
+       so they can be re-issued with a real serial. */
+    provisional: isProvisionalCertNumber(certNo),
     submissionId: sub.id,
     studentUid: sub.userId,
     studentName: sub.details.name,
@@ -3100,9 +3143,14 @@ function computeResult(training, answers){
   };
 }
 
+/* Offline / unconfigured: there is no counter to read, so this is a
+   provisional number too. It used to mint DTI-BNG-<year>-0001, which is
+   the same shape as a real serial and collides with the register the
+   first time the admin issues one. */
 function nextCertificateNumber(){
-  DB.certCounter = (Number(DB.certCounter) || 0) + 1;
-  return formatCertNumber(new Date().getFullYear(), DB.certCounter);
+  const svc = FS();
+  const myUid = (svc && svc.uid) || (currentUser() || {}).id || 'anon';
+  return formatProvisionalCertNumber(new Date().getFullYear(), myUid, nextLocalCertSeq());
 }
 
 function submitAssessment(){
@@ -3767,9 +3815,15 @@ function adminFeedback(){
 
 function adminCertificates(){
   const certs = DB.certificates.slice().sort((a,b) => new Date(b.issuedAt) - new Date(a.issuedAt));
+  /* A provisional number was minted by the student's browser because only
+     the admin can move the settings/portal counter. Flag them here so the
+     register shows which certificates still need a real serial. */
+  const provisional = certs.filter(c => c.provisional === true || isProvisionalCertNumber(c.number)).length;
   const rows = certs.length ? certs.map(c =>
     '<tr>' +
-      '<td data-label="ಪ್ರಮಾಣಪತ್ರ ಸಂಖ್ಯೆ"><span class="td-name">' + esc(c.number) + '</span></td>' +
+      '<td data-label="ಪ್ರಮಾಣಪತ್ರ ಸಂಖ್ಯೆ"><span class="td-name">' + esc(c.number) + '</span>' +
+        ((c.provisional === true || isProvisionalCertNumber(c.number))
+          ? ' <span class="badge grey">ತಾತ್ಕಾಲಿಕ / provisional</span>' : '') + '</td>' +
       '<td data-label="ವಿದ್ಯಾರ್ಥಿ">' + esc(c.studentName) + '</td>' +
       '<td data-label="ತರಬೇತಿ">' + esc(trunc(c.trainingTitle, 28)) + '</td>' +
       '<td data-label="ಅಂಕಗಳು">' + c.marks + ' / ' + c.total + '</td>' +
@@ -3780,6 +3834,13 @@ function adminCertificates(){
 
   return '' +
   '<div class="page-head"><h2>ಪ್ರಮಾಣಪತ್ರ ದಾಖಲೆಗಳು</h2><div class="ph-sub">ನೀಡಲಾದ ಎಲ್ಲಾ ಪ್ರಮಾಣಪತ್ರಗಳ ದಾಖಲೆ</div></div>' +
+  (provisional
+    ? '<div class="card-soft" style="margin-bottom:14px;">' +
+        '<b>' + provisional + '</b> ಪ್ರಮಾಣಪತ್ರ(ಗಳು) ತಾತ್ಕಾಲಿಕ ಸಂಖ್ಯೆಯೊಂದಿಗೆ ಇವೆ — ' +
+        'these were numbered by the student\'s browser (DTI-BNG-…-PROV-…) because only an ' +
+        'administrator can advance the register counter. Re-issue them to give them a real serial.' +
+      '</div>'
+    : '') +
   '<div class="card"><div class="table-wrap"><table class="data">' +
     '<thead><tr><th>ಪ್ರಮಾಣಪತ್ರ ಸಂಖ್ಯೆ</th><th>ವಿದ್ಯಾರ್ಥಿ</th><th>ತರಬೇತಿ</th><th>ಅಂಕಗಳು</th><th>ಶೇಕಡಾವಾರು</th><th>ನೀಡಿದ ದಿನಾಂಕ</th></tr></thead>' +
     '<tbody>' + rows + '</tbody>' +
