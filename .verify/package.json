@@ -1,0 +1,12 @@
+{
+  "name": "classplus-verify",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Offline harness for the Kannada DTI portal: rule-enforcing Firestore double plus module-loading simulation. Harness-only — see README.md.",
+  "scripts": {
+    "test": "node run-tests.js"
+  },
+  "dependencies": {
+    "jsdom": "^27.0.0"
+  }
+}
