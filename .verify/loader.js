@@ -438,6 +438,8 @@ function loadPage(opts){
     'get answers(){ return ANSWERS; },' +
     'nextCertNo:function(){ return nextCertificateNumberRemote(); },' +
     'localCertNo:function(){ return nextCertificateNumber(); },' +
+    'gotoNext:function(){ state.stage = Math.min(5, (Number(state.stage)||1) + 1); render(); },' +
+    'dropDraftNow:function(){ dropDraft(); },' +
     'seed:function(){ return publishDefaultTrainingIfEmpty(); },' +
     'scoringMode:function(){ return SCORING.mode; },' +
     'forceServerScoring:function(){ SCORING.mode="server"; },' +

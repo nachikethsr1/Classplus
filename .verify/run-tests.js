@@ -13,6 +13,7 @@ const SUITES = [
   't-scoring.js',        // weighted marks + compatibility
   't-seed.js',           // default training seeds once
   't-certno.js',         // one certificate numbering scheme
+  't-feedback.js',       // feedback answers persist immediately
   't-issue.js',          // real submit -> certificate path
   't-registration.js',   // real registration path
 ];

@@ -1425,14 +1425,33 @@ let draftTimer = null;
 function persistDraft(){
   const k = draftKey();
   if(!k || !state.draft) return;
+  /* Write straight away. This used to debounce for 250ms, which meant a
+     radio or textarea answer lived only in memory for a quarter second —
+     closing the tab (or a crash) in that window silently lost the answer,
+     which is what "the radio buttons do not save" looked like.
+     localStorage.setItem is synchronous and cheap; the debounce only ever
+     bought back a few microseconds of work. */
+  const write = function(){
+    try{ localStorage.setItem(k, JSON.stringify(state.draft)); }
+    catch(e){
+      /* quota: drop the cached background first, then retry once */
+      try{
+        localStorage.removeItem(CERT_BG_KEY);
+        localStorage.setItem(k, JSON.stringify(state.draft));
+      }catch(e2){ /* storage genuinely unavailable; in-memory draft still works */ }
+    }
+  };
+  write();
+  /* keep the timer only as a flush for callers that batch many keystrokes */
   clearTimeout(draftTimer);
-  draftTimer = setTimeout(() => {
-    try{ localStorage.setItem(k, JSON.stringify(state.draft)); }catch(e){ /* silent */ }
-  }, 250);
+  draftTimer = null;
 }
 function dropDraft(){
   const k = draftKey();
   if(!k) return;
+  /* a queued write from the old debounce would otherwise put the draft back */
+  clearTimeout(draftTimer);
+  draftTimer = null;
   try{ localStorage.removeItem(k); }catch(e){}
 }
 function newDraft(user){
@@ -2275,6 +2294,8 @@ function bindPostRender(){
   $$('input[name^="rate_"]').forEach(el => {
     el.addEventListener('change', () => {
       if(!state.draft) return;
+      if(!state.draft.feedback) state.draft.feedback = { ratings:{}, answers:{} };
+      if(!state.draft.feedback.ratings) state.draft.feedback.ratings = {};
       state.draft.feedback.ratings[el.name.slice(5)] = el.value;
       persistDraft();
     });
@@ -5441,9 +5462,15 @@ document.addEventListener('change', function(e){
     if(grp){
       $$('.opt', grp).forEach(o => o.classList.toggle('selected', !!o.querySelector('input:checked')));
     }
-    /* generic feedback radio -> store answer */
+    /* generic feedback radio -> store answer.
+       This document-level handler is the fallback: the per-element binding
+       in bindPostRender() only covers whatever was in the DOM at that
+       moment, so a control rendered or re-rendered later saved nothing
+       while still *looking* selected. Delegation here catches both. */
     const fbGroup = t.getAttribute('data-fbgroup');
     if(fbGroup && state.draft){
+      if(!state.draft.feedback) state.draft.feedback = { ratings:{}, answers:{} };
+      if(!state.draft.feedback.answers) state.draft.feedback.answers = {};
       state.draft.feedback.answers[fbGroup] = t.value;
       persistDraft();
     }
