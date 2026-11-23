@@ -1,0 +1,16 @@
+{
+  "name": "classplus-emulator-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Firebase Emulator Suite tests: real Firebase SDK calls against the committed firestore.rules and storage.rules.",
+  "scripts": {
+    "test": "./run.sh"
+  },
+  "dependencies": {
+    "@firebase/rules-unit-testing": "^3.0.4",
+    "firebase": "10.12.5",
+    "firebase-admin": "^12.7.0",
+    "firebase-tools": "^15.37.0",
+    "jsdom": "^25.0.1"
+  }
+}
