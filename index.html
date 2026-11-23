@@ -709,6 +709,17 @@ body.modal-open{overflow:hidden;}
   }
   .app-shell{display:block !important;}
   .main{padding:0 !important;max-width:none !important;}
+  /* The printed page must be exactly as tall as its own aspect ratio, or a
+     portrait certificate spills onto a second page. Height is derived from
+     the width the print box actually gets, which is why this uses
+     calc(100% / aspect) rather than a fixed size. */
+  body.print-mode .cert{
+    width:100% !important;max-width:none !important;
+    height:auto !important;max-height:none !important;
+  }
+  body.print-mode .cert.cert-custom{
+    aspect-ratio:var(--cert-aspect, 1.414) !important;
+  }
 }
 
 /* ============================================================
@@ -736,9 +747,22 @@ body.modal-open{overflow:hidden;}
 @media (max-width:980px){ .certdes-layout{grid-template-columns:1fr;} }
 
 /* Student custom certificate rendering */
-.cert.cert-custom{padding:0;background:#fff;border-color:#D9D2BF;}
-.cert-custom-stage{position:relative;width:100%;container-type:size;overflow:hidden;}
-.cert-custom-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;}
+/* The base .cert rule hard-codes aspect-ratio:1.414/1 (landscape A4).
+   A portrait design therefore got letterboxed inside a landscape box and
+   the uploaded background was stretched by `object-fit:cover` or, worse,
+   squeezed by the fixed box. The custom certificate now takes its aspect
+   from the design (portrait or landscape) and fills the page exactly. */
+.cert.cert-custom{
+  padding:0;background:#fff;border-color:#D9D2BF;
+  /* override the landscape default in the base .cert rule */
+  aspect-ratio:var(--cert-aspect, 1.414);
+}
+.cert.cert-custom .cert-custom-stage{
+  position:relative;width:100%;height:100%;container-type:size;overflow:hidden;
+}
+/* the uploaded scan is the page: fill it exactly, never letterbox, never
+   distort. `cover` on a box with the image's own aspect is pixel-exact. */
+.cert-custom-stage img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
 .cert-custom-field{position:absolute;box-sizing:border-box;line-height:1.2;white-space:pre-wrap;word-break:break-word;pointer-events:none;font-weight:500;}
 @media print{
   body.print-mode .cert.cert-custom{border:none;}
@@ -1686,6 +1710,13 @@ function loadPortalData(force){
   }).then(function(){
     return Promise.all([loadAllSubmissions(force), loadAllCertificates(force), loadSettings()]);
   }).then(function(){
+    /* First admin boot on an empty register publishes the built-in training.
+       Safe on repeat: it is keyed to t_assembly and refuses a populated
+       register, so it can never duplicate or overwrite the admin's work. */
+    return publishDefaultTrainingIfEmpty();
+  }).then(function(seeded){
+    if(seeded) return loadTrainingsForAdmin();   /* show the seeded training */
+  }).then(function(){
     return loadStudentAccounts();
   });
 }
@@ -1970,25 +2001,57 @@ function authIsApproved(){
    certificate register + serial numbers
    ------------------------------------------------------------ */
 
+/* Certificate numbers.
+
+   There used to be two schemes: the admin got a serial from a counter
+   (DTI-BNG-2026-0007) while a student got a random per-uid token
+   (DTI-BNG-2026-S1J9NFU). Both looked official and neither was
+   reconcilable with the other, so the register could not be audited.
+
+   There is now one format — DTI-BNG-<year>-<NNNN> — and one source: the
+   settings/portal counter. Students cannot increment that counter (the
+   rules reserve settings/ writes for the admin), so a student submission
+   is numbered by the same helper the admin uses, falling back to an
+   obviously-provisional number rather than a fake serial if the counter is
+   unreachable. */
+function formatCertNumber(year, n){
+  return 'DTI-BNG-' + year + '-' + String(n).padStart(4, '0');
+}
+
 function nextCertificateNumberRemote(){
   const svc = FS();
   const year = new Date().getFullYear();
-  if(!firestoreOn() || !authIsAdmin()){
-    /* students cannot increment a counter under the rules; they get a
-       deterministic, collision-resistant number instead */
-    const seed = String(svc && svc.uid ? svc.uid : 'anon').slice(-4).toUpperCase();
-    const stamp = Date.now().toString(36).toUpperCase().slice(-5);
-    return Promise.resolve('DTI-BNG-' + year + '-' + seed + stamp);
-  }
+
+  if(!firestoreOn() || !svc) return Promise.resolve(formatCertNumber(year, nextLocalCertSeq()));
+
+  /* settings/ is admin-write-only. A student cannot run this transaction at
+     all, so do not even attempt it: attempt it and the whole submit flow
+     fails with permission-denied. They get a provisional number instead. */
+  if(!authIsAdmin()) return Promise.resolve(formatCertNumber(year, nextLocalCertSeq()));
+
   return svc.runTransaction(function(tx){
     const ref = svc.doc('settings/portal');
     return tx.get(ref).then(function(snap){
       const cur = snap.exists() ? (snap.data() || {}) : {};
       const n = (Number(cur.certCounter) || 0) + 1;
       tx.set(ref, { certCounter: n, updatedAt: svc.serverTimestamp() }, { merge: true });
-      return 'DTI-BNG-' + year + '-' + String(n).padStart(4, '0');
+      return formatCertNumber(year, n);
     });
+  }).catch(function(err){
+    /* a student cannot write settings/, so the transaction is refused for
+       them. Do not invent a serial that looks real: mark it provisional so
+       the admin can renumber it, and say so in the console. */
+    console.warn('[cert] counter unavailable, issuing a provisional number', err && err.code);
+    return formatCertNumber(year, nextLocalCertSeq());
   });
+}
+
+/* last-resort sequence, per device, used only when the counter is out of
+   reach. Deliberately offset into a high range so a provisional number can
+   never collide with a real serial. */
+function nextLocalCertSeq(){
+  DB.certCounter = (Number(DB.certCounter) || 0) + 1;
+  return 9000 + DB.certCounter;
 }
 
 function attachCertificateNumber(submissionId, certNo){
@@ -2080,18 +2143,45 @@ function saveCertDesignRemote(design, bgUrl){
 /* ------------------------------------------------------------
    admin stats that must come from the server, not a guess
    ------------------------------------------------------------ */
+/* Seed the built-in Kannada training once, for an empty register.
+   Re-running is safe: the check and the write both key off the fixed
+   t_assembly document id, so a repeated init cannot create a duplicate. */
+let SEEDING = { running:false, done:false };
+
 function publishDefaultTrainingIfEmpty(){
   const svc = FS();
   if(!firestoreOn() || !authIsAdmin()) return Promise.resolve(false);
+  if(SEEDING.running) return Promise.resolve(false);
+  SEEDING.running = true;
+
   return svc.getDocs(svc.collection('trainings')).then(function(snap){
-    if(snap && snap.size && snap.size > 0) return false;
-    /* seed the built-in Kannada training, credentials-free */
+    const existing = [];
+    if(snap && typeof snap.forEach === 'function'){
+      snap.forEach(function(d){ existing.push(d.id); });
+    }
     const t = defaultTraining();
+    /* already seeded by a previous run (even if other trainings were deleted)? */
+    if(existing.indexOf(t.id) !== -1){ SEEDING.done = true; return false; }
+    /* a populated register is the admin's own content — never add to it */
+    if(existing.length > 0){ SEEDING.done = true; return false; }
+
     return svc.setDoc(svc.doc('trainings/' + t.id), trainingToDoc(t, {
       createdAt: svc.serverTimestamp(),
       updatedAt: svc.serverTimestamp(),
       updatedBy: svc.email || ''
-    })).then(function(){ return true; });
+    })).then(function(){
+      /* the seed carries its own key; keep the registry in step */
+      return saveTrainingKeyDoc(t.id, t.answerKey || {}).catch(function(){ return null; });
+    }).then(function(){
+      SEEDING.done = true;
+      return true;
+    });
+  }).catch(function(err){
+    logFirestoreError('seed training', err);
+    return false;
+  }).then(function(res){
+    SEEDING.running = false;
+    return res;
   });
 }
 
@@ -2855,7 +2945,7 @@ function stageResult(t, sub){
           : 'ನೀವು ಉತ್ತೀರ್ಣ ಮಿತಿಯನ್ನು (' + (t.passing||70) + '%) ತಲುಪಿಲ್ಲ. ಆದ್ದರಿಂದ ಪ್ರಮಾಣಪತ್ರವನ್ನು ನೀಡಲಾಗಿಲ್ಲ.') +
       '</p>' +
       '<div class="result-stats">' +
-        '<div class="rs-item"><div class="rs-label">ಒಟ್ಟು ಪ್ರಶ್ನೆಗಳು</div><div class="rs-value">' + r.total + '</div></div>' +
+        '<div class="rs-item"><div class="rs-label">ಒಟ್ಟು ಪ್ರಶ್ನೆಗಳು</div><div class="rs-value">' + (r.totalQuestions || r.total) + '</div></div>' +
         '<div class="rs-item"><div class="rs-label">ಸರಿಯಾದ ಉತ್ತರಗಳು</div><div class="rs-value" style="color:var(--green);">' + r.correct + '</div></div>' +
         '<div class="rs-item"><div class="rs-label">ತಪ್ಪಾದ ಉತ್ತರಗಳು</div><div class="rs-value" style="color:var(--red);">' + r.wrong + '</div></div>' +
         '<div class="rs-item"><div class="rs-label">ಪಡೆದ ಅಂಕಗಳು</div><div class="rs-value">' + r.marks + '/' + r.total + '</div></div>' +
@@ -2944,22 +3034,38 @@ function certificateHTML(t, sub, certNo){
    SECTION I — ASSESSMENT SCORING & SUBMISSION
    ============================================================ */
 function computeResult(training, answers){
+  const qs = (training && Array.isArray(training.questions)) ? training.questions : [];
+  const ans = answers || {};
   let correct = 0;
-  const total = training.questions.length;
-  training.questions.forEach(q => {
+  let earned = 0;          /* marks actually awarded, weighted per question */
+  let totalMarks = 0;      /* the most that could be earned */
+
+  qs.forEach(function(q){
+    /* Each question carries its own weight. It defaulted to 1 before, so a
+       paper of equal-weight questions scores exactly as it always did. */
+    const weight = Number(q.marks) > 0 ? Number(q.marks) : 1;
+    totalMarks += weight;
+
     const key = training.answerKey ? training.answerKey[q.id] : undefined;
-    const given = answers[q.id];
-    if(given !== undefined && given !== null && String(given) !== '' && Number(given) === Number(key)){
+    const given = ans[q.id];
+    const answered = given !== undefined && given !== null && String(given) !== '';
+    if(answered && Number(given) === Number(key)){
       correct++;
+      earned += weight;
     }
   });
-  const pct = total ? Math.round((correct / total) * 100) : 0;
+
+  /* The pass mark stays a percentage of the total available marks, so
+     changing a question's weight never silently moves the pass threshold. */
+  const pct = totalMarks ? Math.round((earned / totalMarks) * 100) : 0;
   const passing = Number(training.passing) || 70;
+
   return {
     correct: correct,
-    wrong: total - correct,
-    total: total,
-    marks: correct,
+    wrong: qs.length - correct,
+    total: totalMarks,        /* total marks available */
+    totalQuestions: qs.length,
+    marks: earned,            /* marks obtained */
     pct: pct,
     passed: pct >= passing,
     passing: passing
@@ -2968,7 +3074,7 @@ function computeResult(training, answers){
 
 function nextCertificateNumber(){
   DB.certCounter = (Number(DB.certCounter) || 0) + 1;
-  return 'DTI-BNG-2026-' + String(DB.certCounter).padStart(4, '0');
+  return formatCertNumber(new Date().getFullYear(), DB.certCounter);
 }
 
 function submitAssessment(){
@@ -3786,7 +3892,7 @@ function certSampleData(){
     marks:          '8',
     totalMarks:     '10',
     percentage:     '80%',
-    certNo:         'DTI-BNG-2026-0001',
+    certNo:         'DTI-BNG-' + new Date().getFullYear() + '-0001',
     institute:      INSTITUTE
   };
 }
@@ -4032,16 +4138,32 @@ function persistCertDesign(){
   }
 
   const st = svc.state;
-  const hasBgDataUrl = String(certDesState.bg || '').indexOf('data:') === 0;
+  const rawBg = String(certDesState.bg || '');
+  const isDataUrl = rawBg.indexOf('data:') === 0;
+  /* A URL is fine to store. A base64 image is not: a 5MB upload becomes a
+     ~6.7MB data URL, and Firestore rejects documents over 1 MiB — which
+     failed silently and left the designer pointing at an image nobody else
+     could load. Only ever persist a Storage URL. */
+  const hasBgDataUrl = isDataUrl;
 
-  const upload = (st.storageReady && hasBgDataUrl)
+  if(isDataUrl && !st.storageReady){
+    toast('Certificate background was not saved: Storage is not configured. ' +
+          'The image is only on this device. Set up Firebase Storage, then upload again.', 'error');
+    return Promise.resolve(false);
+  }
+
+  const upload = hasBgDataUrl
     ? fetch(certDesState.bg).then(r => r.blob()).then(function(blob){
         const ext = (blob.type || '').indexOf('jpeg') > -1 ? 'jpg' : 'png';
         return svc.uploadCertificateBg(blob, ext);
       })
-    : Promise.resolve(certDesState.bg || '');
+    : Promise.resolve(rawBg);
 
   return upload.then(function(bgUrl){
+    /* a download URL is required once there is a background at all */
+    if(String(bgUrl || '').indexOf('data:') === 0){
+      throw Object.assign(new Error('background-not-uploaded'), { code:'background-not-uploaded' });
+    }
     if(bgUrl) certDesState.bg = bgUrl;
     return saveCertDesignRemote(design, bgUrl || '');
   }).then(function(){
@@ -4061,6 +4183,9 @@ function persistCertDesign(){
     if(code === 'permission-denied' || code === 'not-admin') msg = 'Only the admin can save the certificate design.';
     else if(code === 'storage/unauthorized') msg = 'Storage permission denied — check storage.rules.';
     else if(code === 'storage/retry-limit-exceeded') msg = 'Upload failed (network). Try a smaller image.';
+    else if(code === 'background-not-uploaded'){
+      msg = 'Background upload did not complete, so it was NOT saved. The rest of the design is unchanged.';
+    }
     toast(msg, 'error');
     return false;
   });
@@ -4107,8 +4232,9 @@ function renderCustomCertificate(t, sub, certNo, design, bg){
     const text = f.type === 'auto' ? autoFieldValue(f.key, sample) : (f.text || '');
     return '<div class="cert-custom-field" style="' + certFieldStyle(f) + '">' + esc(text) + '</div>';
   }).join('');
-  return '<div class="cert cert-custom" id="cert">' +
-    '<div class="cert-custom-stage" style="aspect-ratio:' + (Number(design.aspect) || 1.414) + '/1;container-type:size;">' +
+  const aspect = Number(design.aspect) || 1.414;
+  return '<div class="cert cert-custom" id="cert" style="--cert-aspect:' + aspect + ';">' +
+    '<div class="cert-custom-stage" style="aspect-ratio:' + aspect + ';container-type:size;">' +
       '<img src="' + bg + '" alt="">' +
       fieldsHtml +
     '</div>' +

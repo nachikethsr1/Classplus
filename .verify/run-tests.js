@@ -9,6 +9,10 @@ const SUITES = [
   't-guards.js',         // no unconstrained scans as a student
   't-certs.js',          // certificates rules: forgery paths
   't-keys.js',           // answer keys are admin-only
+  't-profile.js',        // kgid frozen after approval
+  't-scoring.js',        // weighted marks + compatibility
+  't-seed.js',           // default training seeds once
+  't-certno.js',         // one certificate numbering scheme
   't-issue.js',          // real submit -> certificate path
   't-registration.js',   // real registration path
 ];

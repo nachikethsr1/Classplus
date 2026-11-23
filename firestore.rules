@@ -65,9 +65,15 @@ service cloud.firestore {
       ];
     }
 
-    function profileUpdateAllowed() {
-      return request.resource.data.diff(resource.data).affectedKeys()
-               .hasAny(protectedProfileFields()) == false;
+    // KGID appears on the certificate, so it is frozen once an admin has
+    // approved the account: before approval a student may fix a typo,
+    // afterwards only an admin may change it.
+    function studentMayUpdateProfile() {
+      let touched = request.resource.data.diff(resource.data).affectedKeys();
+      return touched.hasAny(protectedProfileFields()) == false
+             && (resource.data.status == 'approved'
+                   ? touched.hasAny(['kgid', 'officialName']) == false
+                   : true);
     }
 
     // ---------- students ----------
@@ -87,7 +93,7 @@ service cloud.firestore {
 
       // A student may correct their own details, but running an
       // update that touches status/role/verification is refused.
-      allow update: if isSelf(uid) && profileUpdateAllowed();
+      allow update: if isSelf(uid) && studentMayUpdateProfile();
 
       // Only the admin may approve, reject, disable or delete.
       allow update: if isAdmin();

@@ -104,9 +104,15 @@ function makeFirestoreDouble(opts){
         return true;
       }
       if(mode === 'update' && incoming){
-        // rule: profileUpdateAllowed() — diff().affectedKeys().hasAny(protected) == false
-        const touched = Object.keys(incoming).filter(function(k){ return PROTECTED_PROFILE_FIELDS.indexOf(k) !== -1; });
-        if(touched.length) return false;
+        /* mirrors studentMayUpdateProfile(): protected fields are always
+           refused; once approved, kgid and officialName are frozen too. */
+        const before = data || {};
+        const touched = Object.keys(incoming).filter(function(k){
+          return String(before[k]) !== String(incoming[k]);
+        });
+        if(touched.some(function(k){ return PROTECTED_PROFILE_FIELDS.indexOf(k) !== -1; })) return false;
+        if(before.status === 'approved' &&
+           touched.some(function(k){ return k === 'kgid' || k === 'officialName'; })) return false;
       }
       return true;
     }
@@ -240,10 +246,28 @@ function makeFirestoreDouble(opts){
       return Promise.resolve();
     },
     runTransaction(fn){
-      return fn({
+      /* A transaction is subject to the same rules as a batch write, and a
+         rejection inside it aborts the transaction. Modelled by rejecting on
+         the first disallowed write. */
+      let failed = null;
+      const tx = {
         get: ref => api.getDoc(ref),
-        set: (ref, data, o) => api.setDoc(ref, data, o),
-        update: (ref, data) => api.updateDoc(ref, data)
+        set: (ref, data, o) => {
+          const incoming = (o && o.merge) ? Object.assign({}, db[ref.path], data) : data;
+          const mode = db[ref.path] === undefined ? 'create' : 'update';
+          if(!docAllowed(ref.path, mode, incoming)){ failed = denied(ref.path); return; }
+          db[ref.path] = incoming;
+          calls.writes.push({op: 'tx-set', path: ref.path, data});
+        },
+        update: (ref, data) => {
+          if(!docAllowed(ref.path, 'update', Object.assign({}, db[ref.path], data))){ failed = denied(ref.path); return; }
+          db[ref.path] = Object.assign({}, db[ref.path], data);
+          calls.writes.push({op: 'tx-update', path: ref.path, data});
+        }
+      };
+      return Promise.resolve(fn(tx)).then(function(v){
+        if(failed) throw failed;
+        return v;
       });
     },
     onSnapshot(ref, cb){
@@ -412,6 +436,9 @@ function loadPage(opts){
     '},' +
     'computeResult:function(t, a){ return computeResult(t, a); },' +
     'get answers(){ return ANSWERS; },' +
+    'nextCertNo:function(){ return nextCertificateNumberRemote(); },' +
+    'localCertNo:function(){ return nextCertificateNumber(); },' +
+    'seed:function(){ return publishDefaultTrainingIfEmpty(); },' +
     'scoringMode:function(){ return SCORING.mode; },' +
     'forceServerScoring:function(){ SCORING.mode="server"; },' +
     'forceClientScoring:function(){ SCORING.mode="client"; },' +
