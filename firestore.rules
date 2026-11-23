@@ -133,6 +133,36 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ---------- certificates ----------
+    // certificates/{certificateId}
+    // The issued certificate register. One document per certificate.
+    match /certificates/{certificateId} {
+      // A student sees only their own certificates; the admin sees all.
+      allow read: if isSelf(resource.data.studentUid) || isAdmin();
+
+      // A student may issue a certificate for THEMSELVES, but only by
+      // pointing at a submission that is theirs, has passed, and whose
+      // scores the certificate must copy verbatim. That blocks a
+      // fabricated certificate for a failed or missing attempt.
+      //
+      // NOTE: submissions are still written by the browser until the
+      // scoring Cloud Function lands (see FIREBASE_SETUP.md). Once it
+      // does, both collections can be closed to students entirely.
+      allow create: if isSelf(request.resource.data.studentUid)
+        && request.resource.data.number is string
+        && request.resource.data.number != ''
+        && get(/databases/$(database)/documents/submissions/$(request.resource.data.submissionId)).data.studentUid == request.auth.uid
+        && get(/databases/$(database)/documents/submissions/$(request.resource.data.submissionId)).data.passStatus == true
+        && request.resource.data.marks == get(/databases/$(database)/documents/submissions/$(request.resource.data.submissionId)).data.marksObtained
+        && request.resource.data.total == get(/databases/$(database)/documents/submissions/$(request.resource.data.submissionId)).data.totalMarks
+        && request.resource.data.pct == get(/databases/$(database)/documents/submissions/$(request.resource.data.submissionId)).data.percentage;
+
+      // Certificates are a permanent record: nobody rewrites them after
+      // issue. Only the admin can remove one.
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
     // ---------- certificate design ----------
     // certificateDesigns/current  (single active design)
     match /certificateDesigns/{docId} {
