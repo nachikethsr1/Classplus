@@ -1455,9 +1455,98 @@ function firestoreOn(){
   return !!(svc && svc.state.firestoreReady && svc.isSignedIn);
 }
 
+/* Write a training's answer key to the admin-only registry. Extracted so
+   the admin save path and any migration both use one implementation. */
+function saveTrainingKeyDoc(trainingId, key){
+  const svc = FS();
+  if(!firestoreOn()) return Promise.reject(new Error('firestore-not-ready'));
+  if(!authIsAdmin()) return Promise.reject(new Error('not-admin'));
+  const payload = { key: key || {}, updatedAt: svc.serverTimestamp(), updatedBy: svc.email || '' };
+  return svc.setDoc(svc.doc('trainingKeys/' + trainingId), payload, { merge: true })
+    .then(function(){
+      ANSWERS.keys[trainingId] = payload.key;
+      ANSWERS.loaded = true;
+      return true;
+    });
+}
+
 /* ------------------------------------------------------------
    mapping helpers
    ------------------------------------------------------------ */
+
+/* ------------------------------------------------------------
+   answer keys (Phase 2)
+
+   Answers used to live on trainings/{id} as `answerKey`. That document is
+   readable by every approved student, so any student could open the console
+   and read the correct answers before submitting — the exam was open-book.
+   Worse, computeResult() marked the paper in the browser, so the score the
+   student handed in was the score they were given.
+
+   Keys now live in trainingKeys/{trainingId}, which only the admin can read.
+   A student therefore cannot mark their own paper; and because submissions
+   are immutable in the rules, the app checks its own score against this
+   cache before it shows anything.
+   ------------------------------------------------------------ */
+
+/* in-memory cache: trainingId -> { qId: optionIndex } */
+const ANSWERS = { keys: {}, loaded: false };
+
+/* ------------------------------------------------------------
+   SCORING MODE — read this before changing it.
+
+   'client'  The browser marks the paper, so the browser needs the key, so
+             the key is readable by approved students. This is the current
+             behaviour and it is NOT secure: a student can open the console
+             and read the answers before submitting. It exists so the exam
+             keeps working while no Cloud Function is deployed.
+
+   'server'  Answers are sent to the scoring Cloud Function, which marks
+             them with the admin-only key. Only then is `answerKey` dropped
+             from the training document and the key confined to
+             trainingKeys/{id}. Requires the function to be deployed
+             (Blaze plan). See PHASE2_PHASE3_REPORT.md.
+
+   Flipping this to 'server' without a deployed function leaves students
+   unable to submit, so it is deliberately a manual switch.
+   ------------------------------------------------------------ */
+const SCORING = { mode: 'client' };
+function scoringIsServerSide(){ return SCORING.mode === 'server'; }
+
+/* Until scoring moves server-side, the key has to be somewhere the browser
+   can read it. Writing it to the training document is the old location; it
+   is kept only in client mode. */
+function keyIsClientReadable(){ return !scoringIsServerSide(); }
+
+function keyForTraining(trainingId){
+  return ANSWERS.keys[trainingId] || {};
+}
+
+function loadAnswerKeys(force){
+  const svc = FS();
+  if(!firestoreOn() || !authIsAdmin()) return Promise.resolve(false);
+  if(ANSWERS.loaded && !force) return Promise.resolve(true);
+  return svc.getDocs(svc.collection('trainingKeys')).then(function(snap){
+    const keys = {};
+    if(snap && typeof snap.forEach === 'function'){
+      snap.forEach(function(d){
+        const v = d.data() || {};
+        keys[d.id] = v.key || {};
+      });
+    }
+    ANSWERS.keys = keys;
+    ANSWERS.loaded = true;
+    /* re-shape the trainings already in memory so the admin screens see keys */
+    DB.trainings = DB.trainings.map(function(t){
+      t.answerKey = keyForTraining(t.id);
+      return t;
+    });
+    return true;
+  }).catch(function(err){
+    logFirestoreError('answer keys', err);
+    return false;
+  });
+}
 
 /* Firestore training doc -> the shape views already expect */
 function trainingFromDoc(id, d){
@@ -1475,7 +1564,17 @@ function trainingFromDoc(id, d){
     archived: !!d.archived,
     createdAt: d.createdAt && d.createdAt.toDate ? d.createdAt.toDate().toISOString() : (d.createdAt || ''),
     questions: Array.isArray(d.questions) ? d.questions : [],
-    answerKey: d.answerKey || {},
+    /* The answer key is NOT stored on the training document any more: that
+       document is readable by every approved student, so an answer key on it
+       was reachable from the browser console. Keys now live in the
+       admin-only trainingKeys/{trainingId} collection (see loadAnswerKeys).
+       answerKey here is an in-memory convenience for the admin screens. */
+    answerKey: (function(){
+      /* an empty object is truthy, so test for content, not existence */
+      const fromRegistry = keyForTraining(id);
+      if(fromRegistry && Object.keys(fromRegistry).length) return fromRegistry;
+      return keyIsClientReadable() ? (d.answerKey || {}) : {};
+    })(),
     feedback: d.feedback || { day:'', sessions:[], questions:[] }
   };
 }
@@ -1494,9 +1593,12 @@ function trainingToDoc(t, extra){
     published: t.published !== false,
     archived: !!t.archived,
     questions: t.questions || [],
-    answerKey: t.answerKey || {},
+    /* The key is normally written to trainingKeys/{id} instead. It is
+       mirrored here only while scoring is client-side, because the browser
+       cannot mark the paper without it. Dropping this mirror is the switch
+       that makes the key genuinely private — see SCORING above. */
     feedback: t.feedback || { day:'', sessions:[], questions:[] }
-  }, extra || {});
+  }, (keyIsClientReadable() ? { answerKey: t.answerKey || {} } : {}), extra || {});
 }
 
 /* Firestore submission doc -> the app's existing submission shape */
@@ -1572,12 +1674,16 @@ function q(collectionPath, ...constraints){
 function loadPortalData(force){
   if(!firestoreOn()) return Promise.resolve();
   if(!authIsAdmin()){
-    /* students: published trainings, their own submissions + certs */
+    /* students: published trainings, their own submissions + certs.
+       No answer keys are fetched — the student path must never see them. */
     return loadTrainingsForStudent().then(function(){
       return Promise.all([loadMySubmissions(force), loadMyCertificates(force)]);
     });
   }
-  return loadTrainingsForAdmin().then(function(){
+  /* admin: keys first, so every training loaded below can carry its key */
+  return loadAnswerKeys(force).then(function(){
+    return loadTrainingsForAdmin();
+  }).then(function(){
     return Promise.all([loadAllSubmissions(force), loadAllCertificates(force), loadSettings()]);
   }).then(function(){
     return loadStudentAccounts();
@@ -1713,6 +1819,7 @@ function reloadPortalData(){
   DataStore.loadedSubmissions = false;
   DataStore.loadedCertificates = false;
   ACCOUNTS.loaded = false;
+  ANSWERS.loaded = false;
   return loadPortalData(true).then(function(){ render(); });
 }
 DataStore.reload = reloadPortalData;
@@ -1770,7 +1877,14 @@ function saveTrainingToFirestore(draft){
     updatedBy: svc.email || ''
   });
 
+  /* The questions themselves stay on the training document (students need
+     to read them); only the correct-answer indices move to trainingKeys. */
   return svc.setDoc(svc.doc('trainings/' + id), doc, { merge: true }).then(function(){
+    /* Mirror the key into the admin-only registry as well, so switching
+       SCORING.mode to 'server' needs no migration step: the keys are
+       already in place and already unreadable by students. */
+    return saveTrainingKeyDoc(id, answerKey);
+  }).then(function(){
     return { id: id, isNew: isNew };
   });
 }
@@ -1778,7 +1892,13 @@ function saveTrainingToFirestore(draft){
 function deleteTrainingFromFirestore(id){
   const svc = FS();
   if(!firestoreOn() || !authIsAdmin()) return Promise.reject(new Error('not-admin'));
-  return svc.deleteDoc(svc.doc('trainings/' + id));
+  /* the key is a separate document now, so delete it alongside the training */
+  return Promise.all([
+    svc.deleteDoc(svc.doc('trainings/' + id)),
+    svc.deleteDoc(svc.doc('trainingKeys/' + id)).catch(function(){ /* may not exist */ })
+  ]).then(function(){
+    delete ANSWERS.keys[id];
+  });
 }
 
 function setTrainingPublished(id, patch){

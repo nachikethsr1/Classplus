@@ -411,6 +411,14 @@ function loadPage(opts){
         '});' +
     '},' +
     'computeResult:function(t, a){ return computeResult(t, a); },' +
+    'get answers(){ return ANSWERS; },' +
+    'scoringMode:function(){ return SCORING.mode; },' +
+    'forceServerScoring:function(){ SCORING.mode="server"; },' +
+    'forceClientScoring:function(){ SCORING.mode="client"; },' +
+    'saveTrainingKey:function(id, key){ return saveTrainingKeyDoc(id, key); },' +
+    'reloadDraft:function(){ state.draft = readDraft() || newDraft(currentUser()||{}); render(); return state.draft; },' +
+    'setStage:function(n){ state.stage=n; state.route="workflow"; render(); },' +
+    'openTraining:function(id){ state.trainingId=id; state.stage=0; state.draft={details:{},answers:{},feedback:{ratings:{},answers:{}}}; render(); return true; },' +
     'submitRegistrationForm:function(){ return submitRegistration(document.querySelector("form[data-form=register]")); }' +
     '};';
 

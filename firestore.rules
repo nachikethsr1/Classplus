@@ -94,6 +94,21 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ---------- training answer keys ----------
+    // trainingKeys/{trainingId}  { key: { questionId: optionIndex } }
+    //
+    // The whole point of this collection is that a student cannot read it.
+    // Score-bearing answer keys belong here, never on the training document.
+    //
+    // NOTE: while the app still marks papers in the browser (SCORING.mode
+    // === 'client' in index.html) the key has to remain readable, so a
+    // mirror is kept on trainings/{id}. Adopted together with the scoring
+    // Cloud Function, this collection is what makes the exam closed-book.
+    match /trainingKeys/{trainingId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
     // ---------- trainings ----------
     // trainings/{trainingId}
     match /trainings/{trainingId} {

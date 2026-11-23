@@ -12,6 +12,8 @@ const DB = {
   'trainings/t1':{title:'ತರಬೇತಿ',topic:'ವಿಷಯ',date:'23-11-2026',published:true,archived:false,
     passing:70,
     questions:[{id:'q1',q:'a',options:['1','2']},{id:'q2',q:'b',options:['1','2']}],
+    /* client scoring mode: the key is mirrored on the doc so the browser can
+       mark the paper. See SCORING in index.html. */
     answerKey:{q1:0,q2:1}},
 };
 
