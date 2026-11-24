@@ -20,7 +20,7 @@ service firebase.storage {
 
     // Must match adminEmail() in firestore.rules.
     function adminEmail() {
-      return 'replace-with-admin-google-account@gmail.com';
+      return 'savithakh80@gmail.com';
     }
 
     function isAdmin() {

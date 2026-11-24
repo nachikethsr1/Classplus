@@ -34,7 +34,7 @@ service cloud.firestore {
     // The single authorized administrator.
     // Change this string, then redeploy the rules.
     function adminEmail() {
-      return 'replace-with-admin-google-account@gmail.com';
+      return 'savithakh80@gmail.com';
     }
 
     function isAdmin() {
@@ -63,6 +63,77 @@ service cloud.firestore {
         'status', 'role', 'verifiedAt', 'verifiedBy',
         'createdAt', 'uid', 'marks', 'results'
       ];
+    }
+
+    // ---------- server-side marking ----------
+    //
+    // These rules mark the paper. Not the browser.
+    //
+    // Security Rules are evaluated by Firestore itself, and get() inside a
+    // rule reads a document with full privileges — the caller's own read
+    // permissions do not apply. So a rule can open the private answer key
+    // that the student cannot, compare it with what they handed in, and
+    // refuse any score that does not match. That is a genuine server-side
+    // marking step on the Spark (free) plan, with no Cloud Function.
+    //
+    // Rules have no loops, so the key cannot be summed over a map. Instead
+    // both sides are expressed as a flat list of tokens, one token per MARK:
+    //
+    //   question q3, correct option 2, worth 2 marks
+    //     -> key tokens    "q3:2#1", "q3:2#2"
+    //   the student picked option 0
+    //     -> answer tokens "q3:0#1", "q3:0#2"
+    //
+    // marks earned = how many of the student's tokens appear in the key,
+    // which is a set intersection, which rules CAN do. Flooding the list
+    // with every option is useless: the token count is capped at the total
+    // marks available, so extra guesses for one question can only crowd out
+    // the others.
+    //
+    // The tokens are written once, at create, and frozen there. The key only
+    // becomes readable to the student AFTER that document exists (see
+    // trainingKeys below), so at the moment they commit to an answer they
+    // cannot know whether it is right.
+
+    function keyDoc(trainingId) {
+      return get(/databases/$(database)/documents/trainingKeys/$(trainingId)).data;
+    }
+
+    // The one submission id this caller may use for this training.
+    // Deterministic, so the key-release rule below can find it, and so a
+    // second attempt is impossible.
+    function mySubmissionId(trainingId) {
+      return request.auth.uid + '_' + trainingId;
+    }
+
+    // Marks earned = |student tokens ∩ key tokens|.
+    function earnedMarks(tokens, trainingId) {
+      return tokens.toSet().intersection(keyDoc(trainingId).tokens.toSet()).size();
+    }
+
+    // Everything a student is not allowed to assert about their own result.
+    function scoreFields() {
+      return ['marksObtained', 'totalMarks', 'percentage', 'passStatus',
+              'correctCount', 'wrongCount', 'passingPercent', 'scoredAt'];
+    }
+
+    function carriesNoScore(data) {
+      return !data.keys().hasAny(scoreFields());
+    }
+
+    // The score being written must be the score the key produces.
+    // percentage and passStatus are derived exactly the way computeResult()
+    // in index.html derives them, so the number on screen and the number in
+    // the database are the same number.
+    function scoreIsHonest(trainingId, tokens) {
+      let k = keyDoc(trainingId);
+      let earned = earnedMarks(tokens, trainingId);
+      let pct = math.round(earned * 100.0 / k.totalMarks);
+      return k.totalMarks > 0
+        && request.resource.data.marksObtained == earned
+        && request.resource.data.totalMarks == k.totalMarks
+        && request.resource.data.percentage == pct
+        && request.resource.data.passStatus == (pct >= k.passing);
     }
 
     // The submission a certificate claims to be based on.
@@ -158,8 +229,14 @@ service cloud.firestore {
         || (isApproved() && resource.data.published == true);
 
       // Nobody but the admin can create or change a training, which
-      // is what keeps question text and answer keys safe.
-      allow create, update, delete: if isAdmin();
+      // is what keeps question text safe.
+      //
+      // The answer key must never reappear on this document: every
+      // approved student can read it, so a key here is a key in the
+      // browser console. Keys live in trainingKeys/{id} and nowhere else.
+      allow create, update: if isAdmin()
+        && !('answerKey' in request.resource.data);
+      allow delete: if isAdmin();
     }
 
     // ---------- submissions ----------
