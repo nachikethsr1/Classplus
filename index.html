@@ -1500,11 +1500,24 @@ function firestoreOn(){
 
 /* Write a training's answer key to the admin-only registry. Extracted so
    the admin save path and any migration both use one implementation. */
-function saveTrainingKeyDoc(trainingId, key){
+/* The key document is what the rules mark the paper against, so it carries
+   everything the rule needs: the token list, the marks available and the
+   pass threshold. A student can only read it after handing their paper in. */
+function saveTrainingKeyDoc(trainingId, key, questions, passing){
   const svc = FS();
   if(!firestoreOn()) return Promise.reject(new Error('firestore-not-ready'));
   if(!authIsAdmin()) return Promise.reject(new Error('not-admin'));
-  const payload = { key: key || {}, updatedAt: svc.serverTimestamp(), updatedBy: svc.email || '' };
+  const qs = questions || (getTraining(trainingId) || {}).questions || [];
+  const pass = Number(passing) || Number((getTraining(trainingId) || {}).passing) || 70;
+  const payload = {
+    key: key || {},
+    tokens: keyTokensFor(qs, key || {}),
+    totalMarks: totalMarksFor(qs),
+    questionCount: (qs || []).length,
+    passing: pass,
+    updatedAt: svc.serverTimestamp(),
+    updatedBy: svc.email || ''
+  };
   return svc.setDoc(svc.doc('trainingKeys/' + trainingId), payload, { merge: true })
     .then(function(){
       ANSWERS.keys[trainingId] = payload.key;
@@ -1553,13 +1566,75 @@ const ANSWERS = { keys: {}, loaded: false };
    Flipping this to 'server' without a deployed function leaves students
    unable to submit, so it is deliberately a manual switch.
    ------------------------------------------------------------ */
-const SCORING = { mode: 'client' };
-function scoringIsServerSide(){ return SCORING.mode === 'server'; }
+const SCORING = { mode: 'rules-verified' };
+function scoringIsServerSide(){ return SCORING.mode !== 'client'; }
 
-/* Until scoring moves server-side, the key has to be somewhere the browser
-   can read it. Writing it to the training document is the old location; it
-   is kept only in client mode. */
-function keyIsClientReadable(){ return !scoringIsServerSide(); }
+/* The answer key is NEVER written to the training document any more, in any
+   mode. trainings/{id} is readable by every approved student, so a key on it
+   is a key in the browser console.
+
+   The key lives in trainingKeys/{id}, which firestore.rules releases to a
+   student only AFTER their own submission exists — and a submission is
+   create-once with frozen answers. So:
+
+     while the paper is open   the key is unreachable;
+     once the paper is handed in   the key is readable, the browser marks it
+                                   and shows the result instantly;
+     when the marks are written back   the RULES recompute them from the
+                                   frozen answers and refuse anything else.
+
+   The marking that counts therefore happens inside Firestore, not here.
+   What this function does is render a number the rules have already agreed
+   to. See the "server-side marking" section of firestore.rules. */
+function keyIsClientReadable(){ return false; }
+
+/* ------------------------------------------------------------
+   Answer tokens.
+
+   Security Rules have no loops, so they cannot walk an answers map and add
+   up marks. They CAN intersect two sets. Both the key and the student's
+   answers are therefore also written as a flat list of tokens, one token
+   per mark:
+
+     question q3, option 2 chosen, question worth 2 marks
+       ->  "q3:2#1", "q3:2#2"
+
+   marks earned = how many of the student's tokens are also key tokens.
+   Both sides must build the string identically — if you change the format
+   here, change scoreIsHonest() in firestore.rules with it.
+   ------------------------------------------------------------ */
+function questionWeight(q){
+  return Number(q && q.marks) > 0 ? Number(q.marks) : 1;
+}
+
+function tokensFor(questions, pick){
+  const out = [];
+  (questions || []).forEach(function(q){
+    const chosen = pick(q);
+    if(chosen === undefined || chosen === null || String(chosen) === '') return;
+    const w = questionWeight(q);
+    for(let i = 1; i <= w; i++) out.push(q.id + ':' + Number(chosen) + '#' + i);
+  });
+  return out;
+}
+
+/* what the student hands in */
+function answerTokensFor(training, answers){
+  const a = answers || {};
+  return tokensFor(training && training.questions, function(q){ return a[q.id]; });
+}
+
+/* what the key says, written to trainingKeys/{id} by the admin */
+function keyTokensFor(questions, answerKey){
+  const k = answerKey || {};
+  return tokensFor(questions, function(q){ return Number(k[q.id]) || 0; });
+}
+
+function totalMarksFor(questions){
+  let total = 0;
+  (questions || []).forEach(function(q){ total += questionWeight(q); });
+  return total;
+}
 
 function keyForTraining(trainingId){
   return ANSWERS.keys[trainingId] || {};
@@ -1937,10 +2012,9 @@ function saveTrainingToFirestore(draft){
   /* The questions themselves stay on the training document (students need
      to read them); only the correct-answer indices move to trainingKeys. */
   return svc.setDoc(svc.doc('trainings/' + id), doc, { merge: true }).then(function(){
-    /* Mirror the key into the admin-only registry as well, so switching
-       SCORING.mode to 'server' needs no migration step: the keys are
-       already in place and already unreadable by students. */
-    return saveTrainingKeyDoc(id, answerKey);
+    /* The key goes to the admin-only registry, and only there. The rules
+       refuse a training document that carries an answerKey field at all. */
+    return saveTrainingKeyDoc(id, answerKey, questions);
   }).then(function(){
     return { id: id, isNew: isNew };
   });
@@ -1979,13 +2053,29 @@ function hasSubmittedOnServer(trainingId){
   });
 }
 
-function submitAssessmentToFirestore(training, answers, feedback, details, result){
+/* ------------------------------------------------------------
+   Handing in a paper, in two steps.
+
+   Step 1 writes the answers and NOTHING about the score — the rules refuse
+   a submission that carries marks. The document id is fixed to
+   <uid>_<trainingId>, which is what makes a second attempt impossible and
+   what lets the trainingKeys rule find this submission.
+
+   Step 2 (scoreSubmissionInFirestore, below) fills the score in. By then
+   the answers are frozen, and the rules recompute the marks from them.
+   ------------------------------------------------------------ */
+function submissionIdFor(trainingId){
+  const svc = FS();
+  return (svc && svc.uid ? svc.uid : 'anon') + '_' + trainingId;
+}
+
+function submitAssessmentToFirestore(training, answers, feedback, details){
   const svc = FS();
   if(!firestoreOn()) return Promise.reject(new Error('firestore-not-ready'));
   if(!authIsApproved()) return Promise.reject(new Error('not-approved'));
 
   const u = currentUser() || {};
-  const id = 'sub_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const id = submissionIdFor(training.id);
 
   const doc = {
     studentUid: svc.uid,
@@ -1999,6 +2089,53 @@ function submitAssessmentToFirestore(training, answers, feedback, details, resul
     trainingDate: training.date || '',
     feedbackResponses: deepCopy(feedback || { ratings:{}, answers:{} }),
     assessmentAnswers: deepCopy(answers || {}),
+    /* the same answers, flattened one token per mark, for the rules */
+    answerTokens: answerTokensFor(training, answers),
+    attemptNo: 1,
+    certificateNo: null,
+    submittedAt: svc.serverTimestamp()
+  };
+
+  /* Write first. Only if that is refused do we look, because a submission
+     that does not exist cannot be read — the read rule tests
+     resource.data.studentUid, and there is no resource. Writing first also
+     costs one round trip instead of two on the normal path. */
+  return svc.setDoc(svc.doc('submissions/' + id), doc)
+    .then(function(){ return { id: id }; })
+    .catch(function(err){
+      if(!err || err.code !== 'permission-denied') throw err;
+      /* the usual reason is that this paper is already in: a reload, a
+         second tab, or a submit that died before the marks were written */
+      return svc.getDoc(svc.doc('submissions/' + id)).then(function(snap){
+        if(snap && snap.exists && snap.exists()){
+          const prev = snap.data() || {};
+          return { id: id, resumed: true, alreadyScored: prev.marksObtained !== undefined };
+        }
+        throw err;
+      }, function(){ throw err; });
+    });
+}
+
+/* The key for one training. The rules hand it over only once the submission
+   above exists, so this call fails while the paper is still open — which is
+   exactly the point. */
+function fetchAnswerKeyForTraining(trainingId){
+  const svc = FS();
+  if(!firestoreOn()) return Promise.resolve({});
+  return svc.getDoc(svc.doc('trainingKeys/' + trainingId)).then(function(snap){
+    const d = (snap && snap.exists && snap.exists()) ? (snap.data() || {}) : {};
+    const key = d.key || {};
+    ANSWERS.keys[trainingId] = key;
+    return key;
+  });
+}
+
+/* Write the score back. Every number here is re-derived by the rules from
+   the frozen answers; a value the key does not support is refused. */
+function scoreSubmissionInFirestore(submissionId, result){
+  const svc = FS();
+  if(!firestoreOn()) return Promise.resolve(false);
+  return svc.updateDoc(svc.doc('submissions/' + submissionId), {
     marksObtained: result.marks,
     totalMarks: result.total,
     percentage: result.pct,
@@ -2006,16 +2143,8 @@ function submitAssessmentToFirestore(training, answers, feedback, details, resul
     correctCount: result.correct,
     wrongCount: result.wrong,
     passingPercent: result.passing,
-    attemptNo: (DB.submissions.filter(function(s){
-      return s.trainingId === training.id && s.userId === svc.uid;
-    }).length + 1),
-    certificateNo: null,          /* filled below, then patched in place */
-    submittedAt: svc.serverTimestamp()
-  };
-
-  return svc.setDoc(svc.doc('submissions/' + id), doc).then(function(){
-    return { id: id };
-  });
+    scoredAt: svc.serverTimestamp()
+  }).then(function(){ return true; });
 }
 
 function authIsApproved(){
@@ -2240,7 +2369,7 @@ function publishDefaultTrainingIfEmpty(){
       updatedBy: svc.email || ''
     })).then(function(){
       /* the seed carries its own key; keep the registry in step */
-      return saveTrainingKeyDoc(t.id, t.answerKey || {}).catch(function(){ return null; });
+      return saveTrainingKeyDoc(t.id, t.answerKey || {}, t.questions, t.passing).catch(function(){ return null; });
     }).then(function(){
       SEEDING.done = true;
       return true;
@@ -3104,9 +3233,14 @@ function certificateHTML(t, sub, certNo){
 /* ============================================================
    SECTION I — ASSESSMENT SCORING & SUBMISSION
    ============================================================ */
-function computeResult(training, answers){
+/* `key` is the answer key fetched from trainingKeys/{id} after the paper was
+   handed in. It is passed explicitly because the training document no longer
+   carries one — training.answerKey only exists in the offline demo DB and on
+   the admin's screens. */
+function computeResult(training, answers, key){
   const qs = (training && Array.isArray(training.questions)) ? training.questions : [];
   const ans = answers || {};
+  const sheet = key || (training && training.answerKey) || {};
   let correct = 0;
   let earned = 0;          /* marks actually awarded, weighted per question */
   let totalMarks = 0;      /* the most that could be earned */
@@ -3117,10 +3251,10 @@ function computeResult(training, answers){
     const weight = Number(q.marks) > 0 ? Number(q.marks) : 1;
     totalMarks += weight;
 
-    const key = training.answerKey ? training.answerKey[q.id] : undefined;
+    const expected = sheet[q.id];
     const given = ans[q.id];
     const answered = given !== undefined && given !== null && String(given) !== '';
-    if(answered && Number(given) === Number(key)){
+    if(answered && expected !== undefined && Number(given) === Number(expected)){
       correct++;
       earned += weight;
     }
@@ -3172,8 +3306,12 @@ function submitAssessment(){
     return;
   }
 
-  const result = computeResult(t, answers);
   const details = state.draft.details || {};
+
+  /* The browser cannot mark this paper yet: the answer key is unreadable
+     until the submission exists. `result` is filled in after the hand-in,
+     from the key the rules then release. */
+  let result = null;
 
   const submission = {
     id: uid('sub'),
@@ -3190,13 +3328,14 @@ function submitAssessment(){
     },
     feedback: deepCopy(state.draft.feedback || { ratings:{}, answers:{} }),
     answers: deepCopy(answers),
-    result: result,
+    result: null,
     submittedAt: nowISO(),
     certificateNo: null
   };
 
   /* ---- write to Firestore, then reflect it locally ---- */
   const finish = function(certNo){
+    submission.result = result;
     if(certNo){
       submission.certificateNo = certNo;
       DB.certificates.push({
@@ -3226,21 +3365,33 @@ function submitAssessment(){
   };
 
   if(!firestoreOn()){
-    /* offline / not configured: keep the previous local behaviour */
+    /* offline / not configured: the demo DB holds its own key, so the old
+       local behaviour is unchanged */
+    result = computeResult(t, answers);
     const localCert = result.passed ? nextCertificateNumber() : null;
     finish(localCert);
     return;
   }
 
   showStageMsg('ಸಲ್ಲಿಸಲಾಗುತ್ತಿದೆ…', 'ok');
-  submitAssessmentToFirestore(t, answers, state.draft.feedback, details, result)
+  /* hand in -> read the key the rules now release -> mark -> write the
+     score back (the rules re-mark it) -> certificate */
+  submitAssessmentToFirestore(t, answers, state.draft.feedback, details)
     .then(function(res){
       submission.id = res.id;
-      if(!result.passed) return null;
-      return nextCertificateNumberRemote().then(function(certNo){
-        return saveCertificateToFirestore(submission, certNo)
-          .then(function(){ return attachCertificateNumber(res.id, certNo); })
-          .then(function(){ return certNo; });
+      return fetchAnswerKeyForTraining(t.id).then(function(key){
+        result = computeResult(t, answers, key);
+        /* a paper that was already marked (a resumed or duplicate submit)
+           must not be marked again — the rules refuse it, and rightly */
+        if(res.alreadyScored) return null;
+        return scoreSubmissionInFirestore(res.id, result);
+      }).then(function(){
+        if(!result.passed) return null;
+        return nextCertificateNumberRemote().then(function(certNo){
+          return saveCertificateToFirestore(submission, certNo)
+            .then(function(){ return attachCertificateNumber(res.id, certNo); })
+            .then(function(){ return certNo; });
+        });
       });
     })
     .then(finish)

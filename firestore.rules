@@ -197,7 +197,18 @@ service cloud.firestore {
     // mirror is kept on trainings/{id}. Adopted together with the scoring
     // Cloud Function, this collection is what makes the exam closed-book.
     match /trainingKeys/{trainingId} {
-      allow read: if isAdmin();
+      // The key is released to a student ONLY after their own submission
+      // for this training exists. Before that moment the paper is closed:
+      // nothing the browser can reach holds the correct answers.
+      //
+      // After that moment the key is harmless. The answers are already
+      // written and frozen, and the marks are recomputed from them by
+      // scoreIsHonest() below — so releasing the key here is what lets the
+      // result appear instantly, with no server and no waiting.
+      allow read: if isAdmin()
+        || (isApproved()
+            && exists(/databases/$(database)/documents/submissions/$(mySubmissionId(trainingId))));
+
       allow write: if isAdmin();
     }
 
@@ -245,22 +256,46 @@ service cloud.firestore {
       // A student reads only their own attempts. The admin reads all.
       allow read: if isSelf(resource.data.studentUid) || isAdmin();
 
-      // A student may create a submission for themselves, on a
-      // published training, and may not hand in their own marks:
-      // the write is refused unless marks are absent (the client
-      // computes and stores them, so we validate the shape here).
+      // Handing the paper in. The student writes their answers and NOTHING
+      // about how well they did: a create carrying marksObtained,
+      // passStatus or any other score field is refused outright.
+      //
+      // The id is fixed to <uid>_<trainingId>. That makes a second attempt
+      // impossible — a write to an existing document is an update, and the
+      // update rule below only lets the score be filled in — and it gives
+      // the trainingKeys rule a document it can look up.
       allow create: if isApproved()
         && request.resource.data.studentUid == request.auth.uid
+        && submissionId == mySubmissionId(request.resource.data.trainingId)
         && request.resource.data.keys().hasAll([
              'studentUid', 'trainingId', 'officialNameSnapshot',
              'kgidSnapshot', 'feedbackResponses', 'assessmentAnswers',
-             'marksObtained', 'totalMarks', 'percentage',
-             'passStatus', 'submittedAt'
+             'answerTokens', 'submittedAt'
            ])
+        && carriesNoScore(request.resource.data)
+        && request.resource.data.answerTokens is list
+        && request.resource.data.answerTokens.size() ==
+           request.resource.data.answerTokens.toSet().size()
+        && request.resource.data.answerTokens.size() <=
+           keyDoc(request.resource.data.trainingId).totalMarks
         && get(/databases/$(database)/documents/trainings/$(request.resource.data.trainingId)).data.published == true;
 
-      // Submissions are an audit record: immutable once written.
-      allow update: if false;
+      // Marking. The ONLY update anyone may make is to fill the score in,
+      // and only with the score the answer key actually produces: the rule
+      // recomputes it from the frozen answerTokens. Everything else about
+      // the document — the answers above all — stays immutable.
+      //
+      // The student does this once, immediately after handing in, which is
+      // what produces the instant result screen. The admin may re-run it,
+      // which is the repair path if a key was wrong and had to be fixed.
+      allow update: if (isAdmin() || isSelf(resource.data.studentUid))
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(scoreFields())
+        && (isAdmin() || carriesNoScore(resource.data))
+        // a document written before answer tokens existed cannot be marked
+        // by the rules, so it cannot be scored from the browser at all
+        && 'answerTokens' in resource.data
+        && scoreIsHonest(resource.data.trainingId, resource.data.answerTokens);
+
       allow delete: if isAdmin();
     }
 
