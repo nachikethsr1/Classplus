@@ -58,12 +58,12 @@ window.FIREBASE_SETUP = {
    printed for your web app. Do not change the key names.
    ------------------------------------------------------------ */
 window.FIREBASE_CONFIG = {
-  apiKey:            'REPLACE_WITH_WEB_API_KEY',
-  authDomain:        'REPLACE_WITH_PROJECT_ID.firebaseapp.com',
-  projectId:         'REPLACE_WITH_PROJECT_ID',
-  storageBucket:     'REPLACE_WITH_PROJECT_ID.firebasestorage.app',
-  messagingSenderId: 'REPLACE_WITH_MESSAGING_SENDER_ID',
-  appId:             'REPLACE_WITH_WEB_APP_ID'
+  apiKey:            'AIzaSyBCZ1QCyVZUeN9P_MqyMsmeQZdhkbkimTs',
+  authDomain:        'dti-bengaluru-training-portal.firebaseapp.com',
+  projectId:         'dti-bengaluru-training-portal',
+  storageBucket:     'dti-bengaluru-training-portal.firebasestorage.app',
+  messagingSenderId: '268631823608',
+  appId:             '1:268631823608:web:bb1f4280e646d19db6170d'
 };
 
 /* ------------------------------------------------------------
@@ -79,7 +79,7 @@ window.FIREBASE_CONFIG = {
    FIREBASE_SETUP.md explains how.
    ------------------------------------------------------------ */
 window.ADMIN_EMAILS = [
-  'replace-with-admin-google-account@gmail.com'
+  'savithakh80@gmail.com'
 ];
 
 /* ------------------------------------------------------------

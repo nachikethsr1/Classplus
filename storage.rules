@@ -20,7 +20,7 @@ service firebase.storage {
 
     // Must match adminEmail() in firestore.rules.
     function adminEmail() {
-      return 'replace-with-admin-google-account@gmail.com';
+      return 'savithakh80@gmail.com';
     }
 
     function isAdmin() {
@@ -46,7 +46,19 @@ service firebase.storage {
       allow read: if isSignedIn();
 
       // Only the admin uploads or replaces it, images only, size capped.
-      allow write: if isAdmin() && isImage() && underLimit();
+      //
+      // create/update ONLY. `allow write` also covers delete, and on a
+      // delete there is no request.resource, so isImage() threw and the
+      // rule denied every delete — including the admin's. Both
+      // deleteCertificateBg() and the designer's Reset swallow that
+      // error, so the artwork silently stayed in the bucket and kept
+      // being served. Confirmed against the emulator:
+      // tests/emulator/suites/07-storage.js (B13).
+      allow create, update: if isAdmin() && isImage() && underLimit();
+
+      // Removing the artwork is an admin action with no uploaded body
+      // to validate.
+      allow delete: if isAdmin();
     }
 
     // ---------- deny everything else ----------
