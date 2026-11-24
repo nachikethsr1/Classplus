@@ -79,7 +79,7 @@ window.FIREBASE_CONFIG = {
    FIREBASE_SETUP.md explains how.
    ------------------------------------------------------------ */
 window.ADMIN_EMAILS = [
-  'your-mothers-real-google-savithakh80@gmail.com'
+  'savithakh80@gmail.com'
 ];
 
 /* ------------------------------------------------------------
