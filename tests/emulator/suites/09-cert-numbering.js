@@ -6,6 +6,7 @@
    that matters: can two certificates end up carrying the same serial? */
 
 const h = require('../harness');
+const { SUB_MINE_PASS } = require('../fixtures');
 const { session, admin, adminSdk } = require('../env');
 const { loadApp, makeRealService } = require('../app-loader');
 
@@ -97,7 +98,8 @@ module.exports = async function run() {
   if (!training) {
     h.skip('N08', 'app-issued certificate is flagged provisional', 'no published training loaded');
   } else {
-    const out = await fresh.probe.issueCertificate(training, { q1: 2, q2: 0 }, { name: 'ಅನನ್ಯಾ', kgid: 'KG-1001', email: sess.email });
+    await admin.firestore().doc('submissions/' + SUB_MINE_PASS).delete();
+    const out = await fresh.probe.issueCertificate(training, { q1: 2, q2: 0, q3: 1 }, { name: 'ಅನನ್ಯಾ', kgid: 'KG-1001', email: sess.email });
     const c = (await admin.firestore().doc('certificates/cert_' + out.id).get()).data() || {};
     h.expect('N08', 'a certificate the student app issues is flagged provisional', c.provisional === true, 'number=' + c.number + ' provisional=' + c.provisional);
     h.expect('N09', 'that number cannot be confused with a register serial', /-PROV-/.test(String(c.number)), 'number=' + c.number);

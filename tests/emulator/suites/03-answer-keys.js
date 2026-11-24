@@ -1,10 +1,14 @@
-/* trainingKeys/{id} — the admin-only answer-key registry, and the mirror
-   that client-side scoring still leaves on the training document. */
+/* trainingKeys/{id} — the answer-key registry.
+
+   Admin-only until a student hands their paper in; from that moment that
+   one student may read that one key, because their answers are already
+   frozen and the rules do the marking. Nothing mirrors a key onto the
+   student-readable training document any more. */
 
 const { doc, getDoc, setDoc, collection, getDocs } = require('firebase/firestore');
 const h = require('../harness');
 const { session } = require('../env');
-const { T_PUB } = require('../fixtures');
+const { T_PUB, T_ARCH } = require('../fixtures');
 
 module.exports = async function run() {
   h.setGroup('answer keys');
@@ -13,13 +17,18 @@ module.exports = async function run() {
   const pending = await session('pending');
   const boss = await session('admin');
 
-  await h.deny('K01', 'approved student reads trainingKeys/{id}', () =>
+  /* The seeded student has already sat T_PUB, so that key is legitimately
+     theirs. T_ARCH is a paper they have not sat. */
+  await h.deny('K01', 'approved student reads the key for a paper they have NOT sat', () =>
+    getDoc(doc(me.db, 'trainingKeys/' + T_ARCH))
+  );
+  await h.allow('K01b', 'approved student reads the key for the paper they HAVE sat', () =>
     getDoc(doc(me.db, 'trainingKeys/' + T_PUB))
   );
   await h.deny('K02', 'approved student scans the trainingKeys collection', () =>
     getDocs(collection(me.db, 'trainingKeys'))
   );
-  await h.deny('K03', 'pending student reads trainingKeys/{id}', () =>
+  await h.deny('K03', 'pending student reads trainingKeys/{id} (not approved, no submission)', () =>
     getDoc(doc(pending.db, 'trainingKeys/' + T_PUB))
   );
   await h.deny('K04', 'student writes an answer key', () =>
@@ -30,19 +39,17 @@ module.exports = async function run() {
     getDocs(collection(boss.db, 'trainingKeys'))
   );
 
-  /* The honest part. While SCORING.mode === 'client' the browser has to
-     mark the paper, so the key is mirrored onto trainings/{id}, which every
-     approved student may read. This is NOT a pass. */
-  await h.gap(
-    'K07',
-    'approved student reads the answerKey MIRROR on trainings/{id}',
-    'SCORING.mode === "client": the key is still inside the student-readable training document, so the exam is open-book. Closing this needs server-side scoring (Cloud Function) — see PHASE2_PHASE3_REPORT.md item 5.',
-    async () => {
-      const snap = await getDoc(doc(me.db, 'trainings/' + T_PUB));
-      const data = snap.data() || {};
-      if (!data.answerKey || !Object.keys(data.answerKey).length) {
-        throw Object.assign(new Error('no key on the training document'), { code: 'permission-denied' });
-      }
-    }
-  );
+  /* The mirror is gone: the key is not on the training document in any
+     mode, and the rules refuse to put it back (see 12-scoring-integrity
+     V04). This used to be the K07 security gap. */
+  {
+    const snap = await getDoc(doc(me.db, 'trainings/' + T_PUB));
+    const data = snap.data() || {};
+    h.expect(
+      'K07',
+      'no answerKey mirror on the student-readable training document',
+      !('answerKey' in data),
+      'fields on trainings/' + T_PUB + ': ' + Object.keys(data).join(',')
+    );
+  }
 };

@@ -6,14 +6,14 @@ const {
 } = require('firebase/firestore');
 const h = require('../harness');
 const { session, USERS } = require('../env');
-const { T_PUB } = require('../fixtures');
+const { T_PUB, SUB_MINE_PASS, SUB_MINE_FAIL, SUB_OTHER } = require('../fixtures');
 
 /* The exact document saveCertificateToFirestore() writes. */
 function certDoc(over) {
   return Object.assign(
     {
       number: 'DTI-BNG-2026-9001',
-      submissionId: 'sub_mine_pass',
+      submissionId: SUB_MINE_PASS,
       studentUid: USERS.approved.uid,
       studentName: 'ಅನನ್ಯಾ',
       kgid: 'KG-1001',
@@ -21,9 +21,9 @@ function certDoc(over) {
       trainingTitle: 'ಕನ್ನಡ ತರಬೇತಿ',
       trainingTopic: 'Assembly procedures',
       date: '2026-01-15',
-      marks: 8,
-      total: 10,
-      pct: 80,
+      marks: 3,
+      total: 4,
+      pct: 75,
       issuedAt: serverTimestamp(),
     },
     over || {}
@@ -80,14 +80,14 @@ module.exports = async function run() {
   await h.deny('C13', 'certificate for a FAILED submission', () =>
     setDoc(
       doc(me.db, 'certificates/cert_f4'),
-      certDoc({ submissionId: 'sub_mine_fail', marks: 3, total: 10, pct: 30 })
+      certDoc({ submissionId: SUB_MINE_FAIL, marks: 0, total: 4, pct: 0 })
     )
   );
   await h.deny('C14', 'certificate pointing at a submission that does not exist', () =>
     setDoc(doc(me.db, 'certificates/cert_f5'), certDoc({ submissionId: 'sub_ghost' }))
   );
   await h.deny("C15", "certificate built on ANOTHER student's submission", () =>
-    setDoc(doc(me.db, 'certificates/cert_f6'), certDoc({ submissionId: 'sub_other' }))
+    setDoc(doc(me.db, 'certificates/cert_f6'), certDoc({ submissionId: SUB_OTHER }))
   );
   await h.deny('C16', 'certificate issued in another student\'s name', () =>
     setDoc(doc(me.db, 'certificates/cert_f7'), certDoc({ studentUid: USERS.other.uid }))
@@ -127,7 +127,7 @@ module.exports = async function run() {
   await h.deny('C28', 'admin issues a certificate for a FAILED submission', () =>
     setDoc(
       doc(boss.db, 'certificates/cert_admin_fail'),
-      certDoc({ number: 'DTI-BNG-2026-0010', submissionId: 'sub_mine_fail', marks: 3, total: 10, pct: 30 })
+      certDoc({ number: 'DTI-BNG-2026-0010', submissionId: SUB_MINE_FAIL, marks: 0, total: 4, pct: 0 })
     )
   );
   await h.deny('C29', 'admin issues a certificate naming a student who did not sit that submission', () =>
@@ -143,7 +143,7 @@ module.exports = async function run() {
     () =>
       setDoc(doc(other.db, 'certificates/cert_dup'), {
         number: 'DTI-BNG-2026-0008',
-        submissionId: 'sub_other',
+        submissionId: SUB_OTHER,
         studentUid: USERS.other.uid,
         studentName: 'other',
         kgid: 'KG-3003',
@@ -151,9 +151,9 @@ module.exports = async function run() {
         trainingTitle: 'x',
         trainingTopic: 'x',
         date: '2026-01-15',
-        marks: 8,
-        total: 10,
-        pct: 80,
+        marks: 3,
+        total: 4,
+        pct: 75,
         issuedAt: serverTimestamp(),
       })
   );

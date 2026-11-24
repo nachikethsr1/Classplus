@@ -18,6 +18,11 @@ const T_ARCH = 't_archived';
    archived. Kept as a fixture so the visibility tests cover it. */
 const T_PUB_ARCH = 't_published_archived';
 
+/* <uid>_<trainingId>, the only submission id the rules accept */
+const SUB_MINE_PASS = USERS.approved.uid + '_' + T_PUB;
+const SUB_MINE_FAIL = USERS.approved.uid + '_' + T_DRAFT;
+const SUB_OTHER = USERS.other.uid + '_' + T_PUB;
+
 function training(id, overrides) {
   return Object.assign(
     {
@@ -34,12 +39,46 @@ function training(id, overrides) {
       questions: [
         { id: 'q1', text: 'Q1', options: ['a', 'b', 'c', 'd'], marks: 1 },
         { id: 'q2', text: 'Q2', options: ['a', 'b', 'c', 'd'], marks: 1 },
+        { id: 'q3', text: 'Q3 (worth 2)', options: ['a', 'b', 'c', 'd'], marks: 2 },
       ],
-      /* SCORING.mode === 'client' still mirrors the key here — see the
-         answer-key suite, which proves a student can read it. */
-      answerKey: { q1: 2, q2: 0 },
+      /* NO answerKey here. trainings/{id} is readable by every approved
+         student, so the key lives only in trainingKeys/{id}. The rules
+         refuse a training document that carries one at all. */
       feedback: { day: '', sessions: [], questions: [] },
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedBy: 'fixture',
+    },
+    overrides || {}
+  );
+}
+
+/* the correct answers for the fixture paper */
+const KEY = { q1: 2, q2: 0, q3: 1 };
+/* a realistic pass: everything but q2 */
+const PASS_ANSWERS = { q1: 2, q2: 3, q3: 1 };
+const WEIGHTS = { q1: 1, q2: 1, q3: 2 };
+const TOTAL_MARKS = 4;
+
+/* the same token format index.html and firestore.rules agree on */
+function tokens(answers) {
+  const out = [];
+  Object.keys(WEIGHTS).forEach((qid) => {
+    const chosen = answers[qid];
+    if (chosen === undefined || chosen === null || chosen === '') return;
+    for (let i = 1; i <= WEIGHTS[qid]; i++) out.push(qid + ':' + Number(chosen) + '#' + i);
+  });
+  return out;
+}
+
+function keyDoc(overrides) {
+  return Object.assign(
+    {
+      key: KEY,
+      tokens: tokens(KEY),
+      totalMarks: TOTAL_MARKS,
+      questionCount: 3,
+      passing: 70,
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       updatedBy: 'fixture',
     },
@@ -60,13 +99,15 @@ function submission(id, overrides) {
       trainingTopic: 'Assembly procedures',
       trainingDate: '2026-01-15',
       feedbackResponses: { ratings: {}, answers: {} },
-      assessmentAnswers: { q1: 2, q2: 0 },
-      marksObtained: 8,
-      totalMarks: 10,
-      percentage: 80,
+      /* q1 right (1), q2 wrong, q3 right (2) -> 3 of 4 = 75%, a pass */
+      assessmentAnswers: PASS_ANSWERS,
+      answerTokens: tokens(PASS_ANSWERS),
+      marksObtained: 3,
+      totalMarks: 4,
+      percentage: 75,
       passStatus: true,
-      correctCount: 8,
-      wrongCount: 2,
+      correctCount: 2,
+      wrongCount: 1,
       passingPercent: 70,
       attemptNo: 1,
       certificateNo: null,
@@ -80,7 +121,7 @@ function certificate(overrides) {
   return Object.assign(
     {
       number: 'DTI-BNG-2026-0007',
-      submissionId: 'sub_mine_pass',
+      submissionId: SUB_MINE_PASS,
       studentUid: USERS.approved.uid,
       studentName: 'ಅನನ್ಯಾ',
       kgid: 'KG-1001',
@@ -88,9 +129,9 @@ function certificate(overrides) {
       trainingTitle: 'ಕನ್ನಡ ತರಬೇತಿ',
       trainingTopic: 'Assembly procedures',
       date: '2026-01-15',
-      marks: 8,
-      total: 10,
-      pct: 80,
+      marks: 3,
+      total: 4,
+      pct: 75,
       issuedAt: admin.firestore.FieldValue.serverTimestamp(),
     },
     overrides || {}
@@ -130,26 +171,38 @@ async function seed() {
   batch.set(db.doc('trainings/' + T_ARCH), training(T_ARCH, { published: false, archived: true }));
   batch.set(db.doc('trainings/' + T_PUB_ARCH), training(T_PUB_ARCH, { published: true, archived: true }));
 
-  batch.set(db.doc('trainingKeys/' + T_PUB), {
-    key: { q1: 2, q2: 0 },
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    updatedBy: 'fixture',
+  /* One token per MARK, exactly as keyTokensFor() in index.html builds it.
+     q3 is worth 2 marks, so it contributes two tokens. Total 4 marks. */
+  [T_PUB, T_DRAFT, T_ARCH, T_PUB_ARCH].forEach((tid) => {
+    batch.set(db.doc('trainingKeys/' + tid), keyDoc());
   });
 
-  batch.set(db.doc('submissions/sub_mine_pass'), submission('sub_mine_pass'));
+  /* Submission ids are <uid>_<trainingId> now: that is what makes a second
+     attempt impossible and what the trainingKeys release rule looks up. */
+  batch.set(db.doc('submissions/' + SUB_MINE_PASS), submission(SUB_MINE_PASS));
   batch.set(
-    db.doc('submissions/sub_mine_fail'),
-    submission('sub_mine_fail', { marksObtained: 3, totalMarks: 10, percentage: 30, passStatus: false })
+    db.doc('submissions/' + SUB_MINE_FAIL),
+    submission(SUB_MINE_FAIL, {
+      trainingId: T_DRAFT,
+      assessmentAnswers: { q1: 0, q2: 1, q3: 3 },
+      answerTokens: tokens({ q1: 0, q2: 1, q3: 3 }),
+      marksObtained: 0,
+      totalMarks: 4,
+      percentage: 0,
+      passStatus: false,
+      correctCount: 0,
+      wrongCount: 3,
+    })
   );
   batch.set(
-    db.doc('submissions/sub_other'),
-    submission('sub_other', { studentUid: USERS.other.uid, kgidSnapshot: 'KG-3003' })
+    db.doc('submissions/' + SUB_OTHER),
+    submission(SUB_OTHER, { studentUid: USERS.other.uid, kgidSnapshot: 'KG-3003' })
   );
 
   batch.set(db.doc('certificates/cert_sub_mine_pass'), certificate());
   batch.set(
     db.doc('certificates/cert_sub_other'),
-    certificate({ submissionId: 'sub_other', studentUid: USERS.other.uid, number: 'DTI-BNG-2026-0008' })
+    certificate({ submissionId: SUB_OTHER, studentUid: USERS.other.uid, number: 'DTI-BNG-2026-0008' })
   );
 
   batch.set(db.doc('settings/portal'), {
@@ -170,4 +223,9 @@ async function seed() {
   await batch.commit();
 }
 
-module.exports = { seed, training, submission, certificate, profile, T_PUB, T_DRAFT, T_ARCH, T_PUB_ARCH };
+module.exports = {
+  seed, training, submission, certificate, profile, keyDoc, tokens,
+  T_PUB, T_DRAFT, T_ARCH, T_PUB_ARCH,
+  SUB_MINE_PASS, SUB_MINE_FAIL, SUB_OTHER,
+  KEY, PASS_ANSWERS, WEIGHTS, TOTAL_MARKS,
+};

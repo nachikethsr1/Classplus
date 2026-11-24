@@ -7,7 +7,7 @@
 const { doc, getDoc, collection, getDocs, query, where } = require('firebase/firestore');
 const h = require('../harness');
 const { session, USERS, admin, adminSdk } = require('../env');
-const { T_PUB, T_DRAFT, T_ARCH } = require('../fixtures');
+const { T_PUB, T_DRAFT, T_ARCH, SUB_MINE_PASS } = require('../fixtures');
 const { loadApp, makeRealService } = require('../app-loader');
 
 function permissionWarnings(app) {
@@ -69,7 +69,9 @@ module.exports = async function run() {
       h.skip('A11', 'real submit -> certificate chain', 'the published training never loaded');
     } else {
       try {
-        const out = await p.issueCertificate(training, { q1: 2, q2: 0 }, { name: 'ಅನನ್ಯಾ', kgid: 'KG-1001', email: sess.email });
+        adminSdk();
+        await admin.firestore().doc('submissions/' + SUB_MINE_PASS).delete();
+        const out = await p.issueCertificate(training, { q1: 2, q2: 0, q3: 1 }, { name: 'ಅನನ್ಯಾ', kgid: 'KG-1001', email: sess.email });
         h.expect('A11', 'app submitted the attempt and wrote the submission', !!out.id, JSON.stringify(out.result || {}));
         h.expect('A12', 'app issued a certificate number for a pass', !!out.certNo, 'certNo=' + out.certNo);
 

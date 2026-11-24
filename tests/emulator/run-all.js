@@ -28,6 +28,7 @@ const SUITES = [
   ['09-cert-numbering', 'certificate numbering, including provisional numbers'],
   ['10-config-consistency', 'the admin allowlist in config + both rules files'],
   ['11-cert-design', 'certificate design + background upload, including failure'],
+  ['12-scoring-integrity', 'can a student decide their own score? (the main event)'],
 ];
 
 async function main() {

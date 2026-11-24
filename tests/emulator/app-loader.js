@@ -167,13 +167,18 @@ const PROBE =
   'persistDesign:function(design,bg){certDesState.design=design;certDesState.bg=bg;return persistCertDesign();},' +
   'readDesign:function(){return loadCertDesignRemote();},' +
   'get certDesState(){return certDesState;},' +
-  /* the real submit -> score -> number -> certificate chain */
+  'computeResultWithKey:function(t,a,k){return computeResult(t,a,k);},' +
+  'fetchKey:function(id){return fetchAnswerKeyForTraining(id);},' +
+  /* the real hand-in -> key release -> marking -> number -> certificate
+     chain, exactly as submitAssessment() runs it in the browser */
   'issueCertificate:function(training, answers, details){' +
-  'const r = computeResult(training, answers);' +
   'const det = details || {name:"ಅನನ್ಯಾ", kgid:"KG-1001", email:""};' +
   'const fb = {ratings:{}, answers:{}};' +
   'const u = currentUser() || {};' +
-  'return submitAssessmentToFirestore(training, answers, fb, det, r).then(function(res){' +
+  'return submitAssessmentToFirestore(training, answers, fb, det).then(function(res){' +
+  'return fetchAnswerKeyForTraining(training.id).then(function(key){' +
+  'const r = computeResult(training, answers, key);' +
+  'return (res.alreadyScored ? Promise.resolve(null) : scoreSubmissionInFirestore(res.id, r)).then(function(){' +
   'const submission = {id:res.id, userId:u.id, trainingId:training.id,' +
   'trainingTitle:training.title, trainingTopic:training.topic, trainingDate:training.date,' +
   'details:{name:det.name, email:det.email||"", kgid:det.kgid||""},' +
@@ -183,6 +188,8 @@ const PROBE =
   'return saveCertificateToFirestore(submission, certNo)' +
   '.then(function(){ return attachCertificateNumber(res.id, certNo); })' +
   '.then(function(){ return {id:res.id, certNo:certNo, result:r}; });' +
+  '});' +
+  '});' +
   '});' +
   '});' +
   '}' +
